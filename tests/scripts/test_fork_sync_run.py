@@ -125,9 +125,8 @@ def test_publish_rejects_main_changed_while_testing(controller, history, tmp_pat
 
 def test_bundle_roundtrip_materializes_exact_validated_candidate(controller, history, tmp_path, monkeypatch):
     root, _, upstream, fork = history
-    monkeypatch.setattr(controller, "run_coding_agent", lambda *args: (root / "message.txt").write_text(
-        "merged 中文\n", encoding="utf-8",
-    ))
+    monkeypatch.setattr(controller, "run_coding_agent",
+                        lambda *args: (root / "message.txt").write_text("merged 中文\n", encoding="utf-8") and "merged")
     controller.merge_one(step(upstream), {"agent": {}}, "preserve fork", later())
     candidate = git(root, "rev-parse", "HEAD")
     artifacts = tmp_path / "artifacts"
@@ -541,7 +540,7 @@ def test_only_whitespace_the_resolution_wrote_blocks_the_merge(controller, docum
                                                               resolution, error):
     root, fork, upstream = documented_history
     monkeypatch.setattr(controller, "run_coding_agent",
-                        lambda *args: (root / "message.txt").write_text(resolution, encoding="utf-8"))
+                        lambda *args: (root / "message.txt").write_text(resolution, encoding="utf-8") and "merged")
     if error is None:
         controller.merge_one(step(upstream), {"agent": {}}, "rules", later())
         assert git(root, "rev-parse", "HEAD^2") == upstream
@@ -575,3 +574,23 @@ def test_shard_fails_when_its_tests_create_the_account_hermes_home(controller, h
         controller.run_shard("owner/repo", artifacts, 1)
     # A home that existed before the run (a developer machine's own install) is not judged.
     controller.run_shard("owner/repo", artifacts, 1)
+
+
+@pytest.mark.parametrize("side,summary,warned", [
+    ("fork", None, True),
+    ("upstream", "message.txt: upstream's new wording replaces the obsolete fork string", False),
+])
+def test_conflict_left_as_one_side_had_it_is_listed_in_the_merge_commit(controller, history, monkeypatch, capsys,
+                                                                        side, summary, warned):
+    root, _, upstream, fork = history
+    version = {"fork": fork, "upstream": upstream}[side]
+
+    def agent(context, *args):
+        (root / "message.txt").write_text(git(root, "show", f"{version}:message.txt") + "\n", encoding="utf-8")
+        return summary
+
+    monkeypatch.setattr(controller, "run_coding_agent", agent)
+    assert controller.merge_one(step(upstream), {"agent": {}}, "rules", later()) == {side: ["message.txt"]}
+    who = {"fork": "the fork", "upstream": "upstream"}[side]
+    assert f"Conflicted files left exactly as {who} had them: message.txt." in git(root, "log", "-1", "--format=%B")
+    assert ("does not explain the one-sided resolution of message.txt" in capsys.readouterr().out) == warned

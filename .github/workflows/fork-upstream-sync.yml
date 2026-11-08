@@ -51,7 +51,7 @@ jobs:
           printf '%s/node_modules/.bin\n' "$RUNNER_TEMP/fork-sync-cli" >> "$GITHUB_PATH"
       - name: Keep controller outside the merge tree
         run: cp -R scripts/fork_sync "$RUNNER_TEMP/fork-sync-controller"
-      - name: Merge upstream and localize with Pi
+      - name: Merge upstream (new release first), resolve conflicts, localize new text, keep fork i18n and features
         id: prepare
         env:
           GH_TOKEN: ${{ github.token }}

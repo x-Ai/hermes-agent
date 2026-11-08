@@ -37,6 +37,7 @@ CANDIDATE_REF = "refs/heads/fork-sync-candidate"
 SHA = re.compile(r"[0-9a-f]{40}")
 MARKER = re.compile(r"^(?:<{7}|={7}|>{7})(?: |$)", re.MULTILINE)
 WORKTREE = ""  # read_version's revision for the files on disk
+ONE_SIDED = {"fork": "the fork", "upstream": "upstream"}
 WHITESPACE = re.compile(r"^[^+].*:\d+: ")  # a `git diff --check` finding, not its quoted line
 # A repair pass needs time to read the problems and fix them; less than this is not worth starting.
 REPAIR_SECONDS = 300
@@ -188,7 +189,7 @@ def merge_steps(goal: str, reason: str, settings: dict, prompt: str, artifacts: 
         print(f"Step {number}: merge {step['reason']} {step['commit'][:12]} ({step['summary']})", flush=True)
         before = output("rev-parse", "HEAD")
         try:
-            merge_one(step, settings, prompt, deadline)
+            sided = merge_one(step, settings, prompt, deadline)
         except Exception as error:
             save_diagnostics(artifacts, number, step, error)
             if not done:
@@ -197,7 +198,7 @@ def merge_steps(goal: str, reason: str, settings: dict, prompt: str, artifacts: 
             git("clean", "-fdq")
             warn(f"Step {number} ({step['reason']} {step['commit'][:12]}) was discarded: {error}")
             return done
-        done.append(dict(step, merged=output("rev-parse", "HEAD")))
+        done.append(dict(step, merged=output("rev-parse", "HEAD"), one_sided=sided))
 
 
 def next_step(goal: str, reason: str, limits: dict, scale: float) -> dict | None:
@@ -232,7 +233,11 @@ def save_diagnostics(artifacts: Path, number: int, step: dict, error: Exception)
     write_json(artifacts / f"step-{number}.json", dict(step, error=str(error), conflicts=unmerged))
 
 
-def merge_one(step: dict, settings: dict, prompt: str, deadline: float) -> None:
+def merge_one(step: dict, settings: dict, prompt: str, deadline: float) -> dict[str, list[str]]:
+    """Merge one step, let Pi resolve, localize and check it, then commit.
+
+    Returns the conflicted files the resolution left exactly as one side had them.
+    """
     commit, reason = step["commit"], step["reason"]
     before = output("rev-parse", "HEAD")
     common = output("merge-base", before, commit)
@@ -246,36 +251,79 @@ def merge_one(step: dict, settings: dict, prompt: str, deadline: float) -> None:
     guard = control_snapshot()
     context = dict(base=before, upstream=commit, merge_base=common, conflicts=conflicts, reason=reason,
                    upstream_commits=step["commits"])
-    agent_pass(context, settings["agent"], prompt, deadline, guard)
+    summaries = [agent_pass(context, settings["agent"], prompt, deadline, guard)]
     problems = merge_problems(before, commit, common, conflicts)
     if problems and deadline - time.monotonic() >= REPAIR_SECONDS:
         print(f"Asking Pi to repair {len(problems)} problem(s): {problems[0][:200]}", flush=True)
-        agent_pass(dict(context, repair=problems), settings["agent"], prompt, deadline, guard)
+        summaries.append(agent_pass(dict(context, repair=problems), settings["agent"], prompt, deadline, guard))
         problems = merge_problems(before, commit, common, conflicts)
     if problems:
         raise RuntimeError("; ".join(problem[:300] for problem in problems[:3]))
+    sided = one_sided(before, commit, conflicts)
+    report_one_sided(sided, " ".join(summary or "" for summary in summaries))
     git("add", "--all")
     if output("ls-files", "--unmerged"):
         raise RuntimeError("Unmerged index entries remain")
     added = introduced_whitespace(before, commit)
     if added:
         raise RuntimeError("The resolution added whitespace errors: " + "; ".join(added[:3]))
-    git("commit", "-m", f"chore(sync): merge {reason} {commit[:12]} and preserve localization",
-        "-m", f"Step: {step['summary']}.")
+    body = [f"Step: {step['summary']}."]
+    body += [f"Conflicted files left exactly as {ONE_SIDED[side]} had them: {', '.join(names)}."
+             for side, names in sided.items()]
+    git("commit", "-m", f"chore(sync): merge {reason} {commit[:12]}, keep the fork's i18n and features",
+        *(arg for paragraph in body for arg in ("-m", paragraph)))
     if not ancestor(before, "HEAD") or not ancestor(commit, "HEAD"):
         raise RuntimeError("Candidate lost one of the merge parents")
+    return sided
 
 
-def agent_pass(context: dict, settings: dict, prompt: str, deadline: float, guard: dict) -> None:
+def one_sided(before: str, commit: str, conflicts: list[str]) -> dict[str, list[str]]:
+    """Conflicted files the resolution left byte for byte as one parent had them.
+
+    Sometimes one side is right, but taking it wholesale is also how a fork change or
+    an upstream fix silently disappears, so each one is listed for review.
+    """
+    sided: dict[str, list[str]] = {}
+    for name in conflicts:
+        merged = blob(WORKTREE, name)
+        side = next((side for side, revision in (("fork", before), ("upstream", commit))
+                     if merged == blob(revision, name)), None)
+        if side:
+            sided.setdefault(side, []).append(name)
+    return sided
+
+
+def report_one_sided(sided: dict[str, list[str]], summary: str) -> None:
+    if not sided:
+        return
+    print("Conflicted files resolved entirely to one side: "
+          + "; ".join(f"{side}: {', '.join(names)}" for side, names in sided.items()), flush=True)
+    unexplained = [name for names in sided.values() for name in names
+                   if name not in summary and name.rpartition("/")[2] not in summary]
+    if unexplained:
+        warn(f"Pi's summary does not explain the one-sided resolution of {', '.join(unexplained[:5])}")
+
+
+def blob(revision: str, name: str) -> bytes | None:
+    """A file's bytes at ``revision`` (WORKTREE: on disk), None when absent."""
+    if revision == WORKTREE:
+        path = Path(name)
+        return path.read_bytes() if path.is_file() and not path.is_symlink() else None
+    shown = subprocess.run(["git", "show", f"{revision}:{name}"], capture_output=True, timeout=300, check=False)
+    return shown.stdout if shown.returncode == 0 else None
+
+
+def agent_pass(context: dict, settings: dict, prompt: str, deadline: float, guard: dict) -> str:
     """One Pi run on the pending merge, then the checks that it left Git and the controls alone."""
     seconds = max(0.0, deadline - time.monotonic())
     end = datetime.now(UTC) + timedelta(seconds=seconds)
     context = dict(context, time_limit_minutes=int(seconds // 60), deadline_utc=end.strftime("%Y-%m-%dT%H:%M:%SZ"))
-    run_coding_agent(context, settings, prompt, seconds)
+    summary = run_coding_agent(context, settings, prompt, seconds)
     if output("rev-parse", "HEAD") != context["base"] or output("rev-parse", "MERGE_HEAD") != context["upstream"]:
         raise RuntimeError("Coding agent changed Git history or the pending merge")
     if control_snapshot() != guard:
         raise RuntimeError("Coding agent changed protected automation files")
+    return summary
 
 
 def merge_problems(before: str, commit: str, common: str, conflicts: list[str]) -> list[str]:
@@ -334,8 +382,8 @@ def agent_base_url(raw: str) -> str:
     return urlunsplit((url.scheme, url.netloc, path, "", ""))
 
 
-def run_coding_agent(context: dict, settings: dict, prompt: str, timeout: float) -> None:
-    """One Pi process; Pi owns the model/tool loop and compaction."""
+def run_coding_agent(context: dict, settings: dict, prompt: str, timeout: float) -> str:
+    """One Pi process, returning its completion summary; Pi owns the model/tool loop and compaction."""
     if not os.environ.get("SYNC_AI_API_KEY") or not os.environ.get("SYNC_AI_MODEL"):
         raise RuntimeError("Configure SYNC_AI_API_KEY and SYNC_AI_MODEL before syncing")
     model = os.environ["SYNC_AI_MODEL"]
@@ -366,7 +414,9 @@ def run_coding_agent(context: dict, settings: dict, prompt: str, timeout: float)
         raise RuntimeError(f"Pi did not finish within its {timeout / 60:.0f}-minute limit")
     if code:
         raise RuntimeError(f"Pi exited unsuccessfully ({code}); candidate not published")
-    print(f"Pi completed: {check_pi_result(stream)[:2000]}", flush=True)
+    summary = check_pi_result(stream)
+    print(f"Pi completed: {summary[:2000]}", flush=True)
+    return summary
 
 
 def check_pi_result(stream: str) -> str:

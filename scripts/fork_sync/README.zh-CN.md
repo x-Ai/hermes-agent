@@ -26,7 +26,7 @@
 ## 执行过程
 
 1. **Prepare（只有仓库读取权限）**：获取 upstream main，分页枚举发布时间不早于起始时间的公开 Release，跳过草稿和已存在的 fork Release。上游标签抓取到独立 Git 命名空间，避免覆盖 fork 同名标签。
-2. **先处理新 Release，再同步 main**：有尚未包含的上游 Release 时，本轮只朝最早的那个 Release 的提交合并，合并到它就停下，验证后在这次合并上发布 fork 的同名 Release，然后立刻触发下一轮继续同步 main；没有待处理的 Release 时朝 upstream main 最新提交合并。两种情况都分成**有界的步骤**，见下文「分步合并与时间预算」。每一步都执行真实 Git 合并，即使没有文本冲突，也调用 `pi --mode json --no-session` 检查新增用户界面文案、补齐 i18n。Pi 负责工具调用、文件编辑和上下文管理，可使用 Bash 运行针对性检查；控制器只启动 CLI、检查 JSONL 事件和最终 Git 状态。显式启用 read/grep/find/ls/edit/write/bash，禁用 extensions、skills、prompt templates、MCP 和自动加载上下文，不批准项目本地配置。`--offline` 禁止模型目录刷新等自动网络活动，不影响显式模型请求。Pi 不提供工具审批，Bash 能访问该进程的 API 环境及 runner 网络；仅在一次性的 GitHub 托管 runner 中运行。GitHub 凭证不传入 Pi，仓库写凭证只在 Publish 任务出现。
+2. **先处理新 Release，再同步 main**：有尚未包含的上游 Release 时，本轮只朝最早的那个 Release 的提交合并，合并到它就停下，验证后在这次合并上发布 fork 的同名 Release，然后立刻触发下一轮继续同步 main；没有待处理的 Release 时朝 upstream main 最新提交合并。两种情况都分成**有界的步骤**，见下文「分步合并与时间预算」。每一步先由 Git 执行真实合并，没有冲突的改动直接合入；然后无论有没有冲突都调用 `pi --mode json --no-session`，按顺序做三件事：处理合并冲突，为这一步新增的界面文案补齐 i18n，确认没有破坏已有的 i18n 和二开（见「i18n 与二开保留规则」）。Pi 负责工具调用、文件编辑和上下文管理，可使用 Bash 运行针对性检查；控制器只启动 CLI、检查 JSONL 事件和最终 Git 状态。显式启用 read/grep/find/ls/edit/write/bash，禁用 extensions、skills、prompt templates、MCP 和自动加载上下文，不批准项目本地配置。`--offline` 禁止模型目录刷新等自动网络活动，不影响显式模型请求。Pi 不提供工具审批，Bash 能访问该进程的 API 环境及 runner 网络；仅在一次性的 GitHub 托管 runner 中运行。GitHub 凭证不传入 Pi，仓库写凭证只在 Publish 任务出现。
 3. **Validate 与 Python tests（无 AI 密钥、无写 token，并行运行）**：两类任务都从 Git bundle 恢复准确的候选提交，通过现有 PM 机制构建锁定依赖。Validate 运行 `scripts/check`、TUI check、桌面端 lint/typecheck 与 UI 测试、Web check，以及 desktop i18n 导出一致性检查（`config.json` 的 `checks`）。Python tests 只运行本次合并可能影响的测试文件，分片并行，见下文「Python 测试选择」。测试只能写入任务设置的临时 `HERMES_HOME`，托管 runner 起始时也没有账户默认的 Hermes 主目录；若 `~/.hermes` 在测试期间出现，说明某个测试的子进程没有隔离 `HERMES_HOME`（见 `tests/AGENTS.md`），该分片判定失败。这是 Linux 验证，不包含 macOS/Windows 原生集成或桌面安装包 E2E。
 4. **Publish（仅此任务可写仓库）**：再次确认远端 main 没有被其他人推进，使用普通 fast-forward push 推进 main，然后创建缺失的 Release。测试期间 main 发生变化就失败，下一轮从新 main 重新计算；不会把未经检查的 rebase 结果推送。
 
@@ -88,7 +88,13 @@ python scripts/fork_sync/select_tests.py --base <fork main 提交> --upstream <�
 
 ## i18n 与二开保留规则
 
-`prompt.md` 指定：比较共同祖先、fork 和 upstream，保留上游修复及二开行为；禁止整批 ours/theirs 取舍、删除测试或放松检查。新增界面文案使用项目现有的 Python、TUI、Desktop i18n API。简体中文和繁体中文完整覆盖，其他语言遵循现有键与覆盖率约束，保留变量、占位符和运行时类型。
+`prompt.md` 让 Pi 在每一步按这个顺序工作（工作流步骤名 “Merge upstream (new release first), resolve conflicts, localize new text, keep fork i18n and features” 即此意）：
+
+1. **处理合并冲突，二开要智能判断**：改冲突文件之前，先用 `git log <merge_base>..<base> -- <文件>` 查 fork 自己在这个文件上的提交，用 `git show` 看每个提交改了什么，从提交说明了解二开的意图（本地化、二开功能、fork 修复、端点或发布身份）；用 `<merge_base>..<upstream>` 同样了解上游的改动。然后比较共同祖先、fork 和 upstream 三个版本，逐块保留双方意图：上游的修复或功能要合入，fork 的改动也要保留（代码挪动时改写到上游的新代码上）；上游已经做了同样修复、或删掉了被二开定制的代码时，fork 的改动可以去掉，但要在总结里说明；上游改写了 fork 已翻译的文案时，按上游的新英文重新翻译，不保留过时译文，也不换回英文。禁止整批 ours/theirs 取舍、删除测试或放松检查。
+2. **新增文本做 i18n**：即使没有冲突，也审查这一步上游改动的全部界面文案，新增的英文接入项目现有的 Python、TUI、Desktop i18n API。简体中文和繁体中文完整覆盖，其他语言遵循现有键与覆盖率约束，保留变量、占位符和运行时类型。
+3. **不破坏 i18n 和二开**：保留 fork 的端点与模型配置、更新器与发布身份、界面行为、已有译文和 i18n 机制等二开改动，非平凡的冲突处理要加回归测试。
+
+冲突文件如果被整体解决成某一方的版本（与 fork 或 upstream 的版本逐字节相同），控制器会在日志里列出，并写进这一步的合并提交说明（“Conflicted files left exactly as the fork / upstream had them: …”）：有时确实应该取一方，但整体取一方也正是二开改动或上游修复悄悄丢失的方式。Pi 必须在总结里说明每个这样的文件和理由；总结没提到的会发出警告注解，但不阻止合并。合并提交标题为 `chore(sync): merge <目标> <提交>, keep the fork's i18n and features`。
 
 Pi 能读取上下文并尝试解决二开冲突，但不能保证所有语义冲突都判断正确。已有测试和新增回归测试提供检查依据。`.github/`、`scripts/fork_sync/` 和本自动化的测试文件在提示词中禁止改动，并在 Agent 调用前后比较文件快照；变化则阻塞。调用后还会核对 HEAD 和 MERGE_HEAD，防止 Agent 自行提交或中止合并。自动化控制文件冲突需维护者处理；无法可靠解决的冲突必须返回 blocked。检查失败不会因为 Agent 自称成功就继续发布。
 
