@@ -119,7 +119,7 @@ Routines 本质上就是命名空间为 `[bot:<name>] <routine>` 的普通 [Herm
 
 ### 网关托管的群聊
 
-当新建群聊的所有成员都在你当前连接的 gateway 上，并且该 gateway 托管群聊设置（本 fork 的 gateway 会在 `groups.capabilities` 中声明 `room_settings`）时，**New Group Chat** 创建的是一个**网关托管的群聊**，而不是 Desktop 房间。房间归 gateway 所有——成员、持久的消息日志和轮次驱动器都在 gateway 上——因此关闭 Hermes Desktop 后房间仍会继续运行，连接到同一个 gateway 的每台 Desktop 看到的都是同一个房间。托管群聊的花名册行带有一个小小的服务器图标。当选择器选入了其他连接上的 Bot，或者 gateway 版本较旧时，仍会像以前一样创建 Desktop 房间。
+当新建群聊的所有成员都在你当前连接的 gateway 上，并且该 gateway 托管群聊设置（本 fork 的 gateway 会在 `groups.capabilities` 中声明 `room_settings`）时，**New Group Chat** 创建的是一个**网关托管的群聊**，而不是 Desktop 房间。房间归 gateway 所有——成员、持久的消息日志和轮次驱动器都在 gateway 上——因此关闭 Hermes Desktop 后房间仍会继续运行，连接到同一个 gateway 的每台 Desktop 看到的都是同一个房间。托管群聊的花名册行带有一个小小的服务器图标。其他连接上的 Bot 也可以加入托管群聊：前提是该 gateway 还能接纳其他电脑上的机器人（它报告驱动器正在运行、`persistent_process: true` 和 `groups.peer.register`），并且该 Bot 是一个可以出借它的 gateway 的默认配置文件（已启用 `room_link`，并提供 `groups.peer.invite`）。此时对话框会说明房间在那里运行、关闭 Desktop 后也不会停止，并且其他电脑上的机器人只会收到文本；它会等这些 gateway 全部答复（无法连接的 gateway 会提供**重试**），然后创建房间，并通过各 Bot 自己的 gateway 让它们入座。未能加入的 Bot 会在通知中列出，房间照常打开。除此之外，当选择器选入了其他连接上的 Bot，或者 gateway 版本较旧时，仍会像以前一样创建 Desktop 房间。
 
 本 fork 为房间增加的所有功能在托管群聊上都可用；房间的设置随房间保存在 gateway 上（`groups.settings.get` / `groups.settings.set`），而不是这台 Desktop 的存储里：
 

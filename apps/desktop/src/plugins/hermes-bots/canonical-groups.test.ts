@@ -10,6 +10,9 @@ vi.mock('@hermes/plugin-sdk', async () => {
   const { captureGroupRequests } = await import('./canonical-group-contract-test-utils')
 
   return {
+    // Fork: the capability helpers reach this fork's room store (and its atoms) through upstream's
+    // peer-room helpers (canonical-group-peers.ts).
+    atom: (await import('nanostores')).atom,
     randomUuid: (await import('@hermes/shared')).randomUuid,
     host: { ...host, requestProfile: captureGroupRequests(host.requestProfile).request }
   }

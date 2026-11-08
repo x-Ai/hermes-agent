@@ -47,9 +47,11 @@ import { createCanonicalChat } from './canonical-chat'
 import {
   botOnConnection,
   connectionName,
+  groupCreationEngine,
   groupNeedsDesktopCourier,
   useGroupCapability
 } from './canonical-group-capabilities'
+import { type GroupCreationIntent, usePeerTargets } from './canonical-group-peers'
 import type { CanonicalGroupOrigin } from './canonical-group-registry'
 import { canonicalGroupCreateError } from './canonical-groups'
 import { canCreateCanonicalRoom, createCanonicalRoomWithSettings } from './canonical-room-actions'
@@ -67,6 +69,13 @@ import {
 import type { GroupChatRoom } from './group-chat'
 import { GroupImageControls } from './group-chat-parts'
 import { memberMachineOffline, setGroupMembership } from './group-chat-view-members'
+import {
+  type GroupCreateEngine,
+  groupCreateEngine,
+  groupCreateView,
+  hostedPeerStep,
+  hostsPeerRooms
+} from './group-create-peer'
 import { checkGroupHandleInput, groupHandleFromName } from './group-handle'
 import { GroupHandleField } from './group-handle-field'
 import {
@@ -1327,24 +1336,58 @@ interface CreateGroupChatDialogProps {
 
 interface GroupEngineNoteProps {
   connectionId: null | string
+  engine: GroupCreateEngine
+  /** This connection's name, or the lender's a plan names (`connection` / `connectionId`). */
+  owner: string
+  ownerConnectionId?: string
+  reason?: string
   selected: RosterRow[]
 }
 
-/** Says, before creation, when a selection seats a bot from another machine: the
- *  room runs on this Desktop, which carries each member's turn to its own
- *  gateway. This fork never refuses a selection wholly on another connection
- *  (upstream's "elsewhere"): it becomes a Desktop room like any other selection
- *  the gateway here cannot host, so it gets this note too. */
-function GroupEngineNote({ connectionId, selected }: GroupEngineNoteProps) {
-  const b = useBots()
+type BotsCopy = ReturnType<typeof useBots>
 
-  if (!selected.some(bot => !botOnConnection(bot, connectionId))) {
+/** Lender reasons that need no setup note: the owner seats no peers, or the bot is not its
+ *  computer's default profile (a peer room seats only that one). */
+const NO_SETUP_NOTE = new Set(['peer_owner_unavailable', 'default_profile_required'])
+
+/** The note's words for `engine`; `owner` is the connection the plan names, `local` this device. */
+function groupEngineNoteText(b: BotsCopy, engine: GroupCreateEngine, owner: string, local: boolean, reason?: string) {
+  const text: Partial<Record<GroupCreateEngine, string>> = {
+    'gateway-peer': b.crossGateway.gatewayPeer(owner, local),
+    checking: b.crossGateway.checkingPeers,
+    unavailable: reason === 'unreachable' ? b.crossGateway.peerCheckFailed(owner, local) : b.canonical.driverUnavailable
+  }
+
+  const setup =
+    engine === 'desktop' && reason && !NO_SETUP_NOTE.has(reason)
+      ? b.canonical.peerTargetSetup
+          .replace('{connection}', local ? b.bot.thisDevice : owner)
+          .replace('{reason}', reason)
+      : ''
+
+  return { setup, text: text[engine] ?? b.crossGateway.desktopDriven }
+}
+
+/** Says, before creation, how a selection with a bot from another machine runs. On a gateway that
+ *  keeps this fork's room settings and seats peers, the room runs there once every lender answered
+ *  (`gateway-peer`; `checking` until then, `unavailable` when a lender could not be read). Anywhere
+ *  else it runs on this Desktop, which carries each member's turn to its own gateway; a lender that
+ *  cannot host its bot yet says why. This fork never refuses a selection wholly on another
+ *  connection (upstream's "elsewhere"): it becomes a Desktop room like any other selection the
+ *  gateway here cannot host, so it gets the Desktop note too. */
+function GroupEngineNote({ connectionId, engine, owner, ownerConnectionId, reason, selected }: GroupEngineNoteProps) {
+  const b = useBots()
+  const peerNote = engine === 'gateway-peer' || engine === 'checking' || engine === 'unavailable'
+  const note = groupEngineNoteText(b, engine, owner, (ownerConnectionId ?? connectionId) === 'local', reason)
+
+  if (!peerNote && !selected.some(bot => !botOnConnection(bot, connectionId))) {
     return null
   }
 
   return (
-    <p className="text-xs text-(--ui-text-secondary)" data-group-engine="desktop" role="note">
-      {b.crossGateway.desktopDriven}
+    <p className="text-xs text-(--ui-text-secondary)" data-group-engine={peerNote ? engine : 'desktop'} role="note">
+      {note.text}
+      {note.setup && <span> {note.setup}</span>}
     </p>
   )
 }
@@ -1358,8 +1401,10 @@ export function CreateGroupChatDialog({ open, roster, onClose, onCreated }: Crea
   const { t } = useI18n()
   const b = useBots()
   const allMeta: Record<string, BotMeta> = useValue($botMeta)
-  const { connectionId, mode, seatable } = useGroupCapability(open)
+  const [peerCheck, setPeerCheck] = useState(0)
+  const { capability, connectionId, mode, seatable, source } = useGroupCapability(open, peerCheck)
 
+  const intent = useRef<GroupCreationIntent>({})
   const [query, setQuery] = useState('')
   const [checked, setChecked] = useState<Record<string, boolean>>({})
   const [name, setName] = useState('')
@@ -1368,10 +1413,12 @@ export function CreateGroupChatDialog({ open, roster, onClose, onCreated }: Crea
   const [handle, setHandle] = useState('')
 
   // Reset per open so a cancelled draft doesn't leak into the next one.
+  // eslint-disable-next-line no-restricted-syntax -- Clears a dialog-owned request intent; no reactive state is copied.
   useEffect(() => {
     if (open) {
       setQuery('')
       setChecked({})
+      intent.current = {}
       setName('')
       setImage(null)
       setWorkspace('')
@@ -1385,6 +1432,27 @@ export function CreateGroupChatDialog({ open, roster, onClose, onCreated }: Crea
   const selectableRoster = offerableGroupBots(roster, { connectionId, mode, seatable })
 
   const selected = selectableRoster.filter(bot => checked[botRosterKey(bot)])
+
+  // A selection with bots from other machines runs on the gateway here when it can seat them
+  // (upstream's peer rooms) and keeps this fork's room settings; otherwise it is a Desktop room, so
+  // the bots' own gateways are asked whether they can lend them only on such a gateway.
+  const targets = usePeerTargets(
+    selectableRoster,
+    connectionId,
+    open && hostsPeerRooms(capability?.snapshot),
+    peerCheck
+  )
+
+  const plan = groupCreationEngine(mode, selected, connectionId, capability?.snapshot, targets)
+  const engine = groupCreateEngine(plan, selected, connectionId, capability?.snapshot)
+  const view = groupCreateView(plan, engine, selected, connectionId, capability?.snapshot)
+
+  const owner = botGatewayLabel(
+    selectableRoster.find(bot => botOnConnection(bot, connectionId)),
+    b.bot.thisDevice,
+    connectionId || b.bot.thisDevice
+  )
+
   // Bots from more than one machine on offer: each row wears its device badge.
   const spansConnections = selectableRoster.some(bot => !botOnConnection(bot, connectionId))
   const visible: RosterRow[] = filterBots(selectableRoster, allMeta, query)
@@ -1394,11 +1462,24 @@ export function CreateGroupChatDialog({ open, roster, onClose, onCreated }: Crea
     ? selected.map(bot => displayName(bot, botRosterMeta(bot, allMeta))).join(', ')
     : b.group.nameLabel
 
-  const canCreate = selected.length >= 2 && Boolean(name.trim() || selected.length)
+  // Only a peer plan still being read, or a lender that could not be read, holds Create back.
+  const canCreate = selected.length >= 2 && Boolean(name.trim() || selected.length) && !view.waits
+
   // The handle the room gets from its name alone — the field's placeholder.
   const handleSuggestion = groupHandleFromName((name.trim() || (selected.length ? placeholder : '')).slice(0, 64))
 
   const creating = useRef(false)
+
+  /** A hosted room just created on its gateway: give it the picked image, announce it, open it. */
+  const openCreatedRoom = (key: string, base: string) => {
+    if (image) {
+      setGroupChatImage(key, image)
+    }
+
+    host.notify({ kind: 'info', message: b.group.createdWith(base, selected.length) })
+    onClose()
+    onCreated?.(key, 'key')
+  }
 
   const create = async () => {
     if (creating.current) {
@@ -1440,9 +1521,38 @@ export function CreateGroupChatDialog({ open, roster, onClose, onCreated }: Crea
       }
 
       // A gateway that hosts rooms with this fork's settings gets a hosted room: the gateway drives
-      // the members and every window sees the same room. A cross-connection selection or an older
-      // gateway keeps the Desktop room below.
+      // the members and every window sees the same room. Bots from other computers join one only
+      // through the peer step (upstream's peer rooms); any other cross-connection selection, or an
+      // older gateway, keeps the Desktop room below.
       const route = canonicalRouteOrNull()
+
+      const peerStep = {
+        draft: {
+          capability,
+          intent: intent.current,
+          labels: b.canonical,
+          name: base,
+          onStalePlan: () => setPeerCheck(value => value + 1),
+          selection: selected,
+          settings: { handle: handleCheck.handle, workspace: roomWorkspace },
+          source
+        },
+        engine,
+        refresh: view.spans && mode === 'canonical',
+        route
+      }
+
+      const peerRoom = await hostedPeerStep(peerStep)
+
+      if (peerRoom !== undefined) {
+        // Created on its owner; a window that left the source that approved it does not adopt it.
+        if (peerRoom) {
+          intent.current = {}
+          openCreatedRoom(peerRoom, base)
+        }
+
+        return
+      }
 
       if (route && (await canCreateCanonicalRoom(route, selected))) {
         try {
@@ -1451,13 +1561,7 @@ export function CreateGroupChatDialog({ open, roster, onClose, onCreated }: Crea
             workspace: roomWorkspace
           })
 
-          if (image) {
-            setGroupChatImage(key, image)
-          }
-
-          host.notify({ kind: 'info', message: b.group.createdWith(base, selected.length) })
-          onClose()
-          onCreated?.(key, 'key')
+          openCreatedRoom(key, base)
         } catch (error) {
           host.notify({ kind: 'error', message: canonicalGroupCreateError(error, b.canonical) })
         }
@@ -1540,9 +1644,26 @@ export function CreateGroupChatDialog({ open, roster, onClose, onCreated }: Crea
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>{b.group.newTitle}</DialogTitle>
-          <DialogDescription>{b.group.newDescription(GROUP_CHAT_MAX_MEMBERS)}</DialogDescription>
+          <DialogDescription>
+            {b.crossGateway.pickBots(GROUP_CHAT_MAX_MEMBERS)}{' '}
+            {view.hosted ? b.crossGateway.gatewayMembership : b.crossGateway.desktopMembership}
+          </DialogDescription>
         </DialogHeader>
-        <GroupEngineNote connectionId={connectionId} selected={selected} />
+        <GroupEngineNote
+          connectionId={connectionId}
+          engine={engine}
+          owner={plan.connection || owner}
+          ownerConnectionId={plan.connectionId}
+          reason={view.noteReason}
+          selected={selected}
+        />
+        {/* A lender that could not be read, or an owner whose capabilities could not be read while
+            the selection spans machines: read them again, keeping the draft. */}
+        {view.retry && (
+          <Button onClick={() => setPeerCheck(value => value + 1)} size="sm" variant="ghost">
+            {t.common.retry}
+          </Button>
+        )}
         {/* TODO(bot-mode-types): this search box never takes focus when the dialog
             opens — SearchField accepts no `autoFocus` prop and forwards no extra
             props, so the `autoFocus` that used to sit here was inert. */}

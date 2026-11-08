@@ -11,6 +11,7 @@ import { host, randomUuid } from '@hermes/plugin-sdk'
 
 import { registerCanonicalGroup } from './canonical-group-registry'
 import {
+  type CanonicalGroupBinding,
   canonicalGroupRequest,
   type CanonicalGroupRoute,
   type CanonicalRoomContext,
@@ -426,6 +427,19 @@ function creationPatch(settings: CanonicalRoomSettingsPatch): CanonicalRoomSetti
   return patch
 }
 
+/** Apply a creation draft's settings to a room its gateway just created; nothing beyond a fresh
+ *  room's defaults sends nothing. */
+export async function applyCanonicalCreationSettings(
+  binding: CanonicalGroupBinding,
+  settings: CanonicalRoomSettingsPatch
+): Promise<void> {
+  const patch = creationPatch(settings)
+
+  if (Object.keys(patch).length) {
+    await canonicalGroupRequest(binding, 'groups.settings.set', { patch, room_id: binding.roomId })
+  }
+}
+
 /** Create the room on the gateway, apply the draft's settings, register and project it. */
 export async function createCanonicalRoomWithSettings(
   route: CanonicalGroupRoute,
@@ -435,12 +449,7 @@ export async function createCanonicalRoomWithSettings(
 ): Promise<string> {
   const { binding, room } = await createCanonicalGroup(route, name, members as GroupMember[])
   const key = registerCanonicalGroup(route, room)
-  const patch = creationPatch(settings)
-
-  if (Object.keys(patch).length) {
-    await canonicalGroupRequest(binding, 'groups.settings.set', { patch, room_id: binding.roomId })
-  }
-
+  await applyCanonicalCreationSettings(binding, settings)
   await syncCanonicalRoom(key, binding, { full: true })
 
   return key

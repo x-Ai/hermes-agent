@@ -229,6 +229,57 @@ it.each(reported)(
   }
 )
 
+// Upstream's positive classifications on the fork's two ways to create: a legacy gateway renders
+// and creates a Desktop room; a gateway that hosts this fork's room settings creates a gateway room,
+// recorded under its `canonical:` key (upstream records the owner on a record named like the room;
+// this fork's hosted rooms carry their owner in that key) and never as a Desktop room.
+it('keeps positive classifications working: legacy renders and creates locally, canonical creates a gateway room', async () => {
+  answer(legacy)
+  await act(async () => {
+    render(<GroupChatWorkspace group="Existing" members={roster} />)
+  })
+  expect(screen.getByRole('textbox')).toBeTruthy()
+  cleanup()
+  expect((await submitDialog()).onCreated).toHaveBeenCalledOnce()
+  expect(updateGroupChat).toHaveBeenCalledOnce()
+  cleanup()
+  vi.mocked(updateGroupChat).mockClear()
+  $groupChats.set({})
+  // The gateway's features are cached per route: the second half reads them afresh.
+  _resetCanonicalRoomSyncForTests()
+
+  request.mockImplementation(async (_route, method, params) => {
+    const answers: Record<string, unknown> = {
+      'groups.capabilities': { driver: true, persistent_process: true, features: ['room_settings'], methods: [] },
+      'groups.create': { room: { room_id: 'hosted-2', name: params?.name, members: params?.members } },
+      'groups.state': { room: { room_id: 'hosted-2', name: 'Alpha, Beta', members: [] }, driver_status: {} },
+      'groups.log': { events: [], has_more: false },
+      'groups.settings.get': { revision: 1, settings: { workspace: null, member_workspaces: {}, handle: null } },
+      'groups.member_sessions': { sessions: [] },
+      'groups.live': { current: null, watching: false },
+      'profiles.configure': {}
+    }
+
+    if (Object.hasOwn(answers, method)) {
+      return answers[method]
+    }
+
+    throw new Error(`Unexpected RPC: ${method}`)
+  })
+  const { onCreated } = await submitDialog()
+  await act(async () => {
+    await Promise.resolve()
+  })
+  expect(onCreated).toHaveBeenCalledWith('canonical:local:default:hosted-2', 'key')
+  expect(Object.values($canonicalGroupBindings.get())).toHaveLength(1)
+  expect($groupChats.get()['canonical:local:default:hosted-2']?.canonical).toMatchObject({
+    connectionId: 'local',
+    roomId: 'hosted-2'
+  })
+  expect(Object.keys($groupChats.get()).filter(name => !name.startsWith('canonical:'))).toEqual([])
+  expect(request.mock.calls.filter(call => call[1] === 'groups.create')).toHaveLength(1)
+})
+
 // A bot on another connection is offered again: a selection spanning connections
 // becomes a Desktop-driven room (cross-gateway-group-creation.test.tsx). A row
 // whose route disagrees with its own connection is still never offered.

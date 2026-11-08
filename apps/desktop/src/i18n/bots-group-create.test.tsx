@@ -57,7 +57,10 @@ afterEach(() => {
 it('renders the New group chat dialog from the catalog and follows a locale switch', async () => {
   mount()
   const zh = translateBotsIn('zh')
-  expect(screen.getByText(zh('group.newDescription', GROUP_CHAT_MAX_MEMBERS))).toBeTruthy()
+  // Upstream rewrote the description as the pick count plus where the room keeps its members.
+  expect(
+    screen.getByText(`${zh('crossGateway.pickBots', GROUP_CHAT_MAX_MEMBERS)} ${zh('crossGateway.desktopMembership')}`)
+  ).toBeTruthy()
   expect(screen.getByText(`@alpha · ${zh('group.inGroups', ['研究'])}`)).toBeTruthy()
   expect(screen.getByRole('button', { name: zh('group.createAction', 0) }).hasAttribute('disabled')).toBe(true)
 
@@ -78,6 +81,8 @@ it('renders the New group chat dialog from the catalog and follows a locale swit
 
   await act(() => i18n.setLocale('ja'))
   const ja = translateBotsIn('ja')
-  expect(screen.getByText(ja('group.newDescription', GROUP_CHAT_MAX_MEMBERS))).toBeTruthy()
+  expect(
+    screen.getByText(`${ja('crossGateway.pickBots', GROUP_CHAT_MAX_MEMBERS)} ${ja('crossGateway.desktopMembership')}`)
+  ).toBeTruthy()
   expect(screen.getByRole('button', { name: ja('group.createAction', 2) })).toBeTruthy()
 })

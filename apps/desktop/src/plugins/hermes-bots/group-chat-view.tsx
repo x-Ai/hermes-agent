@@ -37,7 +37,12 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { avatarColor, botAppearance, BotFace } from './avatar'
 import { isBackfilledFacePng } from './avatar-image'
 import type { CanonicalGroupOrigin } from './canonical-group-registry'
-import { $canonicalGroupBindings, canonicalGroupBindingFor } from './canonical-group-registry'
+import {
+  $canonicalGroupBindings,
+  canonicalGroupBindingFor,
+  canonicalGroupKey,
+  canonicalGroupKeyRoute
+} from './canonical-group-registry'
 import { disbandCanonicalRoom, saveCanonicalRoomSettings } from './canonical-room-actions'
 import { HostedContextFields, useHostedContextDraft } from './canonical-room-context'
 import { HostOnGatewayButton } from './canonical-room-migrate'
@@ -79,7 +84,7 @@ import type { GroupRoomPrompt } from './group-chat-parts'
 import { LegacyRoomHeader } from './group-chat-view-header'
 import { GroupMemberPicker } from './group-chat-view-members'
 import { compressGroupMemberHistory } from './group-compress'
-import { stickyGroupEngine } from './group-engine'
+import { gatewayGroupEngine, stickyGroupEngine } from './group-engine'
 import { GroupEntryAttachments } from './group-entry-attachments'
 import { sweepExternalGroupWrites } from './group-external-writes'
 import { checkGroupHandleInput, groupHandleFromName } from './group-handle'
@@ -725,23 +730,32 @@ export function GroupChatWorkspace(props: GroupChatWorkspaceProps) {
   const bindings = useValue($canonicalGroupBindings)
   const connectionId = useValue(host.state.connectionId)
   const profile = useValue(host.state.profile)
+  const record: GroupChatRoom | undefined = useValue($groupChats)[props.group]
+  const origin = props.origin ?? 'name'
+  // A room created on a gateway records its owner on a record named like the room (upstream
+  // 4c7f479dd8). This fork keys a hosted room's projection by its `canonical:` key, so a recorded
+  // owner opens that key on its own connection and profile, never what a same-name alias names.
+  // A `canonical:` key names its owner too, so a key whose binding was lost with a restart still
+  // reopens on that owner.
+  const keyRoute = canonicalGroupKeyRoute(props.group, origin)
+  const owner = keyRoute ? undefined : gatewayGroupEngine(record).engine
+  const group = owner ? canonicalGroupKey(owner, owner.roomId) : props.group
 
-  const binding = canonicalGroupBindingFor(
-    bindings,
-    { connectionId: connectionId ?? '', profile },
-    props.group,
-    props.origin ?? 'name'
-  )
+  const binding = owner
+    ? { connectionId: owner.connectionId, profile: owner.profile, roomId: owner.roomId }
+    : (canonicalGroupBindingFor(bindings, { connectionId: connectionId ?? '', profile }, props.group, origin) ??
+      keyRoute ??
+      undefined)
 
   // Fork: a gateway-hosted room renders the SAME room view as a Desktop room — its record is a
   // projection of the gateway's state kept fresh here (canonical-room-sync.ts) while the view is
   // up; a Desktop room runs on the Desktop. Upstream's capability gate and skeleton view are unused;
   // its hosted-room controls (Continue, purpose / notes / routing) follow the gateway's method list.
-  useCanonicalRoomSync(props.group, binding, props.visible !== false)
+  useCanonicalRoomSync(group, binding, props.visible !== false)
 
   return (
     <HostedRoomMethods binding={binding} visible={props.visible !== false}>
-      <LegacyGroupChatWorkspace {...props} />
+      <LegacyGroupChatWorkspace {...props} group={group} origin={owner ? 'key' : origin} />
     </HostedRoomMethods>
   )
 }

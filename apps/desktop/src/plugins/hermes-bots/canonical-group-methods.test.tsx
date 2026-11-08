@@ -6,6 +6,7 @@ const { request, socket } = vi.hoisted(() => ({
   request: vi.fn(),
   socket: { gateway: null as null | WritableAtom<string>, connectionId: null as null | WritableAtom<null | string> }
 }))
+
 vi.mock('@hermes/plugin-sdk', async () => {
   const { captureGroupRequests } = await import('./canonical-group-contract-test-utils')
   const { atom } = await import('nanostores')
@@ -13,6 +14,9 @@ vi.mock('@hermes/plugin-sdk', async () => {
   socket.connectionId = atom<null | string>('remote')
 
   return {
+    // Fork: the capability helpers reach this fork's room store (and its atoms) through upstream's
+    // peer-room helpers (canonical-group-peers.ts).
+    atom,
     host: {
       requestProfile: captureGroupRequests(request).request,
       state: { connectionId: socket.connectionId, gateway: socket.gateway }
@@ -34,9 +38,11 @@ afterEach(() => {
 it('offers no control after a failed capabilities read, and reads again while the room is visible', async () => {
   vi.useFakeTimers()
   request.mockRejectedValueOnce(new Error('request timed out')).mockResolvedValue(STANDALONE_GROUP_CAPABILITIES)
+
   const { result, rerender } = renderHook(({ visible }) => useGroupMethods(route, visible), {
     initialProps: { visible: false }
   })
+
   await act(async () => {
     await vi.advanceTimersByTimeAsync(5000)
   })

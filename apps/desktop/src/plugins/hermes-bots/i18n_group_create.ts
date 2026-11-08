@@ -19,7 +19,6 @@ import { arPlural } from './i18n_plural'
 // SDK's index-signature `PluginMessages`, which an interface member breaks.
 type GroupCreateOwnCopy = {
   /** `max` is GROUP_CHAT_MAX_MEMBERS. */
-  newDescription: (max: number) => string
   /** After a candidate's @handle: the rooms it already belongs to. */
   inGroups: (groups: string[]) => string
   /** The confirm button; `count` is the current selection, 0 before any pick. */
@@ -81,8 +80,6 @@ const bracketed = (groups: string[]) => groups.map(group => `「${group}」`).jo
 // English stays byte-identical to the former literals: the e2e specs click
 // `Create Group (2)`.
 const en: GroupCreateOwnCopy = {
-  newDescription: max =>
-    `Pick 2–${max} bots. Local memberships sync through each Bot profile; cross-machine members stay scoped to this room.`,
   inGroups: groups => `in ${quoted(groups)}`,
   createAction: count => (count ? `Create Group (${count})` : 'Create Group'),
   workspaceLabel: 'Working directory',
@@ -129,8 +126,6 @@ const en: GroupCreateOwnCopy = {
 }
 
 const ja: GroupCreateOwnCopy = {
-  newDescription: max =>
-    `ボットを 2〜${max} 体選びます。ローカルのボットのメンバーシップは各ボットのプロファイルを通じて同期され、他のマシンのメンバーはこのルームにのみ属します`,
   inGroups: groups => `${bracketed(groups)} に参加中`,
   createAction: count => (count ? `グループを作成 (${count})` : 'グループを作成'),
   workspaceLabel: '作業ディレクトリ',
@@ -181,8 +176,6 @@ const ja: GroupCreateOwnCopy = {
 }
 
 const zh: GroupCreateOwnCopy = {
-  newDescription: max =>
-    `选择 2–${max} 个机器人，本机机器人的成员关系会通过各自的配置档案同步，来自其他设备的成员只保留在这个房间内`,
   inGroups: groups => `已加入 ${quoted(groups, '、')}`,
   createAction: count => (count ? `创建群聊 (${count})` : '创建群聊'),
   workspaceLabel: '工作目录',
@@ -227,8 +220,6 @@ const zh: GroupCreateOwnCopy = {
 }
 
 const zhHant: GroupCreateOwnCopy = {
-  newDescription: max =>
-    `選擇 2–${max} 個機器人。本機機器人的成員關係會透過各自的設定檔同步，來自其他裝置的成員只保留在這個房間內`,
   inGroups: groups => `已加入 ${bracketed(groups)}`,
   createAction: count => (count ? `建立群組聊天 (${count})` : '建立群組聊天'),
   workspaceLabel: '工作目錄',
@@ -274,8 +265,6 @@ const zhHant: GroupCreateOwnCopy = {
 }
 
 const ru: GroupCreateOwnCopy = {
-  newDescription: max =>
-    `Выберите от 2 до ${max} ботов. Участники с этой машины синхронизируются через профиль каждого бота; участники с других машин остаются только в этой комнате.`,
   inGroups: groups => `в ${quoted(groups)}`,
   createAction: count => (count ? `Создать группу (${count})` : 'Создать группу'),
   workspaceLabel: 'Рабочий каталог',
@@ -323,8 +312,6 @@ const ru: GroupCreateOwnCopy = {
 }
 
 const ar: GroupCreateOwnCopy = {
-  newDescription: max =>
-    `اختر من 2 إلى ${max} روبوتات. تتم مزامنة عضويات الروبوتات المحلية عبر الملف الشخصي لكل روبوت، أما الأعضاء من الأجهزة الأخرى فيبقون ضمن هذه الغرفة فقط.`,
   inGroups: groups => `في ${quoted(groups, '، ')}`,
   createAction: count => (count ? `إنشاء مجموعة (${count})` : 'إنشاء مجموعة'),
   workspaceLabel: 'دليل العمل',

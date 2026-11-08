@@ -217,7 +217,8 @@ describe('overlapping edits of one bot', () => {
 })
 
 describe('an undo that does not land', () => {
-  it('is reported as such, and the room shows the seat its machine kept', async () => {
+  it.each(['desktop' as const, { kind: 'gateway' as const, connectionId: 'local', profile: 'default', roomId: 'core' }])(
+    'reports the seat its machine kept and preserves its engine (%j)', async engine => {
     const room = await loadRoom()
     const remoteA = remoteBot('remote-a', 'Atlas')
     const remoteB = remoteBot('remote-b', 'Borealis')
@@ -225,6 +226,7 @@ describe('an undo that does not land', () => {
     const machineB = new RemoteMachine([])
     serve({ 'remote-a': machineA, 'remote-b': machineB })
     seed(room, [remoteA, remoteB], [], [programmer, reviewer])
+    room.chat.updateGroupChat('Core', r => ({ ...r, engine }), { sync: false })
 
     // A takes the join; then both machines drop: B never answers, and A cannot take the undo.
     let aDown = false
@@ -251,6 +253,7 @@ describe('an undo that does not land', () => {
     expect(error).toMatch(/remote-a/)
     expect(error).not.toMatch(/Nothing was changed/)
     expect(machineA.groups).toEqual(['Core'])
+    expect(room.chat.$groupChats.get().Core.engine).toEqual(engine)
     expect(seatedKeys(room)).toEqual(['local::programmer', 'local::reviewer', 'remote-a::default'])
     expect(
       room.chat.$groupChats.get().Core.members?.map(member => `${member.connectionId || 'local'}::${member.name}`)

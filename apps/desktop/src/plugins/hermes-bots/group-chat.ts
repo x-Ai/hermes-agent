@@ -13,7 +13,7 @@ import { atom, host, randomUuid } from '@hermes/plugin-sdk'
 
 import { rememberCanonicalRoomPrefs } from './canonical-room-prefs'
 import { $botMeta, $lastRoster, botRosterKey } from './data'
-import { stickyGroupEngine } from './group-engine'
+import { gatewayGroupEngine, gatewayGroupIdentityConflicts, type GroupEngine, stickyGroupEngine } from './group-engine'
 import { durableGroupHandle, groupHandleProjection, mergeGroupHandleField } from './group-handle-sync'
 import { isGroupTurnTrace, retainGroupTraces } from './group-trace'
 import type { GroupTurnTrace } from './group-trace'
@@ -70,7 +70,7 @@ let groupChatSyncTimer: ReturnType<typeof setTimeout> | null = null
 /** One room inside the bounded ui_meta projection: a compacted log plus the
  *  identity fields, without any of `GroupChat`'s runtime/orchestration state. */
 interface GroupChatSyncRoom {
-  engine?: 'desktop'
+  engine?: GroupEngine
   holdDetection?: boolean
   image?: null | string
   /** Explicit @handle (`group-handle-sync.ts`): null when unset, so a clear propagates. */
@@ -709,6 +709,9 @@ function groupChatSyncEnvelope(
   return envelope
 }
 
+const mirroredLocalName = (id: null | string, name: string | undefined, byId: Map<string, string>, rooms: object) =>
+  id && byId.has(id) ? byId.get(id) : name && (rooms as Record<string, unknown>)[name] ? name : null
+
 /** Merge the gateway's bounded display projection into Desktop's richer room
  *  state without discarding local session/watermark/runtime fields. Missing
  *  remote rooms/messages are not deletions; only explicit tombstones remove a
@@ -770,12 +773,7 @@ export function mergeRemoteGroupChatSnapshotIntoRooms(
 
     const projectedRoomId = projected.roomId || (key.startsWith('id:') ? key.slice(3) : null)
 
-    const localName =
-      projectedRoomId && localByRoomId.has(projectedRoomId)
-        ? localByRoomId.get(projectedRoomId)
-        : projected.name && rooms[projected.name]
-          ? projected.name
-          : null
+    const localName = mirroredLocalName(projectedRoomId, projected.name, localByRoomId, rooms)
 
     const displayName = String(projected.name || localName || (key.startsWith('name:') ? key.slice(5) : key))
 
@@ -795,6 +793,12 @@ export function mergeRemoteGroupChatSnapshotIntoRooms(
     }
 
     const existing = (localName ? rooms[localName] : rooms[displayName]) || {}
+    const identity = { ...projected, roomId: projectedRoomId }
+
+    if ([existing, rooms[displayName] || {}].some(local => gatewayGroupIdentityConflicts(local, identity))) {
+      continue
+    }
+
     const remoteRevision = Math.max(0, Number(projected.revision || 0))
     const localRevision = Math.max(0, Number(existing.syncRevision || 0))
 
@@ -910,7 +914,7 @@ export function mergeRemoteGroupChatSnapshotIntoRooms(
           ? key.slice(5)
           : null
 
-    if (!targetName || preserved.has(targetName)) {
+    if (!targetName || preserved.has(targetName) || gatewayGroupEngine(rooms[targetName]).engine) {
       continue
     }
 
