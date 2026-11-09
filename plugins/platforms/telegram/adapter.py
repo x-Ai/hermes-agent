@@ -197,6 +197,7 @@ from plugins.platforms.telegram.telegram_network import (
 from plugins.platforms.telegram.telegram_outbound import is_visually_empty, resolve_notifications_mode
 from plugins.platforms.telegram.telegram_send_errors import is_entity_parse_error
 from plugins.platforms.telegram.telegram_group_observe import apply_group_observe_attribution, shared_sender_suffix
+from plugins.platforms.telegram.telegram_picker_labels import model_button_labels
 from plugins.platforms.telegram.telegram_topic_routing import TelegramTopicRoutingMixin
 from utils import env_float, env_int
 
@@ -4244,8 +4245,8 @@ class TelegramAdapter(TelegramHeldInboundMixin, TelegramTopicRoutingMixin, Teleg
     def _picker_back_cancel_row() -> list:
         return [InlineKeyboardButton(t("platform.telegram.picker.back"), callback_data="mb"), InlineKeyboardButton(t("platform.telegram.picker.cancel"), callback_data="mx")]
 
-    def _paged_keyboard(self, buttons: list, page_meta: dict, nav_prefix: str, tail_row: list) -> tuple:
-        rows = self._rows_of_two(buttons)
+    def _paged_keyboard(self, buttons: list, page_meta: dict, nav_prefix: str, tail_row: list, columns: int = 2) -> tuple:
+        rows = self._rows_of_two(buttons) if columns == 2 else [[b] for b in buttons]
         if page_meta["total_pages"] > 1:
             rows.append(self._picker_nav_row(page_meta["page"], page_meta["total_pages"], nav_prefix))
         rows.append(tail_row)
@@ -4258,7 +4259,7 @@ class TelegramAdapter(TelegramHeldInboundMixin, TelegramTopicRoutingMixin, Teleg
             from hermes_cli.models_catalog_static import group_providers
         except Exception:
             group_providers = None
-        by_slug = {p.get("slug"): p for p in providers}
+        by_slug = {str(p.get("slug") or "").lower(): p for p in providers}  # group_providers lowercases (#149672)
         buttons: list = []
         if group_providers is not None:
             for row in group_providers([p.get("slug") for p in providers]):
@@ -4283,18 +4284,9 @@ class TelegramAdapter(TelegramHeldInboundMixin, TelegramTopicRoutingMixin, Teleg
         carries the plan word (``model-b · Large``) from the provider row; other accounts are unchanged."""
         from hermes_cli.model_picker_usage import picker_row_suffix
         page_models, page_meta = self._format_choice_page(models, page, self._MODEL_PAGE_SIZE)
-        start = page_meta["start"]
-        buttons: list = []
-        for i, model_id in enumerate(page_models):
-            short = model_id.split("/")[-1] if "/" in model_id else model_id
-            suffix = picker_row_suffix(provider, model_id)
-            room = 38 - (len(suffix) + 3 if suffix else 0)
-            if len(short) > room:
-                short = short[:max(room - 3, 8)] + "..."
-            if suffix:
-                short = f"{short} · {suffix}"
-            buttons.append(InlineKeyboardButton(short, callback_data=f"mm:{start + i}"))
-        return self._paged_keyboard(buttons, page_meta, "mg", self._picker_back_cancel_row())
+        labels = model_button_labels([str(m) for m in models], lambda m: picker_row_suffix(provider, m))
+        buttons = [InlineKeyboardButton(labels[page_meta["start"] + i], callback_data=f"mm:{page_meta['start'] + i}") for i in range(len(page_models))]
+        return self._paged_keyboard(buttons, page_meta, "mg", self._picker_back_cancel_row(), columns=1)
 
     async def _picker_edit(self, query, text_md: str, keyboard, *, toast: Optional[str] = None) -> None:
         """Ack first, then re-render in place (MarkdownV2): a refused edit must not leave the tap spinning."""
@@ -4315,7 +4307,7 @@ class TelegramAdapter(TelegramHeldInboundMixin, TelegramTopicRoutingMixin, Teleg
         keyboard, page_info = self._build_model_keyboard(models, page, provider)
         total = provider.get("total_models", len(models)) if provider else len(models)
         shown = len(models)
-        extra = f"\n_{t('platform.telegram.picker.more_available', count=str(total - shown))}_" if total > shown else ""
+        extra = f"\n*{t('platform.telegram.picker.more_available', count=str(total - shown))}*" if total > shown else ""
         # Window plans: the limit line under the provider (absent for every other account).
         plan_line = f"\n⚠️ {provider['plan_line']}" if provider and provider.get("plan_line") else ""
         await self._picker_edit(
@@ -4435,7 +4427,7 @@ class TelegramAdapter(TelegramHeldInboundMixin, TelegramTopicRoutingMixin, Teleg
                 _label, _desc, member_slugs = PROVIDER_GROUPS.get(group_id, ("", "", []))
             except Exception:
                 _label, member_slugs = "", []
-            by_slug = {p["slug"]: p for p in state["providers"]}
+            by_slug = {str(p["slug"]).lower(): p for p in state["providers"]}  # PROVIDER_GROUPS slugs are lowercase
             members = [by_slug[m] for m in member_slugs if m in by_slug]
             if not members:
                 await answer_callback(query, _toast("platform.telegram.picker.group_not_found"))
