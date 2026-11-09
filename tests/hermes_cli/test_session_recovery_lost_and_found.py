@@ -224,7 +224,11 @@ def test_unreadable_schema_without_cli_names_the_sqlite3_requirement(
 
     import hermes_cli.session_lost_and_found as laf
 
+    # Both halves of "no CLI": the refusal reason is module state from the last real lookup (this
+    # file runs one at import), and a host whose sqlite3 can run .recover but is WAL-reset
+    # vulnerable (GitHub's ubuntu-26.04 ships 3.46.1) would leave "wal_reset_vulnerable" behind.
     monkeypatch.setattr(laf, "find_sqlite3_cli", lambda: None)
+    monkeypatch.setattr(laf, "find_sqlite3_cli_refusal", lambda: {"reason": "missing"})
     with pytest.raises(SessionRecoverySourceError) as excinfo:
         recover_session_database(
             source,
