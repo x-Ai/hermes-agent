@@ -2611,6 +2611,10 @@ cli:
     unknown_toolsets: "Figyelem: ismeretlen eszközkészletek: {names}"
     stdin_unusable: "\nHiba: az stdin nem használható ({error}).\nEz bizonyos Python-telepítéseknél fordulhat elő (pl. uv által kezelt cPython macOS-en),\nahol a kqueue nem tudja regisztrálni a 0. fd-t.\nPróbáld újratelepíteni a Pythont pyenv-vel vagy Homebrew-val, majd futtasd újra: hermes setup"
     warning: "Figyelem: {warning}"
+  tui_launch:
+    fallback_notice: "⚠ Nem sikerült előkészíteni a TUI Node-függőségeit, ezért az előző TUI-build indult el.\n  Ez régebbi a jelenlegi kódnál, és lehet, hogy nem támogatja teljesen. Futtasd újra a `hermes update` parancsot,\n  amint a csomagregiszter elérhető, vagy használd a `hermes --cli` parancsot."
+    fallback_cause_above: "(A hiba fent látható.)"
+    fallback_wait_prompt: "Nyomj Entert az indításhoz, vagy várj {seconds} mp-et (Ctrl+C a megszakításhoz)."
   chat:
     initializing_agent: "Ügynök inicializálása..."
     context_refs: "[@ kontextus: {count} hivatkozás, {tokens} token]"

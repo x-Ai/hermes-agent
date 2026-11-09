@@ -2595,6 +2595,10 @@ cli:
     unknown_toolsets: "警告：未知的工具集：{names}"
     stdin_unusable: "\n错误：stdin 不可用（{error}）\n某些 Python 安装（例如 macOS 上由 uv 管理的 cPython）可能出现此问题，\n原因是 kqueue 无法注册 fd 0\n请尝试通过 pyenv 或 Homebrew 重新安装 Python，然后重新运行：hermes setup"
     warning: "警告：{warning}"
+  tui_launch:
+    fallback_notice: "⚠ 无法准备 TUI 的 Node 依赖，因此已启动先前的 TUI 构建\n  该构建早于当前代码，可能不支持当前代码的全部功能，请在软件包注册表可访问后\n  再次运行 `hermes update`，或改用 `hermes --cli`"
+    fallback_cause_above: "（错误信息见上方）"
+    fallback_wait_prompt: "按 Enter 启动，或等待 {seconds} 秒后自动启动（Ctrl+C 取消）"
   chat:
     initializing_agent: "正在初始化代理..."
     context_refs: "[@ 上下文：{count} 个引用，{tokens} tokens]"

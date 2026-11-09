@@ -2592,6 +2592,10 @@ cli:
     unknown_toolsets: "Uyarı: Bilinmeyen araç setleri: {names}"
     stdin_unusable: "\nHata: stdin kullanılamıyor ({error}).\nBu durum, kqueue'nun fd 0'ı kaydedemediği bazı Python kurulumlarında\n(örn. macOS'ta uv ile yönetilen cPython) görülebilir.\nPython'ı pyenv veya Homebrew ile yeniden kurup şunu tekrar çalıştırın: hermes setup"
     warning: "Uyarı: {warning}"
+  tui_launch:
+    fallback_notice: "⚠ TUI'nin Node bağımlılıkları hazırlanamadı, bu nedenle önceki TUI derlemesi başlatıldı.\n  Bu derleme mevcut koddan eskidir ve onu tam olarak desteklemeyebilir. Paket deposuna erişilebildiğinde\n  `hermes update` komutunu yeniden çalıştırın veya `hermes --cli` kullanın."
+    fallback_cause_above: "(Hata yukarıda gösteriliyor.)"
+    fallback_wait_prompt: "Başlatmak için Enter'a basın veya {seconds} sn bekleyin (iptal için Ctrl+C)."
   chat:
     initializing_agent: "Ajan başlatılıyor..."
     context_refs: "[@ bağlam: {count} referans, {tokens} token]"

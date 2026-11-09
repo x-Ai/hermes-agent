@@ -2593,6 +2593,10 @@ cli:
     unknown_toolsets: "Rabhadh: Tacair uirlisí anaithnide: {names}"
     stdin_unusable: "\nEarráid: níl stdin inúsáidte ({error}).\nIs féidir leis seo tarlú le suiteálacha Python áirithe (m.sh. cPython arna bhainistiú ag uv ar macOS)\nnach féidir le kqueue fd 0 a chlárú.\nBain triail as Python a athshuiteáil trí pyenv nó Homebrew, ansin rith arís: hermes setup"
     warning: "Rabhadh: {warning}"
+  tui_launch:
+    fallback_notice: "⚠ Níorbh fhéidir spleáchais Node an TUI a ullmhú, mar sin tosaíodh an leagan roimhe seo den TUI.\n  Tá sé níos sine ná an cód reatha agus b'fhéidir nach dtacaíonn sé leis go hiomlán. Rith `hermes update` arís\n  nuair a bheidh clárlann na bpacáistí inrochtana, nó úsáid `hermes --cli`."
+    fallback_cause_above: "(Tá an earráid thuas.)"
+    fallback_wait_prompt: "Brúigh Enter chun é a thosú, nó fan {seconds} s (Ctrl+C chun cealú)."
   chat:
     initializing_agent: "Ag túsú an ghníomhaire..."
     context_refs: "[@ comhthéacs: {count} tagairt, {tokens} comhartha]"

@@ -2592,6 +2592,10 @@ cli:
     unknown_toolsets: "تحذير: مجموعات أدوات غير معروفة: {names}"
     stdin_unusable: "\nخطأ: stdin غير قابل للاستخدام ({error}).\nقد يحدث هذا مع بعض تثبيتات Python (مثل cPython المُدار عبر uv على macOS)\nحيث يتعذّر على kqueue تسجيل fd 0.\nجرّب إعادة تثبيت Python عبر pyenv أو Homebrew، ثم أعد التشغيل: hermes setup"
     warning: "تحذير: {warning}"
+  tui_launch:
+    fallback_notice: "⚠ تعذّر تجهيز اعتماديات Node الخاصة بواجهة TUI، لذا شُغّل إصدار TUI السابق.\n  هذا الإصدار أقدم من الشيفرة الحالية وقد لا يدعمها بالكامل. شغّل `hermes update` مجددًا\n  عندما يصبح سجل الحزم متاحًا، أو استخدم `hermes --cli`."
+    fallback_cause_above: "(الخطأ معروض أعلاه.)"
+    fallback_wait_prompt: "اضغط Enter لتشغيله، أو انتظر {seconds} ث (Ctrl+C للإلغاء)."
   chat:
     initializing_agent: "جارٍ تهيئة الوكيل..."
     context_refs: "[@ السياق: {count} مرجع، {tokens} رمزًا]"

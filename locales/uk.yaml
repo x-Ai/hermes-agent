@@ -2593,6 +2593,10 @@ cli:
     unknown_toolsets: "Попередження: невідомі набори інструментів: {names}"
     stdin_unusable: "\nПомилка: stdin непридатний для використання ({error}).\nТаке трапляється з деякими інсталяціями Python (напр. cPython від uv на macOS),\nде kqueue не може зареєструвати fd 0.\nСпробуйте перевстановити Python через pyenv або Homebrew, а потім виконайте знову: hermes setup"
     warning: "Попередження: {warning}"
+  tui_launch:
+    fallback_notice: "⚠ Не вдалося підготувати Node-залежності TUI, тому запущено попередню збірку TUI.\n  Вона старша за поточний код і може підтримувати його не повністю. Знову запустіть `hermes update`,\n  коли реєстр пакетів стане доступним, або скористайтеся `hermes --cli`."
+    fallback_cause_above: "(Помилку показано вище.)"
+    fallback_wait_prompt: "Натисніть Enter, щоб запустити її, або зачекайте {seconds} с (Ctrl+C — скасувати)."
   chat:
     initializing_agent: "Ініціалізація агента..."
     context_refs: "[@ контекст: {count} посил., {tokens} токенів]"

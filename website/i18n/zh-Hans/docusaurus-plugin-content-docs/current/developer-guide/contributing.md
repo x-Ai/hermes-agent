@@ -78,6 +78,9 @@ PowerShell 开头的点和空格用于 dot-source，不能省略。
 | `just docs-install`、`just docs-build` | 网站的 `npm ci` 和 `build:fast` |
 | `just docs-generate`、`just docs-check` | 重新生成技能文档页面；然后运行 CI 执行的每一项文档检查（已提交的页面与生成结果一致、链接、示意图） |
 | `just lock` | `scripts/relock.sh`：修改 `pyproject.toml` 后刷新 `uv.lock`，然后重新同步环境 |
+| `just check-repo-guards`、`just check-uv-lock` | repo-guards 的历史、贡献者和供应链检查步骤，以及 `uv.lock` 检查；通过 `scripts/ci/local_step.sh` 以与 `origin/main` 的合并基点为基准运行 |
+| `just check-icons`、`just lint-docker`、`just check-plugin-catalog`、`just check-nix` | 已提交图标的检查、对容器输入运行 hadolint 和 shellcheck、插件目录校验器、`nix flake check` |
+| `just test-catalog`、`just test-whatsapp-bridge`、`just test-rust` | 插件目录测试、WhatsApp 桥接的 node 测试（需先运行 `just js-install-whatsapp-bridge`）、引导安装程序的 `cargo test --lib` |
 
 运行 Python 的配方都通过 `scripts/run-in-hermes-env` 执行，因此在从未激活过的 shell 中也能使用。
 新增开发者命令就是在 `scripts/` 下添加一个脚本，再加一个调用它的配方；配方本身不包含任何逻辑。

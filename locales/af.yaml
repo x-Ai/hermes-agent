@@ -2593,6 +2593,10 @@ cli:
     unknown_toolsets: "Waarskuwing: Onbekende gereedskapstelle: {names}"
     stdin_unusable: "\nFout: stdin is nie bruikbaar nie ({error}).\nDit kan met sekere Python-installasies gebeur (bv. uv-bestuurde cPython op macOS)\nwaar kqueue nie fd 0 kan registreer nie.\nProbeer Python via pyenv of Homebrew herinstalleer en voer dan weer uit: hermes setup"
     warning: "Waarskuwing: {warning}"
+  tui_launch:
+    fallback_notice: "⚠ Kon nie die TUI se Node-afhanklikhede voorberei nie, dus is die vorige TUI-bou begin.\n  Dit is ouer as die huidige kode en ondersteun dit dalk nie ten volle nie. Voer `hermes update` weer uit\n  sodra die pakketregister bereikbaar is, of gebruik `hermes --cli`."
+    fallback_cause_above: "(Die fout word hierbo getoon.)"
+    fallback_wait_prompt: "Druk Enter om dit te begin, of wag {seconds} s (Ctrl+C om te kanselleer)."
   chat:
     initializing_agent: "Inisialiseer agent..."
     context_refs: "[@ konteks: {count} verwysing(s), {tokens} tokens]"

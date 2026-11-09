@@ -2591,6 +2591,10 @@ cli:
     unknown_toolsets: "警告: 不明なツールセット: {names}"
     stdin_unusable: "\nエラー: stdin が使用できません（{error}）。\n特定の Python 環境（例: macOS 上の uv 管理の cPython）で、\nkqueue が fd 0 を登録できない場合に発生することがあります。\npyenv または Homebrew で Python を再インストールしてから、再度実行してください: hermes setup"
     warning: "警告: {warning}"
+  tui_launch:
+    fallback_notice: "⚠ TUI の Node 依存関係を準備できなかったため、以前の TUI ビルドを起動しました。\n  このビルドは現在のコードより古いため、一部の機能に対応していない可能性があります。パッケージレジストリに\n  接続できるようになったら `hermes update` を再度実行するか、`hermes --cli` を使用してください。"
+    fallback_cause_above: "（エラーは上に表示されています。）"
+    fallback_wait_prompt: "Enter キーを押すと起動します。または {seconds} 秒お待ちください（Ctrl+C でキャンセル）。"
   chat:
     initializing_agent: "エージェントを初期化しています..."
     context_refs: "[@ コンテキスト: {count} 件の参照、{tokens} トークン]"

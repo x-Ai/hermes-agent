@@ -2872,6 +2872,10 @@ cli:
       où kqueue ne parvient pas à enregistrer le fd 0.
       Essayez de réinstaller Python via pyenv ou Homebrew, puis relancez : hermes setup
     warning: "Avertissement : {warning}"
+  tui_launch:
+    fallback_notice: "⚠ Impossible de préparer les dépendances Node de la TUI, la version précédente de la TUI a donc été lancée.\n  Elle est antérieure au code actuel et peut ne pas le prendre entièrement en charge. Relancez `hermes update`\n  une fois le registre de paquets accessible, ou utilisez `hermes --cli`."
+    fallback_cause_above: "(L'erreur est affichée ci-dessus.)"
+    fallback_wait_prompt: "Appuyez sur Entrée pour la lancer, ou patientez {seconds} s (Ctrl+C pour annuler)."
   chat:
     initializing_agent: "Initialisation de l'agent..."
     context_refs: "[@ contexte : {count} réf., {tokens} tokens]"
