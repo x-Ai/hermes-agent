@@ -87,6 +87,27 @@ def emit(manifest: dict) -> None:
                 handle.write(f"{key}={str(value).lower() if isinstance(value, bool) else value}\n")
             shards = manifest.get("tests", {}).get("shards", 0)
             handle.write(f"shards={json.dumps(list(range(1, shards + 1)))}\n")
+            handle.write(f"lanes={json.dumps(validation_lanes(config()))}\n")
+
+
+def validation_lanes(settings: dict) -> list[str]:
+    """The validate matrix: the repository checks in one job, the desktop UI suite over the others.
+
+    One job ran them in turn on a 4-vCPU runner: the checks took about 5 minutes and the UI suite
+    18-33 more. Separate jobs on more runners finish in about the time of one UI shard, with
+    every check still run (upstream gets the same from one 32-vCPU runner).
+    """
+    shards = settings["ui_shards"]
+    return ["checks", *(f"ui:{index}/{shards}" for index in range(1, shards + 1))]
+
+
+def lane_commands(lane: str, settings: dict, data: dict) -> list[list[str]]:
+    if lane == "checks":
+        return [[part.replace("{base}", data["base"]).replace("{candidate}", data["candidate"]) for part in command]
+                for command in settings["checks"]]
+    if lane in validation_lanes(settings)[1:]:
+        return [[*settings["ui_tests"], f"--shard={lane.partition(':')[2]}"]]
+    raise RuntimeError(f"Unknown validation lane {lane!r}")
 
 
 def warn(message: str) -> None:
@@ -534,13 +555,11 @@ def checkout_candidate(artifacts: Path, repository: str) -> None:
     git("switch", "--detach", data["candidate"])
 
 
-def validate(artifacts: Path, repository: str) -> None:
+def validate(artifacts: Path, repository: str, lane: str) -> None:
     data = load_manifest(artifacts, repository)
     if output("rev-parse", "HEAD") != data["candidate"]:
         raise RuntimeError("Validation is not running against the prepared commit")
-    for command in config()["checks"]:
-        argv = [part.replace("{base}", data["base"]).replace("{candidate}", data["candidate"])
-                for part in command]
+    for argv in lane_commands(lane, config(), data):
         print("Check:", " ".join(argv), flush=True)
         subprocess.run(argv, timeout=3600, check=True)
     if output("diff", "HEAD", "--name-only"):
@@ -632,12 +651,13 @@ def main() -> None:
     parser.add_argument("phase", choices=("prepare", "materialize", "validate", "test", "publish"))
     parser.add_argument("--artifacts", type=Path, required=True)
     parser.add_argument("--shard", type=int, default=0, help="test phase: 1-based shard number")
+    parser.add_argument("--lane", help="validate phase: one of validation_lanes()")
     parser.add_argument("--repository", default=os.environ.get("GITHUB_REPOSITORY"), required=False)
     args = parser.parse_args()
     if not args.repository or args.repository.lower() == "nousresearch/hermes-agent":
         raise RuntimeError("This controller requires a fork repository")
     artifacts = args.artifacts.resolve()
-    phases = dict(prepare=prepare, materialize=checkout_candidate, validate=validate,
+    phases = dict(prepare=prepare, materialize=checkout_candidate, validate=partial(validate, lane=args.lane),
                   test=partial(run_shard, shard=args.shard), publish=publish)
     phases[args.phase](repository=args.repository, artifacts=artifacts)
 

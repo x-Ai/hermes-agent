@@ -291,6 +291,26 @@ def test_prepare_outputs_one_matrix_entry_per_planned_test_shard(controller, tmp
             if line.startswith("shards=")] == ["shards=[1, 2]", "shards=[]"]
 
 
+def test_validation_runs_the_checks_in_one_lane_and_splits_the_ui_suite_over_the_rest(controller, tmp_path,
+                                                                                         monkeypatch):
+    out = tmp_path / "github-output"
+    monkeypatch.setenv("GITHUB_OUTPUT", str(out))
+    shas = dict(base="a" * 40, candidate="b" * 40, upstream="c" * 40)
+    controller.emit(dict(shas, changed=True, needed=True, remaining=False))
+    settings = controller.config()
+    lanes = json.loads(next(line for line in out.read_text(encoding="utf-8").splitlines()
+                            if line.startswith("lanes="))[len("lanes="):])
+    assert lanes == ["checks", *(f"ui:{n}/{settings['ui_shards']}" for n in range(1, settings["ui_shards"] + 1))]
+    data = dict(base="a" * 40, candidate="b" * 40)
+    checks = controller.lane_commands("checks", settings, data)
+    assert checks[0] == ["python", "scripts/check", "--base", "a" * 40, "--commit", "b" * 40]
+    assert not any("vitest" in command for argv in checks for command in argv)
+    assert controller.lane_commands(lanes[2], settings, data) == [
+        [*settings["ui_tests"], f"--shard=2/{settings['ui_shards']}"]]
+    with pytest.raises(RuntimeError, match="Unknown validation lane"):
+        controller.lane_commands(f"ui:9/{settings['ui_shards']}", settings, data)
+
+
 def test_shard_runs_its_slice_of_the_planned_test_files(controller, history, tmp_path, monkeypatch):
     _, common, _, fork = history
     artifacts = tmp_path / "artifacts"

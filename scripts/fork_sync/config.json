@@ -15,10 +15,11 @@
     ["python", "scripts/check", "--base", "{base}", "--commit", "{candidate}"],
     ["pnpm", "--dir", "ui-tui", "run", "check"],
     ["pnpm", "--dir", "apps/desktop", "run", "check:lint"],
-    ["pnpm", "--dir", "apps/desktop", "run", "test:ui"],
     ["pnpm", "--dir", "web", "run", "check"],
     ["node", "apps/desktop/scripts/i18n-keys.mjs", "--check"]
   ],
+  "ui_tests": ["pnpm", "--dir", "apps/desktop", "exec", "vitest", "run", "--project", "ui"],
+  "ui_shards": 5,
   "tests": {
     "command": ["bash", "scripts/run_tests.sh", "-j", "4", "--file-retries", "1", "-q"],
     "full_suite": ["pyproject.toml", "uv.lock", "pm/lock.json"],

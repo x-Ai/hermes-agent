@@ -31,6 +31,8 @@ jobs:
       remaining: ${{ steps.prepare.outputs.remaining }}
       # JSON list of Python test shards, [] when the merge reaches no Python test.
       shards: ${{ steps.prepare.outputs.shards }}
+      # JSON list of validate lanes.
+      lanes: ${{ steps.prepare.outputs.lanes }}
     steps:
       - name: Isolate Hermes test state
         run: |
@@ -88,12 +90,22 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
 
+  # One lane runs the repository checks, the others split the desktop UI suite (config.json
+  # ui_shards; scripts/fork_sync/run.py validation_lanes). One job used to run them in turn:
+  # about 5 minutes of checks and 18-33 of UI tests on a 4-vCPU runner.
   validate:
+    name: Validate (${{ matrix.lane }})
     needs: prepare
     # Nothing to check when the run only publishes releases on main's existing history.
-    if: needs.prepare.outputs.needed == 'true' && needs.prepare.outputs.changed == 'true'
+    if: >-
+      needs.prepare.outputs.needed == 'true' && needs.prepare.outputs.changed == 'true'
+      && needs.prepare.outputs.lanes != ''
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        lane: ${{ fromJSON(needs.prepare.outputs.lanes) }}
     steps:
       - name: Isolate Hermes test state
         run: |
@@ -127,7 +139,9 @@ jobs:
       - name: Install locked frontend dependencies
         run: pnpm install --frozen-lockfile
       - name: Validate fork behavior and all localization surfaces
-        run: python "$RUNNER_TEMP/fork-sync-controller/run.py" validate --artifacts "$RUNNER_TEMP/fork-sync-artifacts"
+        env:
+          LANE: ${{ matrix.lane }}
+        run: python "$RUNNER_TEMP/fork-sync-controller/run.py" validate --lane "$LANE" --artifacts "$RUNNER_TEMP/fork-sync-artifacts"
 
   # The whole Python suite needs about three hours on one hosted runner. Prepare
   # lists the test files the merge can affect (scripts/fork_sync/select_tests.py;
