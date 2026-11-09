@@ -19,12 +19,15 @@ VARIANT=bundled
 
 # ── Node（engines: ^22.22.0 || ^24.11.0 || >=26.0.0）────────────────────────
 command -v node >/dev/null || { echo "错误: 未找到 node" >&2; exit 1; }
-echo "node $(node -v) / npm $(npm -v)"
+# workspace 根与各 JS workspace 目录拒绝 npm 安装依赖（.npmrc 的 engine-strict=true +
+# package.json 的 engines.npm），只能用 pm/lock.json 固定的 pnpm 安装；source ./activate 提供该版本。
+command -v pnpm >/dev/null || { echo "错误: 未找到 pnpm，请先 source ./activate（提供 pm/lock.json 固定的 pnpm 版本）" >&2; exit 1; }
+echo "node $(node -v) / pnpm $(pnpm -v)"
 
 # ── 依赖 ────────────────────────────────────────────────────────────────────
 if [[ ! -d node_modules ]]; then
-  echo "==> npm ci（workspace 根）"
-  npm ci --no-audit --no-fund
+  echo "==> pnpm install --frozen-lockfile（workspace 根）"
+  pnpm install --frozen-lockfile
 fi
 
 # ── 构建用 Python（payload 阶段需要，>=3.11）────────────────────────────────
@@ -50,13 +53,13 @@ cd apps/desktop
 # ── agent payload（bundled 变体 = 官方 Setup 的形态）───────────────────────
 if [[ -n "$VARIANT" ]]; then
   echo "==> staging agent payload"
-  npm run payload
+  pnpm run payload
   export HERMES_DESKTOP_VARIANT=bundled
 fi
 
 # ── 构建 + 打 DMG ───────────────────────────────────────────────────────────
 echo "==> vite/electron 构建 + electron-builder --mac dmg"
-npm run dist:mac:dmg
+pnpm run dist:mac:dmg
 
 echo
 echo "完成。产物："
