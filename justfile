@@ -19,6 +19,16 @@ setup:
 js-install:
     pnpm install --frozen-lockfile
 
+# Install only tests-js and its runtime dependencies, without lifecycle scripts
+[group('setup')]
+js-install-tests:
+    pnpm install --frozen-lockfile --filter "{./tests-js}..." --prod --ignore-scripts
+
+# Prepare the pm-locked Electron binary the desktop app and its E2E suites launch
+[group('setup')]
+electron-runtime:
+    node scripts/build/electron-runtime.mjs --source .
+
 # Run every blocking lint check CI runs (`just check --only health`)
 [group('check')]
 [positional-arguments]
@@ -88,6 +98,38 @@ docs-install:
 [group('docs')]
 docs-build:
     npm run build:fast --prefix website
+
+# Regenerate the skills dashboard data and the per-skill docs pages
+[group('docs')]
+docs-generate:
+    scripts/hermes-python website/scripts/extract-skills.py
+    scripts/hermes-python website/scripts/generate-skill-docs.py
+
+# Run every docs check CI runs, after regenerating the skill docs
+[group('docs')]
+docs-check: && docs-check-links docs-lint-diagrams
+    website/scripts/check_generated_skill_docs.sh {{ quote(just_executable()) }} docs-generate
+
+# Fail when the committed skill docs differ from the generator's output
+[group('docs')]
+docs-check-generated:
+    website/scripts/check_generated_skill_docs.sh
+
+# Fail on cross-page links that break on GitHub or on the site
+[group('docs')]
+docs-check-links:
+    scripts/hermes-python website/scripts/check_doc_links.py
+
+# Lint docs for ASCII box diagrams (pm installs the pinned ascii-guard on first run)
+[group('docs')]
+docs-lint-diagrams:
+    scripts/hermes-python -m scripts.ci.python_packages ascii-guard==2.3.0 ruamel.yaml==0.18.17 -- -m ascii_guard.cli lint --exclude-code-blocks website/docs
+
+# Stage pinned bionic pm packages and their runtime libraries into a Termux payload
+[group('dev')]
+[positional-arguments]
+termux-payload payload +packages:
+    scripts/termux/stage_payload.sh "$@"
 
 # Refresh uv.lock after a pyproject.toml change, then re-sync the environment
 [group('deps')]

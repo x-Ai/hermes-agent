@@ -76,6 +76,7 @@ PowerShell 开头的点和空格用于 dot-source，不能省略。
 | `just js-install`、`just check-js`、`just test-js` | `pnpm install --frozen-lockfile`、`pnpm -r check`、`pnpm -r test`（先构建 `@hermes/ink`） |
 | `just desktop`、`just tui` | 桌面应用和 TUI 的开发服务器 |
 | `just docs-install`、`just docs-build` | 网站的 `npm ci` 和 `build:fast` |
+| `just docs-generate`、`just docs-check` | 重新生成技能文档页面；然后运行 CI 执行的每一项文档检查（已提交的页面与生成结果一致、链接、示意图） |
 | `just lock` | `scripts/relock.sh`：修改 `pyproject.toml` 后刷新 `uv.lock`，然后重新同步环境 |
 
 运行 Python 的配方都通过 `scripts/run-in-hermes-env` 执行，因此在从未激活过的 shell 中也能使用。
