@@ -169,6 +169,7 @@ const ZH_EXTRA_TERMS: Record<string, string> = {
   any: '任意',
   app: '应用',
   approve: '批准',
+  approvers: '审批人',
   archive: '归档',
   args: '参数',
   as: '作为',
@@ -967,6 +968,8 @@ const ZH_DESCRIPTIONS: Record<string, string> = {
   'code_execution.mode': '代码执行被限定到当前项目的严格程度',
   'approvals.mode': 'Hermes 如何处理需要显式审批的命令',
   'approvals.timeout': '审批提示在超时前等待的时长',
+  'approvals.approvers':
+    '谁可以在消息聊天中回应待处理的命令审批，["*"] 表示任何获准成员，[] 或用户 ID 列表表示仅限请求者、所列用户和平台管理员',
   'security.redact_secrets': '尽可能从模型可见内容中隐藏检测到的密钥',
   'security.allow_private_urls': '允许 URL 获取工具访问 localhost 和私有网络地址，云元数据端点始终保持阻止',
   'browser.use_real_profile':

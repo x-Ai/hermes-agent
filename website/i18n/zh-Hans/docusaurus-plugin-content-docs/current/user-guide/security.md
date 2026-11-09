@@ -174,7 +174,31 @@ approvals:
 - 回复 **yes**、**y**、**approve**、**ok** 或 **go** 以批准
 - 回复 **no**、**n**、**deny** 或 **cancel** 以拒绝
 
+消息平台上的审批绝不会要求你批准一条无法完整阅读的命令。当命令长到审批卡片放不下时，Hermes 会先把完整命令作为单独的消息发送（必要时拆分为多条消息），卡片上则会注明预览已截断。如果完整命令无法显示（发送失败，或命令本身包含三个反引号的代码围栏），卡片只提供**拒绝**。请在 CLI 或桌面应用中审查这类命令。在会截断长消息而不是拆分长消息的平台上（ntfy、钉钉、Photon、LINE），纯文本提示会把回复说明放在命令之前；如果命令仍会被截断，提示只提供 `/deny`，并显示同样的“预览已截断”说明。
+
 运行 gateway 时，`HERMES_EXEC_ASK=1` 环境变量会自动设置。
+
+#### 共享聊天中谁可以回应审批（`approvals.approvers`） {#who-can-answer-an-approval-in-a-shared-chat-approvalsapprovers}
+
+默认情况下，任何获准进入该聊天的成员都可以回应待处理的审批，无论审批是由谁的消息触发的。在群组、频道或共享话题中，你可以改为把每个审批绑定到提出请求的人：
+
+```yaml
+approvals:
+  approvers: []            # 默认 ["*"]：任何获准的成员都可以回应
+  # approvers: ["U024BE7LH", "123456789"]   # 请求者 + 这些聊天用户 ID + 管理员
+```
+
+当 `approvers` 不再是 `["*"]` 时，只有以下人员可以批准或拒绝命令：
+
+- 发送了触发该审批的那一轮消息的用户；
+- `approvers` 中列出的用户 ID，使用各平台自己的 ID 格式（Slack 为 `U…`，Telegram 为数字 ID，Matrix 为 `@user:server`）；
+- 审批所在聊天的平台管理员：私信中为 `allow_admin_from`，群组中为 `group_allow_admin_from`（与斜杠命令使用的范围相同；私信管理员不是群组管理员），取自接收该聊天的机器人所属的 profile。
+
+两个不同的请求者同时触发相同的命令时，会各自收到一个提示，因此一个请求者的回应永远不会替另一个请求者做决定。
+
+当其他人点击按钮、添加表情回应，或发送 `/approve`、`/deny` 或单独的“yes”时，会收到 *只有 &lt;名称&gt; 可以回应此审批请求*（英文界面为 *Only &lt;name&gt; can answer this approval.*）。命令仍保持待处理状态，请求者仍然可以回应。在支持私密回复的平台上，只有点击者能看到这条提示：Slack 的仅自己可见消息、Discord 的临时回复、Telegram 的回调弹窗、飞书的 toast 提示或 Teams 的卡片响应。Matrix、WhatsApp 和中继则会把它发到聊天中。
+
+该设置在触发审批时读取，因此在多路复用 profile 的情况下，由各 profile 自己的 `config.yaml` 决定。宿主界面（CLI、TUI、桌面应用、API 服务器）以宿主身份回应，不受影响。Matrix 保留其自己更严格的 `MATRIX_APPROVAL_REQUIRE_SENDER`（默认开启）。QQBot 本来就只接受会话自身用户的点击。
 
 ### 永久允许列表
 

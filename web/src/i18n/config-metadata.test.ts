@@ -91,4 +91,15 @@ describe("dashboard config metadata localization", () => {
     expect(chinese).not.toBe(english);
     expect(CJK.test(chinese)).toBe(true);
   });
+
+  it("localizes the shared-chat approvers setting instead of echoing its key", () => {
+    const label = localizeConfigLabel("approvals.approvers", "zh");
+    expect(CJK.test(label)).toBe(true);
+    expect(label).not.toMatch(/[A-Za-z]/);
+    const generated = "Approvals → Approvers";
+    const description = localizeConfigDescription("approvals.approvers", generated, "zh");
+    expect(description).not.toBe(generated);
+    expect(description).not.toContain("Approvers");
+    expect(CJK.test(description)).toBe(true);
+  });
 });

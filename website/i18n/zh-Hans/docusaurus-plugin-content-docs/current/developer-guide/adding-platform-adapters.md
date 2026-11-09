@@ -186,7 +186,7 @@ gateway:
 | Webhook 跨平台投递 | 检查注册表中的已知平台 |
 | `/update` 命令访问 | `allow_update_command` 标志 |
 | 频道目录 | Plugin 平台包含在枚举中 |
-| 系统 prompt 提示 | `platform_hint` 注入 LLM 上下文 |
+| 系统 prompt 提示 | `platform_hint` 注入 LLM 上下文；`platform_hint_tool_notes`（`{tool: sentence}`）仅在会话拥有对应工具时追加 |
 | 消息分块 | `max_message_length` 用于智能分割 |
 | PII 脱敏 | `pii_safe` 标志 |
 | `hermes status` | 显示带 `(plugin)` 标签的 plugin 平台 |
