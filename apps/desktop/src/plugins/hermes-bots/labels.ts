@@ -11,6 +11,17 @@
 import { aliasIdentityFor } from './routing'
 import type { BotMeta, ConnectionRow, RosterRow } from './types'
 
+/** This device in the UI language, for the row `displayName` names after its
+ *  gateway. Its callers pass no translator, and this leaf cannot import
+ *  `./i18n`: that loads `shared.ts`'s module-level atom, which the thin SDK
+ *  mocks of the logic modules importing labels cannot build. `register`
+ *  points it at the plugin bundle; until then it is the registry's English. */
+let thisDeviceLabel = (): string => 'This device'
+
+export function setThisDeviceLabel(read: () => string): void {
+  thisDeviceLabel = read
+}
+
 export function displayName(bot: Partial<RosterRow>, meta?: BotMeta | null): string {
   // A configured alias route claiming this row overrides source-derived
   // identity: the friendly alias name must survive hosted-session
@@ -29,7 +40,9 @@ export function displayName(bot: Partial<RosterRow>, meta?: BotMeta | null): str
   // "Hermes". Annotated active rows carry sourceScoped too, and keying this
   // off sourceScoped renamed the user's main agent to an IP-derived label
   // (community report, Aug 17 2026). A name its own backend reports is a real
-  // name, never traded for a Desktop-side label.
+  // name, never traded for a Desktop-side label. On a remote window This
+  // device's own default is such a row, and its label is registry data: it
+  // reads in the UI language, as This device does in the gateway headings.
   if (
     bot?.remoteSource &&
     (bot.name || '').trim().toLowerCase() === 'default' &&
@@ -39,7 +52,7 @@ export function displayName(bot: Partial<RosterRow>, meta?: BotMeta | null): str
     !backendTitle &&
     !bot.display_name?.trim()
   ) {
-    return bot.connectionLabel
+    return botGatewayLabel(bot, thisDeviceLabel())
   }
 
   if (meta?.title?.trim()) {

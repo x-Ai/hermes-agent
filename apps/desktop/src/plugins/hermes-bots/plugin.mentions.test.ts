@@ -21,6 +21,7 @@
 
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { translateBotsIn } from './i18n-test-helper'
 import type { RosterRow } from './types'
 
 interface MentionCompletionItem {
@@ -61,7 +62,7 @@ const ROSTER = {
 }
 
 const { cache, hostMock, live } = vi.hoisted(() => {
-  const live = { focused: 'default', profile: 'default', stored: null as string | null }
+  const live = { connection: 'local', focused: 'default', profile: 'default', stored: null as string | null }
 
   return {
     cache: new Map<string, { key: unknown[]; value: unknown }>(),
@@ -76,7 +77,7 @@ const { cache, hostMock, live } = vi.hoisted(() => {
         })
       ),
       state: {
-        connectionId: { get: () => 'local', listen: () => () => undefined },
+        connectionId: { get: () => live.connection, listen: () => () => undefined },
         focusedSessionProfile: { get: () => live.focused, listen: () => () => undefined },
         focusedStoredSessionId: { get: () => live.stored, listen: () => () => undefined },
         gateway: { get: () => null, listen: () => () => undefined },
@@ -137,17 +138,24 @@ interface Fixture {
   /** Profile owning the chat on screen; a bot never @s itself. */
   focused?: string
   profiles?: Array<Record<string, unknown>> | null
+  /** The gateway the window is on. */
+  connection?: string
+  /** The plugin's `ctx.i18n.t`; without one Bot Mode reads its English bundle. */
+  translate?: (key: string, ...args: unknown[]) => string
 }
 
 /** Register the plugin and hand back its composer contributions. */
 async function contributions({
   cacheKeyConnection = 'local',
   focused = 'default',
-  profiles = ROSTER.profiles
+  profiles = ROSTER.profiles,
+  connection = 'local',
+  translate
 }: Fixture = {}) {
   vi.resetModules()
   cache.clear()
   live.focused = focused
+  live.connection = connection
 
   // Exactly where useRoster writes it: suffixed with the connection id. A
   // null `profiles` leaves the cache COLD, as a launch that never mounted the
@@ -164,7 +172,7 @@ async function contributions({
 
   try {
     plugin.register({
-      i18n: { onLocaleChange: () => () => undefined, register: () => () => undefined },
+      i18n: { onLocaleChange: () => () => undefined, register: () => () => undefined, t: translate },
       onDispose: () => undefined,
       register: (contribution: Contribution) => registered.push(contribution),
       storage: { get: async () => undefined, remove: async () => undefined, set: async () => undefined }
@@ -321,6 +329,31 @@ describe('@-mention completions', () => {
 
     expect(provide('default-v')[0]).toMatchObject({ insert: '@default-vera', meta: expect.stringContaining('Vera') })
     expect(provide('zzz')).toEqual([])
+  })
+
+  it("names This device's untitled default in the UI language from a remote window", async () => {
+    // On a remote window This device's own default is a thin row from another
+    // source, and an untitled one is named after its gateway. That label is
+    // registry data: English "This device" whatever language the UI runs in.
+    const { provide } = await contributions({
+      cacheKeyConnection: 'vera',
+      connection: 'vera',
+      profiles: [
+        { connectionId: 'vera', connectionKind: 'ssh', connectionLabel: 'Vera', name: 'default', sourceScoped: true },
+        {
+          connectionId: 'local',
+          connectionKind: 'local',
+          connectionLabel: 'This device',
+          handle: 'default-this-device',
+          name: 'default',
+          remoteSource: true,
+          sourceScoped: true
+        }
+      ],
+      translate: translateBotsIn('zh')
+    })
+
+    expect(provide('')).toEqual([expect.objectContaining({ meta: 'Bot · 本设备 · 本设备' })])
   })
 
   /** Local default plus two remote defaults, each titled on its own host

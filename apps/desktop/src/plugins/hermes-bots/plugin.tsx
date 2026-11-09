@@ -76,7 +76,7 @@ import { sendToGroupChat } from './group-rounds'
 import { composerAttachmentDeps } from './group-route-attachments'
 import { annotateOrphanedGroupChatMembers } from './hygiene'
 import { BOTS_LOCALES, botsText, resetBotsText } from './i18n'
-import { botGatewayLabel, displayName } from './labels'
+import { botGatewayLabel, displayName, setThisDeviceLabel } from './labels'
 import { startBotRelay, stopBotRelay } from './relay'
 import { $activityToasts } from './roster-actions'
 import {
@@ -159,6 +159,7 @@ export default {
     const disposeLocales = ctx.i18n.register(BOTS_LOCALES)
     // Module-level botsText() callers bind strings eagerly; rebind on a switch.
     ctx.i18n.onLocaleChange(resetBotsText)
+    setThisDeviceLabel(() => botsText().bot.thisDevice)
     setGroupChatSyncDisposed(false)
     startFaceClock()
     // The cross-connection relay rides every gateway socket this Desktop
