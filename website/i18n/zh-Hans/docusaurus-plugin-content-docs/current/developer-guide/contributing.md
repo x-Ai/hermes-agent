@@ -61,6 +61,26 @@ PowerShell 开头的点和空格用于 dot-source，不能省略。
 并在离开该 worktree 时拒绝运行。
 `deactivate` 恢复激活前的环境，不卸载依赖或停止已启动的进程。
 
+### 开发者命令（`just`） {#developer-commands}
+
+不带参数运行 `just` 会列出所有开发者命令。每个配方（recipe）只调用本仓库中的一个脚本或工具，
+因此下表中的命令不经过 `just` 也能直接运行。lefthook 的 pre-commit 钩子调用的也是这些配方。
+
+| 配方 | 运行内容 |
+|---|---|
+| `just setup` | `setup-hermes.sh --runtime-only --test-environment`（PowerShell：`setup-hermes.ps1 -RuntimeOnly`） |
+| `just check` | `scripts/check`，即所有阻断性 lint 检查；用 `just check --only health` 选择要运行的检查 |
+| `just fix` | 先用固定版本的 ruff 执行 `--fix`，再运行 `pnpm -r fix` |
+| `just test <paths>` | `scripts/run_tests.sh <paths>`；未指定路径时拒绝启动，即使传入了选项也是如此 |
+| `just test-all` | 完整的 Python 测试套件 |
+| `just js-install`、`just check-js`、`just test-js` | `pnpm install --frozen-lockfile`、`pnpm -r check`、`pnpm -r test`（先构建 `@hermes/ink`） |
+| `just desktop`、`just tui` | 桌面应用和 TUI 的开发服务器 |
+| `just docs-install`、`just docs-build` | 网站的 `npm ci` 和 `build:fast` |
+| `just lock` | `scripts/relock.sh`：修改 `pyproject.toml` 后刷新 `uv.lock`，然后重新同步环境 |
+
+运行 Python 的配方都通过 `scripts/run-in-hermes-env` 执行，因此在从未激活过的 shell 中也能使用。
+新增开发者命令就是在 `scripts/` 下添加一个脚本，再加一个调用它的配方；配方本身不包含任何逻辑。
+
 ### 独立开发和测试环境 {#manual-development-and-test-environment}
 
 先按 [PM 开发工作流](../reference/package-management.md#developer-workflow) 准备 Python 3.14。
@@ -83,7 +103,7 @@ Windows 上通过 Bash 运行 `scripts/run_tests.sh`，并预先准备本机 C++
 运行开发实例前，选择临时的 `HERMES_HOME`，再使用 `hermes setup` 配置它。
 不要把生产凭据复制到 checkout。
 
-从仓库根目录运行 `pnpm install --frozen-lockfile` 安装 JS workspaces。网站是独立的 npm 项目：
+从仓库根目录运行 `pnpm install --frozen-lockfile`（`just js-install`）安装 JS workspaces。网站是独立的 npm 项目（`just docs-install`、`just docs-build`）：
 
 ```bash
 npm ci --prefix website
@@ -95,7 +115,7 @@ npm run build:fast --prefix website
 `npx`、`npm exec` 和 `npm run` 仍可使用，因此 MCP 服务器和工具照常启动。但 `engine-strict` 作用于整个检出目录：这些目录本身，以及通过根目录 `.npmrc` 作用于所有没有自己 `package.json` 的位置（`agent/`、`tools/`、Docker 镜像的 `/opt/hermes`）。在这些位置，如果 `npx` 要安装的包或它带入的任一非可选依赖声明的 `engines` 与当前 Node 或 npm 不符，`npx` 会拒绝安装，而在检出目录之外只会警告。
 
 图标从 `assets/nous-girl-*.svg` 和 `assets/backgrounds/` 生成。
-`node scripts/generate-icons.mjs` 使用 Hermes 运行时 Python（`HERMES_PYTHON`，否则为 PATH 上的 `python`）渲染图标：Pillow 和 resvg-py 是核心依赖。不要提交生成的 PNG/ICO/ICNS 文件。
+`node scripts/generate-icons.mjs`（`just icons`）使用 Hermes 运行时 Python（`HERMES_PYTHON`，否则为 PATH 上的 `python`）渲染图标：Pillow 和 resvg-py 是核心依赖。不要提交生成的 PNG/ICO/ICNS 文件。
 
 ### 运行测试
 
@@ -105,6 +125,9 @@ scripts/run_tests.sh
 
 该脚本清除凭据环境、设置 UTC 和临时 `HERMES_HOME`，并使用独立子进程运行各测试文件。
 不同文件可并行，单个文件内的测试串行执行。不要绕过脚本直接运行 pytest。
+
+`just test tests/agent/ -v` 等同于 `scripts/run_tests.sh tests/agent/ -v`；`just test` 未指定路径时拒绝启动，
+`just test-all` 运行完整测试套件。
 
 ## 代码风格
 
