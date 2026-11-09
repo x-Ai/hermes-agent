@@ -73,7 +73,9 @@ it.each(['lost', 'refused'])('keeps the upgrade creation intent only while uncer
   const { rooms, create } = strictGroupCreation()
   let lost = true
   gateways(MINI, params => {
-    if (lost && outcome === 'refused') {lost = false; throw Object.assign(new Error('refused'), { code: 4001 })}
+    // A refusal ends the intent only when it rules the room id out; a canonical gateway says so
+    // with a bare invalid_params (095dbdb996). A lost reply keeps the exact request.
+    if (lost && outcome === 'refused') {lost = false; throw Object.assign(new Error('invalid_params'), { code: 4001 })}
     const answer = create(params)
 
     if (lost) {lost = false; throw new Error('reply lost')}
@@ -83,7 +85,10 @@ it.each(['lost', 'refused'])('keeps the upgrade creation intent only while uncer
   render(<GroupChatWorkspace group="Pair" members={members} />)
   const button = await screen.findByRole('button', { name: 'Start a group chat that runs without Desktop' })
   await act(async () => { fireEvent.click(button) })
-  expect(await screen.findByRole('alert')).toHaveProperty('textContent', outcome === 'lost' ? 'reply lost' : `${CANONICAL_GROUP_LOCALES.en.createRefused} refused`)
+  // A lost reply says trying again is safe; a refusal keeps the gateway's own reason.
+  expect(await screen.findByRole('alert')).toHaveProperty('textContent', outcome === 'lost'
+    ? CANONICAL_GROUP_LOCALES.en.createUncertain
+    : `${CANONICAL_GROUP_LOCALES.en.createRefused} invalid_params`)
   await act(async () => { fireEvent.click(button) })
   await waitFor(() => expect(Object.values($canonicalGroupBindings.get())).toHaveLength(1))
   expect(rooms.size).toBe(1)

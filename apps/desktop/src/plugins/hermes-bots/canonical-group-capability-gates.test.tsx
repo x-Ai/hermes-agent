@@ -587,6 +587,73 @@ it("explains a refused gateway group creation in the reader's language with the 
   expect(Object.keys($groupChats.get())).toEqual(['Existing'])
 })
 
+// Upstream keeps a lost create reply's exact request for the gate's Start new group (095dbdb996).
+// This fork's way onto a gateway in its place, Host on the gateway…, keeps it the same way: the
+// confirmation says trying again is safe, confirming again sends the same room id (so the room is
+// never hosted twice), and closing the confirmation ends that request so a new one starts fresh.
+it.each(['confirmed again', 'reopened'])(
+  'Host on the gateway… keeps a lost create reply only for its open confirmation: %s',
+  async retry => {
+    const ids: string[] = []
+    request.mockImplementation(async (_route, method, params) => {
+      if (method === 'groups.capabilities') {
+        return { driver: true, persistent_process: true, features: ['room_settings'] }
+      }
+
+      if (method === 'groups.create') {
+        ids.push(params.room_id)
+
+        if (ids.length === 1) {
+          throw new Error('request timed out')
+        }
+
+        return { room: { room_id: params.room_id, name: params.name, members: params.members } }
+      }
+
+      // The hosted room is synced into the room store right after creation (canonical-room-sync.ts).
+      if (method === 'groups.state') {
+        return { room: { room_id: params.room_id, name: 'Existing', members: [] }, driver_status: {} }
+      }
+
+      if (method === 'groups.log') {
+        return { events: [], has_more: false }
+      }
+
+      if (method === 'groups.settings.get') {
+        return { revision: 1, settings: {} }
+      }
+
+      return {}
+    })
+    $groupChats.set({ Existing: { log: [], members: roster, running: false, watermarks: {} } })
+    const onHosted = vi.fn()
+    const rename = vi.fn(async (_old: string, next: string) => next)
+    render(<HostOnGatewayButton group="Existing" members={roster} onHosted={onHosted} rename={rename} />)
+    const host = await screen.findByRole('button', { name: botsText().group.hostOnGateway })
+
+    const confirm = () =>
+      act(async () => {
+        fireEvent.click(screen.getByRole('button', { name: botsText().group.hostOnGatewayAction }))
+      })
+
+    fireEvent.click(host)
+    await confirm()
+    expect(await screen.findByText(CANONICAL_GROUP_LOCALES.en.createUncertain)).toBeTruthy()
+    expect(onHosted).not.toHaveBeenCalled()
+    expect(rename).not.toHaveBeenCalled()
+
+    if (retry === 'reopened') {
+      fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
+      fireEvent.click(host)
+    }
+
+    await confirm()
+    await waitFor(() => expect(onHosted).toHaveBeenCalledTimes(1))
+    expect(ids).toHaveLength(2)
+    expect(ids[1] === ids[0]).toBe(retry === 'confirmed again')
+  }
+)
+
 // Desktop's own backend and SSH, URL and Cloud connections reach `hermes serve`
 // (tui_gateway/methods_groups.py): it refuses a create with 4110, or 4123/5111 for a missing worker
 // or a failure, and puts the reason in the message. The session gateway answers 4001 with data.detail.

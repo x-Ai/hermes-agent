@@ -2,9 +2,9 @@ import { Button, host, useI18n, useValue } from '@hermes/plugin-sdk'
 import { useRef, useState } from 'react'
 
 import { groupCreationEngine, groupNeedsDesktopCourier, groupSeatsPeers, revalidateGroupCreation, useGroupCapability } from './canonical-group-capabilities'
-import { createGroupAcrossConnections, type GroupCreationIntent, usePeerTargets } from './canonical-group-peers'
+import { createGroupAcrossConnections, usePeerTargets } from './canonical-group-peers'
 import { registerCanonicalGroup } from './canonical-group-registry'
-import { canonicalGroupCreateError } from './canonical-groups'
+import { canonicalGroupCreateError, type GroupCreationIntent } from './canonical-groups'
 import { useBots } from './i18n'
 import type { GroupMember } from './types'
 

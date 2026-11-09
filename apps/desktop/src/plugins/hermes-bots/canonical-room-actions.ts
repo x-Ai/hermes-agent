@@ -16,7 +16,8 @@ import {
   type CanonicalGroupRoute,
   type CanonicalRoomContext,
   createCanonicalGroup,
-  disbandCanonicalGroup
+  disbandCanonicalGroup,
+  type GroupCreationIntent
 } from './canonical-groups'
 import { ROOM_ATTACHMENTS_FEATURE, uploadCanonicalAttachments } from './canonical-room-attachments'
 import {
@@ -443,14 +444,17 @@ export async function applyCanonicalCreationSettings(
   }
 }
 
-/** Create the room on the gateway, apply the draft's settings, register and project it. */
+/** Create the room on the gateway, apply the draft's settings, register and project it. `intent`
+ *  is the asking surface's own creation intent: while a reply is lost it keeps the exact request
+ *  (same room id), so trying again opens the room the first attempt may have made. */
 export async function createCanonicalRoomWithSettings(
   route: CanonicalGroupRoute,
   name: string,
   members: GroupMember[] | RosterRow[],
-  settings: CanonicalRoomSettingsPatch
+  settings: CanonicalRoomSettingsPatch,
+  intent: GroupCreationIntent = {}
 ): Promise<string> {
-  const { binding, room } = await createCanonicalGroup(route, name, members as GroupMember[])
+  const { binding, room } = await createCanonicalGroup(route, name, members as GroupMember[], intent)
   const key = registerCanonicalGroup(route, room)
   await applyCanonicalCreationSettings(binding, settings)
   await syncCanonicalRoom(key, binding, { full: true })

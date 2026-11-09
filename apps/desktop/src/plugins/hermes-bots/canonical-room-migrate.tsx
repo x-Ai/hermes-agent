@@ -9,9 +9,9 @@
  */
 
 import { Button, Codicon, ConfirmDialog, host, useValue } from '@hermes/plugin-sdk'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
-import { canonicalGroupCreateError, type CanonicalGroupRoute } from './canonical-groups'
+import { canonicalGroupCreateError, type CanonicalGroupRoute, type GroupCreationIntent } from './canonical-groups'
 import { canCreateCanonicalRoom, createCanonicalRoomWithSettings } from './canonical-room-actions'
 import { captureCanonicalGroupRoute } from './canonical-room-sync'
 import {
@@ -27,6 +27,9 @@ import { botsText, useBots } from './i18n'
 import type { GroupMember } from './types'
 
 export interface HostRoomDeps {
+  /** The confirmation's own creation intent: while a create reply is lost it keeps the exact
+   *  request (same room id), so confirming again opens the room it may already have made. */
+  intent?: GroupCreationIntent
   /** The room surface's rename (`group-chat-view.tsx`): null when the name is taken. */
   rename: (oldName: string, newName: string, members: GroupMember[]) => Promise<null | string>
 }
@@ -76,12 +79,18 @@ export async function hostRoomOnGateway(
   const route = captureCanonicalGroupRoute()
   const name = groupChatDisplayName(group, room)
 
-  const key = await createCanonicalRoomWithSettings(route, name, members, {
-    handle: room.handle || null,
-    hold_detection: room.holdDetection !== false,
-    member_workspaces: memberFolders(room, members),
-    workspace: room.workspace || null
-  })
+  const key = await createCanonicalRoomWithSettings(
+    route,
+    name,
+    members,
+    {
+      handle: room.handle || null,
+      hold_detection: room.holdDetection !== false,
+      member_workspaces: memberFolders(room, members),
+      workspace: room.workspace || null
+    },
+    deps.intent
+  )
 
   // The row's preferences are this Desktop's, not the gateway's: they follow the room here.
   updateGroupChat(
@@ -111,6 +120,8 @@ export function HostOnGatewayButton({ group, members, onHosted, rename }: HostOn
   const room = rooms[group]
   const [available, setAvailable] = useState(false)
   const [confirming, setConfirming] = useState(false)
+  // One confirmation keeps its create request while the reply is uncertain; opening it again starts fresh.
+  const intent = useRef<GroupCreationIntent>({})
   const membersKey = members.map(groupMemberKey).join('\n')
   const hosted = Boolean(room?.canonical)
   const gone = Boolean(room?.tombstone) || !room
@@ -145,7 +156,15 @@ export function HostOnGatewayButton({ group, members, onHosted, rename }: HostOn
 
   return (
     <>
-      <Button className="w-fit" onClick={() => setConfirming(true)} size="sm" variant="secondary">
+      <Button
+        className="w-fit"
+        onClick={() => {
+          intent.current = {}
+          setConfirming(true)
+        }}
+        size="sm"
+        variant="secondary"
+      >
         <Codicon name="server" />
         {b.group.hostOnGateway}
       </Button>
@@ -155,8 +174,9 @@ export function HostOnGatewayButton({ group, members, onHosted, rename }: HostOn
         description={b.group.hostOnGatewayDescription(name, b.group.legacyRoomName(name))}
         onClose={() => setConfirming(false)}
         onConfirm={async () => {
-          // The confirmation shows what this throws: a refusal, in the reader's words.
-          const key = await hostRoomOnGateway(group, room, members, { rename }).catch(error => {
+          // The confirmation shows what this throws in the reader's words: a refusal, or that a lost
+          // reply may already have hosted the room and confirming again opens it.
+          const key = await hostRoomOnGateway(group, room, members, { intent: intent.current, rename }).catch(error => {
             throw new Error(canonicalGroupCreateError(error, b.canonical))
           })
 

@@ -369,7 +369,9 @@ it('retries a lost create reply with one immutable intent; changing the name or 
   fireEvent.change(name, { target: { value: 'Team' } })
   const submit = async () => act(async () => { fireEvent.click(screen.getByRole('button', { name: /^Create group/ })) })
   await submit()
-  expect(notify).toHaveBeenCalledWith(expect.objectContaining({ kind: 'error' }))
+  // A lost reply says trying again is safe, in the dialog, instead of an error toast (095dbdb996).
+  expect(screen.getByText(words.createUncertain)).toBeTruthy()
+  expect(notify).not.toHaveBeenCalled()
   await act(async () => { (host.state.gateway as ReturnType<typeof HermesSdk.atom<string>>).set('closed') })
   expect(screen.getByRole('dialog')).toBeTruthy()
   await act(async () => { (host.state.gateway as ReturnType<typeof HermesSdk.atom<string>>).set('open') })

@@ -21,9 +21,9 @@ import {
   revalidateGroupCreation
 } from './canonical-group-capabilities'
 import type { CanonicalGroupMessages } from './canonical-group-locales'
-import { createGroupAcrossConnections, type GroupCreationIntent, readPeerTargets } from './canonical-group-peers'
+import { createGroupAcrossConnections, readPeerTargets } from './canonical-group-peers'
 import { refreshGatewayGroupRooms, registerCanonicalGroup } from './canonical-group-registry'
-import type { CanonicalGroupRoute } from './canonical-groups'
+import type { CanonicalGroupRoute, GroupCreationIntent } from './canonical-groups'
 import { canonicalGroupRequest } from './canonical-groups'
 import { applyCanonicalCreationSettings, type CanonicalRoomSettingsPatch } from './canonical-room-actions'
 import { durableGroupChatMembers } from './group-membership'
