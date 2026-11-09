@@ -107,13 +107,15 @@ def test_ai_runs_for_clean_merge_too(controller, history, monkeypatch):
 
 
 def test_publish_rejects_main_changed_while_testing(controller, history, tmp_path, monkeypatch):
-    root, _, _, fork = history
+    root, _, upstream, fork = history
     origin = tmp_path / "origin.git"
     git(tmp_path, "init", "--bare", str(origin))
     git(root, "remote", "add", "origin", str(origin))
     newer = commit(root, "somebody else's change\n")
     git(root, "push", "origin", "main")
-    data = dict(base=fork, candidate=fork, changed=False, releases=[])
+    # Without a re-checked merge from the reconcile job (test_fork_sync_reconcile.py), a candidate
+    # that main does not contain never lands on a main that moved.
+    data = dict(base=fork, candidate=upstream, changed=True, releases=[])
     monkeypatch.setattr(controller, "import_candidate", lambda *args: data)
     called = []
     monkeypatch.setattr(controller.releases, "publish", lambda *args: called.append(args))

@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
-"""Trusted controller for the fork's prepare → validate → publish workflow.
+"""Trusted controller for the fork's prepare → validate → reconcile → publish workflow.
 
 Copy this directory out of the checkout BEFORE merging. Run that copy, never
 candidate-controlled Python, in jobs that receive an AI key or a write token.
 Its sibling modules are imported before the coding agent runs, so the agent's
 shell cannot swap the step planning, the dropped-test guard, the desktop test
-check or the test selection.
+check or the test selection. reconcile.py lands a validated candidate on a main
+that moved during the run.
 """
 from __future__ import annotations
 
@@ -31,6 +32,7 @@ sys.path.insert(0, str(HERE))
 import desktop_tests
 import dropped_tests
 import pi_session
+import reconcile
 import releases
 import select_tests
 import steps
@@ -631,34 +633,99 @@ def run_shard(repository: str, artifacts: Path, shard: int) -> None:
                            " child process ran without an isolated HERMES_HOME")
 
 
-def publish(artifacts: Path, repository: str) -> None:
-    data = import_candidate(artifacts, repository)
-    # origin/main may advance while AI/tests run. Never force it back or silently
-    # rebase onto untested code; the next poll rebuilds from the new main.
+def fetch_main() -> str:
     git("fetch", "--no-tags", "origin", "+refs/heads/main:refs/remotes/origin/main")
-    current = output("rev-parse", "refs/remotes/origin/main")
-    if current not in (data["base"], data["candidate"]):
-        raise RuntimeError("Fork main changed during validation; retry from the new main")
-    if current != data["candidate"]:
+    return output("rev-parse", "refs/remotes/origin/main")
+
+
+def reconcile_main(artifacts: Path, repository: str, reconciled: Path) -> None:
+    """No toolchain needed: merge a main that moved during the run, and list what to re-check on it."""
+    data = load_manifest(artifacts, repository)
+    if output("rev-parse", "HEAD") != data["candidate"]:
+        raise RuntimeError("Reconciliation is not starting from the prepared commit")
+    state = reconcile.plan(data["base"], data["candidate"], fetch_main(), config())
+    reconciled.mkdir(parents=True, exist_ok=True)
+    write_json(reconciled / reconcile.STATE, state)
+    reasons = {"diverged": "no longer contains the run's base", "conflict": "conflicts with the candidate",
+               "too-broad": f"reaches more Python tests than one shard ({state.get('python')})"}
+    if state["status"] in reasons:
+        warn(f"Fork main moved to {state['main'][:12]} during the run and {reasons[state['status']]};"
+             " the next run starts from it")
+    print(f"Fork main {state['main'][:12]}: {state['status']}", flush=True)
+    destination = os.environ.get("GITHUB_OUTPUT")
+    if destination:
+        with open(destination, "a", encoding="utf-8") as handle:
+            handle.write(f"merged={str(state['status'] == 'merged').lower()}\n")
+
+
+def recheck(artifacts: Path, repository: str, reconciled: Path) -> None:
+    """With the toolchain installed: run the reconciled merge's checks, then bundle it for publish."""
+    data = load_manifest(artifacts, repository)
+    state = json.loads((reconciled / reconcile.STATE).read_text(encoding="utf-8-sig"))
+    if state["status"] != "merged":
+        return
+    if output("rev-parse", "HEAD") != state["merged"]:
+        raise RuntimeError("The re-check is not running against the reconciled merge")
+    settings = config()
+    for argv in state["commands"]:
+        print("Check:", " ".join(argv), flush=True)
+        subprocess.run(argv, timeout=3600, check=True)
+    if state["desktop"]:
+        print(f"Check: {' '.join(settings['ui_tests'])} on {len(state['desktop'])} test file(s)", flush=True)
+        subprocess.run([*settings["ui_tests"], *(name.removeprefix("apps/desktop/") for name in state["desktop"])],
+                       timeout=3600, check=True)
+    if state["python"]:
+        listing = reconciled / "python-tests.txt"
+        listing.write_text("".join(f"{name}\n" for name in state["python"]), encoding="utf-8")
+        flaky = run_tests([*settings["tests"]["command"], "--files-from", str(listing)], 3600)
+        if flaky:
+            warn(f"Re-check: {', '.join(flaky)} failed once and passed on retry")
+    if output("diff", "HEAD", "--name-only"):
+        raise RuntimeError("Checks modified tracked files of the reconciled merge")
+    reconcile.write_bundle(reconciled, state, data["candidate"])
+
+
+def publish(artifacts: Path, repository: str, reconciled: Path | None = None) -> None:
+    data = import_candidate(artifacts, repository)
+    # origin/main may advance while AI/tests run. Never force it back; the candidate lands on a newer
+    # main only through the merge the reconcile job re-checked on top of it (reconcile.py).
+    current = fetch_main()
+    if ancestor(data["candidate"], current):
+        landed = current
+    elif current == data["base"]:
         git("push", "origin", f"{data['candidate']}:refs/heads/main")
+        landed = data["candidate"]
+    else:
+        state_path = reconciled / reconcile.STATE if reconciled is not None else None
+        state = json.loads(state_path.read_text(encoding="utf-8-sig")) if state_path and state_path.is_file() else None
+        landed = reconcile.verified(state, reconciled, data["candidate"], current)
+        git("push", "origin", f"{landed}:refs/heads/main")
+        print(f"Main moved to {current[:12]} during the run; landed the candidate through the re-checked merge",
+              flush=True)
     releases.publish(repository, data["releases"], data["candidate"])
-    print(f"Published main {data['candidate'][:12]} and {len(data['releases'])} release(s)")
+    print(f"Published main {landed[:12]} and {len(data['releases'])} release(s)")
 
 
 def main() -> None:
     logging.basicConfig(level=logging.INFO, format="%(message)s")
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("phase", choices=("prepare", "materialize", "validate", "test", "publish"))
+    parser.add_argument("phase", choices=("prepare", "materialize", "validate", "test", "reconcile", "recheck",
+                                          "publish"))
     parser.add_argument("--artifacts", type=Path, required=True)
     parser.add_argument("--shard", type=int, default=0, help="test phase: 1-based shard number")
     parser.add_argument("--lane", help="validate phase: one of validation_lanes()")
+    parser.add_argument("--reconciled", type=Path, help="reconcile, recheck, publish: the reconciled merge's folder")
     parser.add_argument("--repository", default=os.environ.get("GITHUB_REPOSITORY"), required=False)
     args = parser.parse_args()
     if not args.repository or args.repository.lower() == "nousresearch/hermes-agent":
         raise RuntimeError("This controller requires a fork repository")
+    if args.phase in ("reconcile", "recheck") and args.reconciled is None:
+        raise RuntimeError(f"The {args.phase} phase needs --reconciled")
     artifacts = args.artifacts.resolve()
+    reconciled = args.reconciled.resolve() if args.reconciled else None
     phases = dict(prepare=prepare, materialize=checkout_candidate, validate=partial(validate, lane=args.lane),
-                  test=partial(run_shard, shard=args.shard), publish=publish)
+                  test=partial(run_shard, shard=args.shard), reconcile=partial(reconcile_main, reconciled=reconciled),
+                  recheck=partial(recheck, reconciled=reconciled), publish=partial(publish, reconciled=reconciled))
     phases[args.phase](repository=args.repository, artifacts=artifacts)
 
 

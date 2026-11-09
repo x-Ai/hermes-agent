@@ -11,8 +11,10 @@ workflow wins. Fix this file in the same PR.
 
 Fork-specific automation: [`fork-upstream-sync.yml`](fork-upstream-sync.yml) polls upstream
 main and published releases once per hour at minute 7 (UTC). It merges upstream in bounded steps with Pi, using a configured
-Anthropic-compatible endpoint, and validates the exact candidate without secrets (the Python tests the merge can affect, in
-parallel shards), then advances fork main. A new upstream release comes first: the run merges toward
+Anthropic-compatible endpoint, and validates the exact candidate without secrets (parallel validate lanes with the desktop UI
+suite sharded, and the Python tests the merge can affect, in parallel shards), then advances fork main. When fork main moved
+during the run, a reconcile job merges it into the candidate and re-checks only what the newer commits change, and publish
+lands that merge. A new upstream release comes first: the run merges toward
 its commit, stops there and publishes the fork's stable release of that version (upstream's notes plus a
 fork section) on the merge, then starts the next run for upstream main. It replaced the manual
 `fork-stable-release.yml`. Configuration, permissions, retry behavior and rollout:

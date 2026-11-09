@@ -214,7 +214,11 @@ jobs:
           SHARD: ${{ matrix.shard }}
         run: python "$RUNNER_TEMP/fork-sync-controller/run.py" test --shard "$SHARD" --artifacts "$RUNNER_TEMP/fork-sync-artifacts"
 
-  publish:
+  # The fork's own sessions push to main during the two-hour run. When main moved, this job
+  # merges it into the validated candidate and re-checks only what the newer commits change on
+  # top of it (scripts/fork_sync/reconcile.py), without the write token. A conflict, or a reach
+  # beyond one Python test shard, leaves the merge to the next run.
+  reconcile:
     needs: [prepare, validate, test]
     # test is skipped, not failed, when the merge reaches no Python test; validate too when
     # the run only publishes releases on main's existing history.
@@ -223,6 +227,87 @@ jobs:
       && (needs.validate.result == 'success'
           || (needs.validate.result == 'skipped' && needs.prepare.outputs.changed != 'true'))
       && (needs.test.result == 'success' || needs.test.result == 'skipped')
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    outputs:
+      merged: ${{ steps.merge.outputs.merged }}
+    steps:
+      - name: Isolate Hermes test state
+        run: |
+          printf 'HERMES_HOME=%s/hermes-sync-home\nHERMES_RUNTIME_DIR=%s/hermes-sync-runtime\n' \
+            "$RUNNER_TEMP" "$RUNNER_TEMP" >> "$GITHUB_ENV"
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: fork-sync-candidate
+          path: ${{ runner.temp }}/fork-sync-artifacts
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: '3.12'
+      - name: Materialize the exact candidate
+        run: |
+          cp -R scripts/fork_sync "$RUNNER_TEMP/fork-sync-controller"
+          python3 "$RUNNER_TEMP/fork-sync-controller/run.py" materialize --artifacts "$RUNNER_TEMP/fork-sync-artifacts"
+      - name: Merge a fork main that moved during the run
+        id: merge
+        run: |
+          python3 "$RUNNER_TEMP/fork-sync-controller/run.py" reconcile --artifacts "$RUNNER_TEMP/fork-sync-artifacts" \
+            --reconciled "$RUNNER_TEMP/fork-sync-reconciled"
+      - if: steps.merge.outputs.merged == 'true'
+        uses: ./.github/actions/setup-pm
+        with:
+          toolchain: all
+          extras: '["all", "anthropic", "bedrock", "mistral", "fal", "modal", "daytona", "parallel-web", "keychain"]'
+          test-environment: 'true'
+          archive-inputs: 'false'
+          save-tools-cache: 'false'
+          save-python-cache: 'false'
+          save-node-cache: 'false'
+      - name: Install locked frontend dependencies
+        if: steps.merge.outputs.merged == 'true'
+        run: pnpm install --frozen-lockfile
+      - name: Install ripgrep (prebuilt binary)
+        if: steps.merge.outputs.merged == 'true'
+        working-directory: ${{ runner.temp }}
+        run: |
+          set -euo pipefail
+          RG_VERSION=15.1.0
+          RG_SHA256=1c9297be4a084eea7ecaedf93eb03d058d6faae29bbc57ecdaf5063921491599
+          RG_TARBALL=ripgrep-${RG_VERSION}-x86_64-unknown-linux-musl.tar.gz
+          curl -sSfL --retry 3 --retry-delay 5 -o "$RG_TARBALL" \
+            "https://github.com/BurntSushi/ripgrep/releases/download/${RG_VERSION}/${RG_TARBALL}"
+          echo "${RG_SHA256}  ${RG_TARBALL}" | sha256sum -c -
+          tar -xzf "$RG_TARBALL"
+          sudo mv "ripgrep-${RG_VERSION}-x86_64-unknown-linux-musl/rg" /usr/local/bin/rg
+          rm -rf "$RG_TARBALL" "ripgrep-${RG_VERSION}-x86_64-unknown-linux-musl"
+      - name: Install tmux
+        if: steps.merge.outputs.merged == 'true'
+        run: command -v tmux >/dev/null || { sudo apt-get update -qq && sudo apt-get install -y -qq tmux; }
+      - name: Re-check what the newer main commits change on top of the candidate
+        if: steps.merge.outputs.merged == 'true'
+        run: |
+          python "$RUNNER_TEMP/fork-sync-controller/run.py" recheck --artifacts "$RUNNER_TEMP/fork-sync-artifacts" \
+            --reconciled "$RUNNER_TEMP/fork-sync-reconciled"
+      - name: Hand the re-checked merge to publish
+        if: steps.merge.outputs.merged == 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: fork-sync-reconciled
+          path: ${{ runner.temp }}/fork-sync-reconciled
+          retention-days: 7
+
+  publish:
+    needs: [prepare, validate, test, reconcile]
+    if: >-
+      !cancelled() && needs.prepare.result == 'success' && needs.prepare.outputs.needed == 'true'
+      && (needs.validate.result == 'success'
+          || (needs.validate.result == 'skipped' && needs.prepare.outputs.changed != 'true'))
+      && (needs.test.result == 'success' || needs.test.result == 'skipped')
+      && needs.reconcile.result == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:
@@ -239,6 +324,11 @@ jobs:
         with:
           name: fork-sync-candidate
           path: ${{ runner.temp }}/fork-sync-artifacts
+      - if: needs.reconcile.outputs.merged == 'true'
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: fork-sync-reconciled
+          path: ${{ runner.temp }}/fork-sync-reconciled
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: '3.12'
@@ -247,7 +337,8 @@ jobs:
           GH_TOKEN: ${{ secrets.SYNC_PUSH_TOKEN || github.token }}
         run: |
           gh auth setup-git
-          python scripts/fork_sync/run.py publish --artifacts "$RUNNER_TEMP/fork-sync-artifacts"
+          python scripts/fork_sync/run.py publish --artifacts "$RUNNER_TEMP/fork-sync-artifacts" \
+            --reconciled "$RUNNER_TEMP/fork-sync-reconciled"
       # A run that stopped at a release (or ran out of budget) leaves upstream main for the
       # next one; start it now instead of at the next hourly slot. A run that fails or has
       # nothing left publishes nothing here, so this never loops on its own.
