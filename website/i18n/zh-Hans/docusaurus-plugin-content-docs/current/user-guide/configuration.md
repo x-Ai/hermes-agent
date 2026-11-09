@@ -1757,12 +1757,14 @@ delegation:
 
 ## 澄清
 
-配置澄清提示行为：
+配置 Hermes 等待澄清问题回复的时长。一个值覆盖所有界面 —— 经典 CLI 模态框、TUI/桌面端卡片以及消息网关。规范键为 `agent.clarify_timeout`（默认 `90` 秒；`0` 或更小 = 不限时）；显式设置的旧版顶层 `clarify.timeout` 仍然有效：
 
 ```yaml
-clarify:
-  timeout: 120                 # 等待用户澄清响应的秒数
+agent:
+  clarify_timeout: 90          # 等待用户澄清回复的秒数（0 或更小 = 不限时）
 ```
+
+超时后，agent 以 `"outcome": "timed_out"` 解除阻塞（用户已锁定的答案会保留）并自行继续。在消息平台上，发送任何其他消息而非作答会立即取消该问题，agent 将接着处理那条消息。澄清提示永远不会被通用的单工具截止时间（`timeouts.tools.sequential_call`）切断；只有 `agent.clarify_timeout` 限制等待时长。
 
 ## 上下文文件（SOUL.md、AGENTS.md）
 
