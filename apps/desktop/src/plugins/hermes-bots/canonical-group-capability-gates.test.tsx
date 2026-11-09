@@ -178,6 +178,12 @@ function answer(capabilities: unknown) {
   })
 }
 
+/** The room record an older build saved for "Existing": a name with no record is a new group chat. */
+function existingRoom() {
+  updateGroupChat('Existing', room => ({ ...room, members: roster }))
+  vi.mocked(updateGroupChat).mockClear()
+}
+
 async function submitDialog() {
   const onCreated = vi.fn()
   const onClose = vi.fn()
@@ -362,6 +368,7 @@ it('keeps offering bots from other connections; a cross-connection pick creates 
 // gateway's groups.create.
 it('keeps positive classifications working: legacy renders its existing rooms but never creates one, canonical creates a gateway room', async () => {
   answer(legacy)
+  existingRoom()
   await act(async () => {
     render(<GroupChatWorkspace group="Existing" members={roster} />)
   })

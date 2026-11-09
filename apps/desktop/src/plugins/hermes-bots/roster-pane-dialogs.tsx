@@ -105,7 +105,13 @@ export function renderRosterDialogs({
         }}
         open={Boolean(editing)}
       />
-      {grouping ? <GroupDialog bot={grouping} onClose={() => setGrouping(null)} /> : null}
+      {grouping ? (
+        <GroupDialog
+          bot={grouping}
+          onClose={() => setGrouping(null)}
+          onCreated={(group, origin) => openGroupChat(group, origin)}
+        />
+      ) : null}
       <ConfirmDialog
         busyLabel={b.bot.deleting}
         confirmLabel={t.common.delete}

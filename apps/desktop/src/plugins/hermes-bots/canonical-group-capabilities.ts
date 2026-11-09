@@ -255,16 +255,22 @@ export function groupSpansConnections(members: RosterRow[], connectionId: null |
   return spansConnections(members, connectionId)
 }
 
+/** A name this Desktop has a room record for. Create & join and Bots' own memberships write no
+ *  record, and a disband leaves only a tombstone, so a name without one is a new group chat. */
+export function groupRoomRecorded(room: { tombstone?: boolean } | undefined): boolean {
+  return Boolean(room && !room.tombstone)
+}
+
 /** True when this Desktop drives the room recorded as `room`: one saved as `engine: 'desktop'` (by an
  *  older build, or by this fork's Desktop-room fallback, which upstream no longer has), or an unmarked
  *  older record whose members span connections, keeps its history and composer in the Desktop-driven
- *  view. */
+ *  view. A name with no record is a new group chat, which a gateway runs. */
 export function groupDrivenByDesktop(
-  room: { engine?: GroupEngine } | undefined,
+  room: { engine?: GroupEngine; tombstone?: boolean } | undefined,
   members: RosterRow[],
   connectionId: null | string
 ): boolean {
-  return room?.engine ? room.engine === 'desktop' : spansConnections(members, connectionId)
+  return room?.engine ? room.engine === 'desktop' : groupRoomRecorded(room) && spansConnections(members, connectionId)
 }
 
 /** True when every bot in `selection` lives on ONE connection other than `connectionId`: that
