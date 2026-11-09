@@ -41,7 +41,7 @@ def run(run_id, conclusion, minutes_before_now, status="completed"):
     return {"id": run_id, "status": status, "conclusion": conclusion, "updated_at": ended.isoformat().replace("+00:00", "Z")}
 
 
-def test_backoff_doubles_with_each_failed_run_since_the_last_publish_up_to_eight_hours(controller):
+def test_backoff_doubles_with_each_failed_run_since_the_last_publish_up_to_four_hours(controller):
     last_publish = NOW - timedelta(hours=12)
     assert controller.backoff_until([run(9, "success", 5)], last_publish, current=10) is None
     one = [run(9, "failure", 10)]
@@ -51,7 +51,7 @@ def test_backoff_doubles_with_each_failed_run_since_the_last_publish_up_to_eight
              run(6, "timed_out", 200), run(5, "failure", 400)]
     assert controller.backoff_until(three, last_publish, current=10) == NOW - timedelta(minutes=20) + timedelta(hours=2)
     many = [run(n, "failure", n) for n in range(1, 12)]
-    assert controller.backoff_until(many, last_publish, current=99) == NOW - timedelta(minutes=1) + timedelta(hours=8)
+    assert controller.backoff_until(many, last_publish, current=99) == NOW - timedelta(minutes=1) + timedelta(hours=4)
     # Failures before the last publish are history: that publish ended their streak.
     assert controller.backoff_until(one, NOW - timedelta(minutes=5), current=10) is None
 
@@ -133,3 +133,40 @@ def test_publish_starts_the_next_run_when_upstream_moved_past_what_landed(
     controller.publish(tmp_path, "owner/repo")
     assert git(repo, "ls-remote", str(origin), "refs/heads/main").split()[0] == candidate
     assert out.read_text(encoding="utf-8").strip() == f"continue={str(upstream_moved).lower()}"
+
+
+def needs(prepare="success", needed="true", publish="success", more="false"):
+    """The workflow's ``needs`` context as the next job receives it."""
+    return {"prepare": {"result": prepare, "outputs": {"needed": needed}},
+            "validate": {"result": "success" if publish == "success" else "failure", "outputs": {}},
+            "publish": {"result": publish, "outputs": {"continue": more} if publish == "success" else {}}}
+
+
+def test_the_next_run_waits_according_to_how_this_run_ended(controller):
+    assert controller.next_delay(needs(more="true"), failures=0) == 0  # upstream has more: go on now
+    assert controller.next_delay(needs(more="false"), failures=0) == 30  # caught up: look again later
+    assert controller.next_delay(needs(needed="false", publish="skipped"), failures=0) == 30  # nothing to merge
+    failed = needs(publish="skipped")
+    assert [controller.next_delay(failed, failures=n) for n in range(5)] == [30, 60, 120, 240, 240]
+    assert controller.next_delay(needs(prepare="failure", needed="", publish="skipped"), failures=0) == 30
+
+
+def test_every_run_starts_the_next_one_with_its_wait(controller, repo, tmp_path, monkeypatch):
+    runs = {"workflow_runs": [run(41, "failure", 30), run(40, "failure", 90), run(39, "success", 200)]}
+    monkeypatch.setattr(controller.releases, "gh_json", lambda path, missing_ok=False: runs)
+    monkeypatch.setenv("GITHUB_RUN_ID", "42")
+    monkeypatch.setenv("RESULTS", json.dumps(needs(publish="skipped")))
+    real = subprocess.run
+    dispatched = []
+
+    def fake(argv, **kwargs):
+        if argv[0] != "gh":
+            return real(argv, **kwargs)
+        dispatched.append(argv)
+        return subprocess.CompletedProcess(argv, 0, "", "")
+
+    monkeypatch.setattr(controller.subprocess, "run", fake)
+    controller.chain("owner/repo", tmp_path)
+    # Two failed runs before this failed one: the next waits two hours.
+    assert dispatched == [["gh", "workflow", "run", "fork-upstream-sync.yml", "--repo", "owner/repo", "--ref", "main",
+                           "-f", "delay_minutes=120"]]

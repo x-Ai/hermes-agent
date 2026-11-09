@@ -1,14 +1,20 @@
 name: Fork upstream sync
 
 on:
+  # Every run starts the next one when it ends (the `next` job), so the sync keeps going on its own.
+  # The schedule only restarts that chain if it breaks: GitHub fires a fraction of this repository's
+  # scheduled slots (the hourly '7 * * * *' made 7 runs in 37 hours on 2026-11-08/09, most 35-50
+  # minutes late; its other scheduled workflows fared no better), and '23,53 * * * *' missed its first
+  # slot too. A trigger that lands while a run is in progress waits as the one pending run; a
+  # scheduled run after failed runs backs off (scripts/fork_sync/run.py backoff_until).
   schedule:
-    # Twice an hour, away from the top of the hour. GitHub runs schedules best-effort and drops or
-    # delays them under load, worst at the start of each hour: the hourly '7 * * * *' created 7 runs
-    # in 37 hours (2026-11-08/09), most 35-50 minutes late. A trigger that lands while a run is in
-    # progress waits as the one pending run and starts when that run ends. After failed runs a
-    # scheduled run backs off (scripts/fork_sync/run.py backoff_until) instead of merging again.
     - cron: '23,53 * * * *'
   workflow_dispatch:
+    inputs:
+      delay_minutes:
+        description: Minutes to wait before merging. The chain sets it; leave 0 to start now.
+        required: false
+        default: '0'
 
 permissions:
   contents: read
@@ -21,7 +27,23 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # A chained run waits here first: not at all after a publish that left upstream with more to
+  # merge, 30 minutes after a run that merged nothing, and 30 minutes doubling to 4 hours after
+  # failed runs (scripts/fork_sync/run.py next_delay).
+  wait:
+    if: github.repository != 'NousResearch/hermes-agent' && github.ref == 'refs/heads/main' && vars.SYNC_PAUSED != 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    steps:
+      - name: Wait before merging
+        env:
+          DELAY: ${{ inputs.delay_minutes || '0' }}
+        run: |
+          case "$DELAY" in ''|*[!0-9]*) echo "::error::delay_minutes must be a whole number of minutes"; exit 1 ;; esac
+          if [ "$DELAY" -gt 0 ]; then echo "Waiting $DELAY minute(s) before merging"; sleep $(( DELAY * 60 )); fi
+
   prepare:
+    needs: wait
     if: github.repository != 'NousResearch/hermes-agent' && github.ref == 'refs/heads/main' && vars.SYNC_PAUSED != 'true'
     runs-on: ubuntu-latest
     # config.json agent.budget_seconds (100 min) for the merge steps, plus setup, the last step's
@@ -319,9 +341,11 @@ jobs:
       && needs.reconcile.result == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    outputs:
+      # true when upstream has more to merge: the next run starts without waiting.
+      continue: ${{ steps.publish.outputs.continue }}
     permissions:
       contents: write
-      actions: write
     steps:
       # Only trusted source from the triggering fork main is executed here.
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
@@ -349,12 +373,32 @@ jobs:
           gh auth setup-git
           python scripts/fork_sync/run.py publish --artifacts "$RUNNER_TEMP/fork-sync-artifacts" \
             --reconciled "$RUNNER_TEMP/fork-sync-reconciled"
-      # Upstream lands commits all hour, so a run that published is usually behind again: start
-      # the next one now (publish's `continue`: something was left at prepare, or upstream main
-      # moved past what landed). A failed run publishes nothing; the schedule retries it, backing
-      # off as failures repeat.
-      - name: Continue with the rest of upstream
-        if: steps.publish.outputs.continue == 'true'
+
+  # Start the next run whatever this one did (scripts/fork_sync/run.py chain). It waits before merging
+  # according to how this run ended; the dispatch replaces any pending scheduled run, so one chain runs
+  # at a time. A cancelled or paused run starts nothing.
+  next:
+    needs: [prepare, validate, test, reconcile, publish]
+    if: >-
+      always() && !cancelled() && github.repository != 'NousResearch/hermes-agent'
+      && github.ref == 'refs/heads/main' && vars.SYNC_PAUSED != 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      actions: write
+    steps:
+      # Only trusted source from the triggering fork main is executed here.
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: '3.12'
+      - name: Start the next run
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh workflow run fork-upstream-sync.yml --repo "$GITHUB_REPOSITORY" --ref main
+          RESULTS: ${{ toJSON(needs) }}
+        run: python scripts/fork_sync/run.py next --artifacts "$RUNNER_TEMP"

@@ -53,11 +53,12 @@ REASON_SHOWN = 600
 FLAKY_REPORT = "⚠ FLAKY:"
 WORKFLOW_FILE = "fork-upstream-sync.yml"
 BOT = "hermes-upstream-sync[bot]"
-# After failed runs a scheduled run waits 30 minutes, then 1, 2 and 4 hours, at most 8, from the last
-# failure before it merges again, so a failure that repeats does not spend a model budget every half
-# hour. Runs started by hand, or by a run that published, never wait.
-BACKOFF_SECONDS = (1800, 8 * 3600)
+# After a failed run the next one waits 30 minutes, then 1 and 2 hours, at most 4, as failures repeat, so
+# a failure that repeats does not spend a model budget every half hour. The cap fits one waiting job.
+BACKOFF_SECONDS = (1800, 4 * 3600)
 FAILED = ("failure", "timed_out", "startup_failure")
+# A run that found nothing to merge has the next one check again after this long.
+IDLE_MINUTES = 30
 
 
 def git(*args: str, check: bool = True) -> subprocess.CompletedProcess:
@@ -125,33 +126,69 @@ def warn(message: str) -> None:
     print(f"::warning title=Fork sync::{text}", flush=True)
 
 
-def backoff_until(runs: list[dict], last_publish: datetime, current: int) -> datetime | None:
-    """When a scheduled run may merge again: the failed runs since the last publish set the wait.
+def backoff_seconds(failures: int) -> int:
+    first, longest = BACKOFF_SECONDS
+    return min(first * 2 ** (failures - 1), longest)
+
+
+def failures_since(runs: list[dict], last_publish: datetime, current: int) -> list[datetime]:
+    """When each of this workflow's failed runs since the last publish ended.
 
     A run that skipped (nothing to merge, or backing off) neither counts nor resets the streak.
     """
-    failed = [datetime.fromisoformat(run["updated_at"]) for run in runs
-              if run.get("id") != current and run.get("status") == "completed" and run.get("conclusion") in FAILED]
-    failed = [ended for ended in failed if ended > last_publish]
-    if not failed:
+    ended = [datetime.fromisoformat(run["updated_at"]) for run in runs
+             if run.get("id") != current and run.get("status") == "completed" and run.get("conclusion") in FAILED]
+    return [moment for moment in ended if moment > last_publish]
+
+
+def backoff_until(runs: list[dict], last_publish: datetime, current: int) -> datetime | None:
+    """When a scheduled run may merge again: the failed runs since the last publish set the wait."""
+    failed = failures_since(runs, last_publish, current)
+    return max(failed) + timedelta(seconds=backoff_seconds(len(failed))) if failed else None
+
+
+def recent_runs(repository: str) -> tuple[list[dict], datetime] | None:
+    """This workflow's latest runs and the last publish (the newest sync-bot commit on HEAD); None if unreadable."""
+    try:
+        runs = releases.gh_json(f"repos/{repository}/actions/workflows/{WORKFLOW_FILE}/runs?per_page=30")
+    except RuntimeError:
+        warn("Could not read this workflow's earlier runs; going on without a backoff")
         return None
-    first, longest = BACKOFF_SECONDS
-    return max(failed) + timedelta(seconds=min(first * 2 ** (len(failed) - 1), longest))
+    stamp = output("log", "-1", "--format=%cI", "--fixed-strings", f"--author={BOT}", "HEAD")
+    return runs.get("workflow_runs", []), datetime.fromisoformat(stamp) if stamp else datetime.min.replace(tzinfo=UTC)
 
 
 def backing_off(repository: str) -> datetime | None:
     """The time a scheduled run waits for after failed runs; None for other events or when it may run."""
-    if os.environ.get("GITHUB_EVENT_NAME") != "schedule":
+    if os.environ.get("GITHUB_EVENT_NAME") != "schedule" or (found := recent_runs(repository)) is None:
         return None
-    try:
-        runs = releases.gh_json(f"repos/{repository}/actions/workflows/{WORKFLOW_FILE}/runs?per_page=30")
-    except RuntimeError:
-        warn("Could not read this workflow's earlier runs; merging without a backoff")
-        return None
-    stamp = output("log", "-1", "--format=%cI", "--fixed-strings", f"--author={BOT}", "HEAD")
-    last = datetime.fromisoformat(stamp) if stamp else datetime.min.replace(tzinfo=UTC)
-    until = backoff_until(runs.get("workflow_runs", []), last, int(os.environ.get("GITHUB_RUN_ID") or 0))
+    until = backoff_until(*found, int(os.environ.get("GITHUB_RUN_ID") or 0))
     return until if until is not None and until > datetime.now(UTC) else None
+
+
+def next_delay(results: dict, failures: int) -> int:
+    """Minutes the next run waits before merging, from this run's job results (the workflow's ``needs``).
+
+    0 after a publish that left upstream with more to merge, IDLE_MINUTES after a run that merged
+    nothing, and the backoff for this failed run plus the ``failures`` before it otherwise.
+    """
+    publish, prepared = results.get("publish", {}), results.get("prepare", {})
+    if publish.get("result") == "success":
+        return 0 if publish.get("outputs", {}).get("continue") == "true" else IDLE_MINUTES
+    if prepared.get("result") == "success" and prepared.get("outputs", {}).get("needed") != "true":
+        return IDLE_MINUTES
+    return backoff_seconds(failures + 1) // 60
+
+
+def chain(repository: str, artifacts: Path) -> None:
+    """Start the next run when this one ends: GitHub fires only a fraction of this repository's schedule."""
+    found = recent_runs(repository)
+    failures = failures_since(*found, int(os.environ.get("GITHUB_RUN_ID") or 0)) if found else []
+    delay = next_delay(json.loads(os.environ.get("RESULTS") or "{}"), len(failures))
+    print(f"Starting the next run; it waits {delay} minute(s) before merging", flush=True)
+    argv = ["gh", "workflow", "run", WORKFLOW_FILE, "--repo", repository, "--ref", "main", "-f", f"delay_minutes={delay}"]
+    if subprocess.run(argv, timeout=120, check=False).returncode:
+        raise RuntimeError("Could not start the next run; the schedule picks the sync up again")
 
 
 def prepare(repository: str, artifacts: Path) -> None:
@@ -767,7 +804,7 @@ def main() -> None:
     logging.basicConfig(level=logging.INFO, format="%(message)s")
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("phase", choices=("prepare", "materialize", "validate", "test", "reconcile", "recheck",
-                                          "publish"))
+                                          "publish", "next"))
     parser.add_argument("--artifacts", type=Path, required=True)
     parser.add_argument("--shard", type=int, default=0, help="test phase: 1-based shard number")
     parser.add_argument("--lane", help="validate phase: one of validation_lanes()")
@@ -782,7 +819,8 @@ def main() -> None:
     reconciled = args.reconciled.resolve() if args.reconciled else None
     phases = dict(prepare=prepare, materialize=checkout_candidate, validate=partial(validate, lane=args.lane),
                   test=partial(run_shard, shard=args.shard), reconcile=partial(reconcile_main, reconciled=reconciled),
-                  recheck=partial(recheck, reconciled=reconciled), publish=partial(publish, reconciled=reconciled))
+                  recheck=partial(recheck, reconciled=reconciled), publish=partial(publish, reconciled=reconciled),
+                  next=chain)
     phases[args.phase](repository=args.repository, artifacts=artifacts)
 
 
