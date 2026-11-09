@@ -58,13 +58,13 @@ hermes chat
 执行 `nix profile install` 后，`hermes`、`hermes-agent` 和 `hermes-acp` 将出现在你的 PATH 中。之后的工作流与[标准安装](./installation.md)完全相同——`hermes setup` 引导你完成提供商选择，`hermes gateway install` 设置 launchd（macOS）或 systemd 用户服务，配置存放在 `~/.hermes/`。
 
 <details>
-<summary><strong>从本地克隆构建</strong></summary>
+<summary><strong>从本地克隆运行</strong></summary>
 
 ```bash
 git clone https://github.com/NousResearch/hermes-agent.git
 cd hermes-agent
-nix build
-./result/bin/hermes setup
+nix develop
+hermes-checkout setup
 ```
 
 </details>
@@ -733,12 +733,16 @@ services.hermes-agent.settings.plugins.enabled = [
 `HERMES_PYTHON` 指向该解释器，不会把 Python 依赖安装到仓库内的 `.venv`。
 shell 还提供 Node.js 和运行时工具。pnpm hook 根据输入变更刷新 JS workspaces。
 
+该 shell 不会改变实际运行的是哪个 `hermes`。`hermes` 仍是你已安装的 Hermes，因此在修改检出代码期间可以继续使用它。
+`hermes-checkout` 运行此检出中的代码，接受相同的参数。改动涉及已存储的状态时，请为它指定单独的
+`HERMES_HOME`，因为这两个命令默认读取同一个 `HERMES_HOME`。
+
 ```bash
 cd hermes-agent
 nix develop
 "$HERMES_PYTHON" -c "import sys; print(sys.executable); print(sys.version)"
-hermes setup
-hermes chat
+hermes-checkout --version
+HERMES_HOME="$PWD/.scratch/home" hermes-checkout chat
 ```
 
 ### direnv（推荐）
