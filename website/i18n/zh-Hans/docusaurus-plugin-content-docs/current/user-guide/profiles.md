@@ -89,7 +89,7 @@ hermes profile create work-backup --clone-from coder --clone-all
 ```
 
 :::tip Honcho 记忆 + profiles
-启用 Honcho 后，克隆操作会自动为新 profile 创建专属 AI 对等体，同时共享同一用户工作区。每个 profile 构建各自的观察记录和身份标识。详见 [Honcho——多 agent / Profiles](./features/memory-providers.md#honcho)。
+选用某个记忆提供方的 profile 被创建或重命名时，该提供方会收到一个钩子调用。Honcho（1.2.0 及更高版本）借此为克隆出的 profile 在同一用户工作区中创建专属 AI 对等体，并在重命名时保留该对等体；对于导入的 profile，请运行 `hermes honcho sync`。每个 profile 构建各自的观察记录和身份标识。详见 [Honcho——多 agent / Profiles](./features/memory-providers.md#honcho)。
 :::
 
 ## 使用 profile

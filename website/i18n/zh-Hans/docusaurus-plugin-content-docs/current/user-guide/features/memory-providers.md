@@ -163,7 +163,7 @@ Honcho 将对话建模为 peer 之间的消息交换——每个 Hermes profile 
 hermes profile create coder --clone
 ```
 
-`--clone` 在 `honcho.json` 中创建一个 `hermes.coder` host 块，包含 `aiPeer: "coder"`、共享的 `workspace`、继承的 `peerName`、`recallMode`、`writeFrequency`、`observation` 等。AI peer 会在 Honcho 中提前创建，确保在第一条消息之前就已存在。
+`--clone`（会带上 `memory.provider: honcho`）让 Honcho 插件在 `honcho.json` 中创建一个 `hermes_coder` host 块，包含 `aiPeer: "coder"`、共享的 `workspace`、继承的 `peerName`、`recallMode`、`writeFrequency`、`observation` 等。AI peer 会在 Honcho 中提前创建，确保在第一条消息之前就已存在。`hermes profile rename` 会让插件为该 host 块换用新的键名，并保留其中的 peer。这两项都需要带有 profile 钩子的 Honcho 插件版本。
 
 ### 为现有 profile 补充 Honcho peer
 
@@ -171,7 +171,7 @@ hermes profile create coder --clone
 hermes honcho sync
 ```
 
-扫描所有 Hermes profile，为没有 host 块的 profile 创建 host 块，从默认 `hermes` 块继承设置，并提前创建新的 AI peer。幂等操作——跳过已有 host 块的 profile。
+扫描所有 Hermes profile，为没有 host 块的 profile 创建 host 块，从默认 `hermes` 块继承设置，并提前创建新的 AI peer。幂等操作——跳过已有 host 块的 profile。`hermes update` 不再替你执行这一步：对于在配置 Honcho 之前创建的 profile，请手动运行一次。
 
 ### 每个 profile 的 observation 配置
 
