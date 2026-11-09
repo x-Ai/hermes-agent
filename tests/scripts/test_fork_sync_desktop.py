@@ -44,6 +44,9 @@ def desktop(tmp_path, monkeypatch):
     root = tmp_path / "repo"
     root.mkdir()
     git(root, "init", "-q", "-b", "main")
+    # The controller's own git calls (merge, commit) carry no identity; a runner has none globally.
+    git(root, "config", "user.name", "Test")
+    git(root, "config", "user.email", "test@example.com")
     write(root, {
         f"{BOTS}/copy.ts": "export const label = 'Group chat'\n",
         f"{BOTS}/copy.test.ts": "test('label', () => {})\n",
