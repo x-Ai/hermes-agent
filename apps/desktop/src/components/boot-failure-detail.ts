@@ -8,6 +8,7 @@
 
 import { TRANSLATIONS } from '@/i18n/catalog'
 import type { RuntimeErrorsCopy } from '@/i18n/types_runtime'
+import { localizeBackendTimeout } from '@/lib/backend-timeout'
 
 // use-gateway-boot.ts's mint timeouts. The overlay can change language after one is raised, so a
 // line matches in the current copy or in any bundled catalog.
@@ -17,9 +18,6 @@ type RendererTimeout = (typeof RENDERER_TIMEOUTS)[number]
 
 type DetailCopy = Pick<RuntimeErrorsCopy, 'backendConnectTimedOut' | RendererTimeout>
 
-// `withTimeout` in use-gateway-boot.ts and the main process's backend requests.
-const BACKEND_TIMEOUT = /^Timed out connecting to Hermes backend(?: after (\d+)\s*ms)?\.?$/i
-
 function rendererTimeout(line: string, copy: DetailCopy): RendererTimeout | null {
   const text = line.trim()
   const catalogs: DetailCopy[] = [copy, ...Object.values(TRANSLATIONS).map(translations => translations.runtimeErrors)]
@@ -28,15 +26,9 @@ function rendererTimeout(line: string, copy: DetailCopy): RendererTimeout | null
 }
 
 function localizeLine(line: string, copy: DetailCopy): string {
-  const match = BACKEND_TIMEOUT.exec(line.trim())
-
-  if (match) {
-    return copy.backendConnectTimedOut(match[1] ? Math.max(1, Math.round(Number(match[1]) / 1000)) : null)
-  }
-
   const timeout = rendererTimeout(line, copy)
 
-  return timeout ? copy[timeout] : line
+  return timeout ? copy[timeout] : localizeBackendTimeout(line, copy)
 }
 
 function mapLines(raw: null | string, map: (line: string) => string): null | string {

@@ -132,6 +132,24 @@ test('a built-in provider id refusal from the custom endpoint route is localized
   expect($notifications.get()[0]).toMatchObject({ message: detail, detail: undefined })
 })
 
+// The main process gives up on a backend request after 30 s with one English
+// sentence. A Chinese toast kept it verbatim under Details; it now says it in
+// the display language, wait included.
+test('a backend request timeout from the main process is localized with its wait', () => {
+  const error = new Error(
+    "Error invoking remote method 'hermes:api': Error: Timed out connecting to Hermes backend after 30000ms"
+  )
+
+  setRuntimeI18nLocale('zh')
+  notifyError(error, TRANSLATIONS.zh.settings.customEndpoints.saveFailed)
+
+  expect($notifications.get()[0]).toMatchObject({
+    title: TRANSLATIONS.zh.settings.customEndpoints.saveFailed,
+    message: TRANSLATIONS.zh.runtimeErrors.backendConnectTimedOut(30),
+    detail: undefined
+  })
+})
+
 // A profile that shares providers reads its custom endpoints through from the
 // default profile; the route refuses to edit one of those with an English
 // `detail` naming the endpoint. The toast re-renders it in the display language.

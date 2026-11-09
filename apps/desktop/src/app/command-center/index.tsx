@@ -14,6 +14,7 @@ import { Tip } from '@/components/ui/tooltip'
 import { getActionStatus, getLogs, getStatus, getUsageAnalytics, restartGateway, updateHermes } from '@/hermes'
 import type { ActionStatusResponse, AnalyticsResponse, SessionInfo, StatusResponse } from '@/hermes'
 import { useI18n } from '@/i18n'
+import { localizeBackendTimeout } from '@/lib/backend-timeout'
 import { sessionTitle } from '@/lib/chat-runtime'
 import {
   Activity,
@@ -573,7 +574,7 @@ export function CommandCenterView({
                     {systemError && (
                       <span className="inline-flex items-center gap-1 text-[length:var(--conversation-caption-font-size)] text-destructive">
                         <AlertCircle className="size-3.5" />
-                        {systemError}
+                        {localizeBackendTimeout(systemError, t.runtimeErrors)}
                       </span>
                     )}
                   </div>
@@ -654,7 +655,7 @@ function UsagePanel({ error, loading, onRefresh, period, usage }: UsagePanelProp
       {error && (
         <span className="inline-flex items-center gap-1 text-[length:var(--conversation-caption-font-size)] text-destructive">
           <AlertCircle className="size-3.5" />
-          {error}
+          {localizeBackendTimeout(error, t.runtimeErrors)}
         </span>
       )}
 

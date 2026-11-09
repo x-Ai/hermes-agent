@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input'
 import { Loader } from '@/components/ui/loader'
 import { getGlobalModelOptions, profileScopeKey } from '@/hermes'
 import { useI18n } from '@/i18n'
+import { localizeBackendTimeout } from '@/lib/backend-timeout'
 import { ExternalLink, Loader2 } from '@/lib/icons'
 import { cn } from '@/lib/utils'
 import {
@@ -75,7 +76,9 @@ export function FlowPanel({
         {flow.detail ? (
           <details className="text-xs text-muted-foreground">
             <summary className="cursor-pointer select-none">{t.onboarding.errorDetails}</summary>
-            <pre className="mt-1 whitespace-pre-wrap wrap-break-word font-mono text-[0.6875rem]">{flow.detail}</pre>
+            <pre className="mt-1 whitespace-pre-wrap wrap-break-word font-mono text-[0.6875rem]">
+              {localizeBackendTimeout(flow.detail, t.runtimeErrors)}
+            </pre>
           </details>
         ) : null}
         <div className="flex flex-wrap justify-end gap-2">

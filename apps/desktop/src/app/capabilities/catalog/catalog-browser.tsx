@@ -9,6 +9,7 @@ import { Masonry } from '@/components/ui/masonry'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Tip } from '@/components/ui/tooltip'
 import { useI18n } from '@/i18n'
+import { localizeBackendTimeout } from '@/lib/backend-timeout'
 import { cn } from '@/lib/utils'
 
 import { DetailColumn, ListColumn, MasterDetail } from '../../master-detail'
@@ -284,7 +285,7 @@ function CatalogLoadState({ error, onRetry }: { error: Error | null; onRetry: ()
 
   return (
     <div className="grid h-full place-items-center p-5">
-      <ErrorState description={error.message} title={c.loadFailed}>
+      <ErrorState description={localizeBackendTimeout(error.message, t.runtimeErrors)} title={c.loadFailed}>
         <Button onClick={onRetry} size="sm" variant="secondary">
           {c.retry}
         </Button>
@@ -491,7 +492,7 @@ export const CatalogBrowser = memo(function CatalogBrowser({
           {notice}
           {error && entries.length > 0 && (
             <CatalogAlert onRetry={() => void refetch()} retryLabel={c.retry} title={c.loadFailed}>
-              {error.message}
+              {localizeBackendTimeout(error.message, t.runtimeErrors)}
             </CatalogAlert>
           )}
           <div className="min-h-0 flex-1">

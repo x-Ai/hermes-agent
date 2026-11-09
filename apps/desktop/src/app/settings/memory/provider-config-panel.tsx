@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { DisclosureCaret } from '@/components/ui/disclosure-caret'
 import { getMemoryProviderConfig, saveMemoryProviderConfig } from '@/hermes'
 import { useI18n } from '@/i18n'
+import { localizeBackendTimeout } from '@/lib/backend-timeout'
 import { SlidersHorizontal } from '@/lib/icons'
 import { refreshMemoryStatus } from '@/store/memory-status'
 import { notifyError } from '@/store/notifications'
@@ -97,7 +98,7 @@ export function ProviderConfigPanel({ profile, provider }: { profile?: string; p
       return (
         <div className="flex items-center justify-between gap-3 py-2">
           <span className="text-[length:var(--conversation-caption-font-size)] text-muted-foreground">
-            {copy.loadFailed(loadError)}
+            {copy.loadFailed(localizeBackendTimeout(loadError, t.runtimeErrors))}
           </span>
           <Button onClick={() => void refresh()} size="sm" type="button" variant="secondary">
             {t.common.retry}

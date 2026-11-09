@@ -79,7 +79,8 @@ export interface RuntimeErrorsCopy {
   sharedEndpointPinned: (id: string, profiles: string) => string
   /** The OAuth disconnect route's 422 for a sign-in the profile only reads through the global-root fallback. */
   sharedProviderAccount: (id: string) => string
-  /** The boot overlay's Details line for a backend connection timeout; `seconds` when the report named the wait. */
+  /** A backend connection timeout as the user reads it (lib/backend-timeout.ts: the boot overlay's
+   *  Details, error toasts, inline load errors); `seconds` when the report named the wait. */
   backendConnectTimedOut: (seconds: null | number) => string
 }
 

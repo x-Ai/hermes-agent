@@ -1,6 +1,7 @@
 import { atom } from 'nanostores'
 
-import { getRuntimeI18nLocale, translateNow } from '@/i18n/runtime'
+import { getRuntimeI18nLocale, runtimeTranslations, translateNow } from '@/i18n/runtime'
+import { isBackendTimeout, localizeBackendTimeout } from '@/lib/backend-timeout'
 import { isOutOfSyncRpcParams } from '@/lib/gateway-rpc'
 import { servedByHermesCloud } from '@/lib/hermes-cloud-host'
 import { isProviderSetupErrorMessage } from '@/lib/provider-setup-errors'
@@ -303,6 +304,13 @@ const ERROR_SUMMARIES: ErrorSummaryRule[] = [
     category: 'other',
     test: msg => SHARED_ACCOUNT_RE.test(msg),
     summarize: msg => translateNow('runtimeErrors.sharedProviderAccount', SHARED_ACCOUNT_RE.exec(msg)?.[1] ?? ''),
+    hideDetail: true
+  },
+  {
+    // Main's backend requests give up with one English sentence after their 30 s default.
+    category: 'timeout',
+    test: isBackendTimeout,
+    summarize: msg => localizeBackendTimeout(msg, runtimeTranslations().runtimeErrors),
     hideDetail: true
   },
   {
