@@ -1886,8 +1886,30 @@ export const esOverrides = {
           `Una dirección HTTPS que ya tengas, como Tailscale Serve o un túnel, que reenvíe a http://127.0.0.1:${port}.`
       },
       webappHostDesc:
-        'La Webapp siempre usa el host de Hermes que la sirve. Para cambiar de gateway, iniciar sesión en Hermes Cloud o gestionar conexiones guardadas, usa la app Hermes Desktop.',
-      webappHostTitle: 'Host de Hermes'
+        'La Webapp siempre se ejecuta en el host de Hermes que la sirve. Las conexiones guardadas de abajo son la lista de esta máquina, compartida con la app Hermes Desktop; los demás gateways se alcanzan a través de este host.',
+      webappHostTitle: 'Host de Hermes',
+      webappOauthPaste: {
+        title: 'Terminar de iniciar sesión',
+        description:
+          'Si la pestaña de inicio de sesión terminó en una dirección que no carga (este navegador no está en la máquina del gateway), pega esa dirección aquí.',
+        placeholder: 'http://127.0.0.1:…/webapp/gateway-connections/oauth/callback?…',
+        finish: 'Terminar',
+        failed: 'No se pudo terminar el inicio de sesión'
+      },
+      webappRelay: {
+        signInElsewhere: 'Aquí no se puede iniciar sesión en otro gateway.',
+        signOutHereOnly: 'Aquí solo se puede cerrar la sesión de este gateway.',
+        testFromRow:
+          'Guarda esta conexión y luego usa Probar en su fila: la Webapp la prueba a través de este gateway.',
+        nameBeforeSignIn: 'Ponle nombre a esta conexión y luego inicia sesión.',
+        signInUnfinished: 'El inicio de sesión no terminó',
+        noSignInForAddress: 'Ninguna conexión guardada inicia sesión en esa dirección.',
+        listUnreadable: 'Hermes no devolvió las conexiones guardadas',
+        relayTicketMissing: 'Hermes no devolvió un ticket de retransmisión',
+        sshUnreached: label => `${label} es una conexión SSH, a la que la Webapp todavía no llega`,
+        noAnswer: label => `${label} no respondió`,
+        chatOpensInTab: 'Un chat de otro gateway se abre en esta pestaña, no en una ventana nueva.'
+      }
     },
     keys: {
       loading: 'Cargando claves API y credenciales...',

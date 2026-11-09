@@ -1375,6 +1375,21 @@ export interface Translations extends NoticeTranslations, GoalStatusTranslations
       sshErrUpdateRequired: string
       sshErrInteractiveAuth: string
       sshErrUnknown: string
+      /** What the Webapp says when a saved gateway it reaches through the serving host cannot do
+       *  what native Desktop does with it (Webapp bridge: lib/browser-*.ts). */
+      webappRelay: {
+        signInElsewhere: string
+        signOutHereOnly: string
+        testFromRow: string
+        nameBeforeSignIn: string
+        signInUnfinished: string
+        noSignInForAddress: string
+        listUnreadable: string
+        relayTicketMissing: string
+        sshUnreached: (label: string) => string
+        noAnswer: (label: string) => string
+        chatOpensInTab: string
+      }
     }
     keys: {
       loading: string

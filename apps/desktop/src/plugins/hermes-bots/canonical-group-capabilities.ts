@@ -255,18 +255,29 @@ export function groupSpansConnections(members: RosterRow[], connectionId: null |
   return spansConnections(members, connectionId)
 }
 
-/** A name this Desktop has a room record for. Create & join and Bots' own memberships write no
- *  record, and a disband leaves only a tombstone, so a name without one is a new group chat. */
-export function groupRoomRecorded(room: { tombstone?: boolean } | undefined): boolean {
-  return Boolean(room && !room.tombstone)
+/** What a room record carries that tells a recorded room from a name with none. */
+interface GroupRoomRecord {
+  tombstone?: boolean
+  members?: unknown[]
+  log?: unknown[]
+  roomId?: null | string
+}
+
+/** A name this Desktop has a room record for: one that seated members, kept messages or holds a
+ *  room id. Bots' own memberships write none, a disband leaves only a tombstone, and a layout write
+ *  (section, order, pin) on a membership-only name leaves an empty one, so such a name is still a
+ *  new group chat. */
+export function groupRoomRecorded(room: GroupRoomRecord | undefined): boolean {
+  return Boolean(room && !room.tombstone && (room.members?.length || room.log?.length || room.roomId))
 }
 
 /** True when this Desktop drives the room recorded as `room`: one saved as `engine: 'desktop'` (by an
  *  older build, or by this fork's Desktop-room fallback, which upstream no longer has), or an unmarked
  *  older record whose members span connections, keeps its history and composer in the Desktop-driven
- *  view. A name with no record is a new group chat, which a gateway runs. */
+ *  view. A name with no record (or only an empty one a layout write left) is a new group chat, which
+ *  a gateway runs. */
 export function groupDrivenByDesktop(
-  room: { engine?: GroupEngine; tombstone?: boolean } | undefined,
+  room: (GroupRoomRecord & { engine?: GroupEngine }) | undefined,
   members: RosterRow[],
   connectionId: null | string
 ): boolean {

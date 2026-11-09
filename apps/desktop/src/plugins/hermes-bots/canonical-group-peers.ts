@@ -3,7 +3,9 @@ import { useEffect, useState } from 'react'
 
 import type { CanonicalGroupMessages } from './canonical-group-locales'
 import { registerCanonicalGroup } from './canonical-group-registry'
-import { canonicalGroupRequest, canonicalGroupRoster, createRoomWithIntent, disbandCanonicalGroup } from './canonical-groups'
+import {
+  canonicalGroupRequest, canonicalGroupRoster, createRoomWithIntent, disbandCanonicalGroup, groupCreationKey, requireGroupName
+} from './canonical-groups'
 import type {
   CanonicalGroupBinding, CanonicalGroupRoute, CanonicalRoom, CanonicalRoomMember, GroupCreationIntent
 } from './canonical-groups'
@@ -226,21 +228,19 @@ async function invitedAndRegistered(home: CanonicalGroupBinding, room: RoomAutho
   })
 }
 
-async function seatPeers(home: CanonicalGroupBinding, room: RoomAuthority, seats: PeerSeat[]) {
-  const unjoined: { member: CanonicalRoomMember; error: unknown }[] = []
+/** Join every member at once: each invitation is its own gateway's, so a slow computer holds up no
+ *  other. The members that did not join, in roster order. */
+async function joinAll(members: CanonicalRoomMember[], join: (member: CanonicalRoomMember) => Promise<void>) {
+  const results = await Promise.allSettled(members.map(join))
 
-  for (const seat of seats) {
-    await seatPeer(home, room, seat).catch(error => { unjoined.push({ member: seat.member, error }) })
-  }
-
-  return unjoined
+  return results.flatMap((result, index) => result.status === 'rejected' ? [{ member: members[index], error: result.reason as unknown }] : [])
 }
 
 /** One creation attempt keeps its wire payload while the reply is uncertain. */
-function createGroupWithIntent(route: CanonicalGroupRoute, name: string, members: CanonicalRoomMember[],
+function createGroupWithIntent(route: CanonicalGroupRoute, name: () => string, members: CanonicalRoomMember[],
   intent: GroupCreationIntent, key: string): Promise<CanonicalRoom> {
   return createRoomWithIntent(route, intent, key, () => ({
-    room_id: randomUuid(), name: uniqueGroupChatName(name, new Set(liveGroupChatNames())), members
+    room_id: randomUuid(), name: uniqueGroupChatName(requireGroupName(name()), new Set(liveGroupChatNames())), members
   }))
 }
 
@@ -252,32 +252,46 @@ export async function createGroupAcrossConnections(
   name: string,
   members: GroupMember[],
   targets: ReadonlyMap<string, PeerTargetState>,
-  intent: GroupCreationIntent
+  intent: GroupCreationIntent,
+  /** The room name, from the entered one, once per request (a blank one is filled from the Bots'). */
+  sentName: (name: string) => string = entered => entered
 ) {
-  const seats = new Map<GroupMember, Omit<PeerSeat, 'member'>>()
+  const seats: (Omit<PeerSeat, 'member'> & { gateway: string })[] = []
 
   const checked = canonicalGroupRoster(route, members, member => {
     const own = peerRoute(member, route.connectionId)
     const target = own && targets.get(peerTargetKey(own))
 
     if (!own || !target?.ready) {return undefined}
-    seats.set(member, { route: own, renewal: target.renewal })
+    seats.push({ route: own, renewal: target.renewal, gateway: target.gateway })
 
     return target
   })
 
-  if (!name.trim() || 'problem' in checked) {
+  if ('problem' in checked) {
     throw Object.assign(new Error('A gateway group needs two to six unique members its gateway can seat'),
-      { canonicalGroupProblem: 'problem' in checked ? checked.problem : 'groupSize' })
+      { canonicalGroupProblem: checked.problem })
   }
 
-  const key = JSON.stringify([route.connectionId, route.profile, name, members])
-
-  const room = await createGroupWithIntent(route, name, checked.roster, intent, key)
+  const room = await createGroupWithIntent(route, () => sentName(name), checked.roster, intent, groupCreationKey(route, name, members))
 
   const binding: CanonicalGroupBinding = { ...route, roomId: room.room_id }
 
-  const unjoined = await seatPeers(binding, room, checked.peers.map(({ member, source }) => ({ member, ...seats.get(source)! })))
+  // A retry resends the first attempt's members: seat each one the room pinned through the Bot now
+  // picked for that gateway and profile.
+  const unjoined = await joinAll(room.members.filter(pinned), member => {
+    const pin = pinned(member)!
+    const seat = seats.find(({ gateway, route: own }) => gateway === pin.installation_id && own.targetProfile === pin.profile)
+
+    if (!seat) {
+      const error = new PeerJoinError('peer_connection_missing')
+      noteJoin(binding, member.member_id, error)
+
+      return Promise.reject(error)
+    }
+
+    return seatPeer(binding, room, { member, route: seat.route, renewal: seat.renewal })
+  })
 
   return { binding, room, unjoined }
 }
@@ -385,16 +399,12 @@ export async function startAgainWithout(binding: CanonicalGroupBinding, room: Ca
   const members = room.members.filter(member => member.member_id !== memberId)
     .map(({ member_id, profile, handle, display_name, target }) => ({ member_id, profile, handle, target, ...(display_name ? { display_name } : {}) }))
 
-  const name = intent.payload?.name ?? uniqueGroupChatName(room.name, new Set([room.name, ...liveGroupChatNames()]))
-  const next = await createGroupWithIntent(binding, name, members, intent, peerJoinKey(binding, memberId))
+  const next = await createGroupWithIntent(binding, () => intent.payload?.name ?? uniqueGroupChatName(room.name, new Set([room.name, ...liveGroupChatNames()])),
+    members, intent, peerJoinKey(binding, memberId))
 
   registerCanonicalGroup(binding, next, { created: true })
   const replacement: CanonicalGroupBinding = { connectionId: binding.connectionId, profile: binding.profile, roomId: next.room_id }
-  const unjoined: { member: CanonicalRoomMember; error: unknown }[] = []
-
-  for (const member of next.members.filter(pinned)) {
-    await rejoinPeer(replacement, next, member, roster).catch(error => { unjoined.push({ member, error }) })
-  }
+  const unjoined = await joinAll(next.members.filter(pinned), member => rejoinPeer(replacement, next, member, roster))
 
   // An unreachable member keeps the original beside its replacement; retain the reason for the UI.
   let disbandError: unknown

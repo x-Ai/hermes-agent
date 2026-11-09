@@ -172,9 +172,9 @@ it.each([
   gateways(local, peer)
   const dialog = await openDialog()
   await createWithMini(dialog)
-  // The opened group chat's row says why; a toast would outlive it and follow the person elsewhere.
-  // Fork: New group chat still announces the room it made, so only an error toast is ruled out.
-  expect(notify).not.toHaveBeenCalledWith(expect.objectContaining({ kind: 'error' }))
+  // The opened group chat's row says why; one notice names who is missing, so a failed seat is never silent.
+  // Fork: that notice stands in for New group chat's "created" announcement, so it is the only one.
+  expect(notify.mock.calls).toEqual([[{ kind: 'warning', message: words.createdNotJoined.replace('{names}', 'Hermes · Mac Mini') }]])
   const [binding] = Object.values($canonicalGroupBindings.get())
   expect(peerJoinText($peerJoinErrors.get()[peerJoinKey(binding, 'hermes-mac-mini')], 'Hermes · Mac Mini', words)).toBe(why.replace('{name}', 'Hermes · Mac Mini'))
   expect(request.mock.calls.some(call => call[1] === 'groups.peer.register')).toBe(registers)
