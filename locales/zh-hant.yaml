@@ -4702,6 +4702,14 @@ core:
     stop_hint_cancel_request: "取消請求即可停止"
     stop_hint_stop_command: "傳送 /stop 可取消"
     gave_up: "⏳ 自動復原在 {total} 輪後放棄 — 供應商仍無法使用。"
+  reasoning_recovery:
+    effort_rejected: "⚠️  {model} 不接受推理強度 {effort} — 在路由變更前改用該路由的預設值，正在重試..."
+    floor_required: "⚠️  {model} 無法關閉推理 — 在路由變更前使用 effort={effort}，正在重試..."
+    disable_rejected: "⚠️  {model} 不允許關閉推理 — 在路由變更前改用該路由的預設值，正在重試..."
+    replay_stripped: "⚠️  供應商拒絕了加密推理重播 — 已從 {messages} 則訊息中移除 {items} 個過期項目，正在重試..."
+    replay_disabled: "⚠️  供應商拒絕了加密推理重播 — 已在此路由停用重播，並從 {messages} 則訊息中移除 {items} 個項目，正在重試..."
+  streaming:
+    empty_keepalive_fallback: "⚠️ 供應商的串流回傳了空的保活訊框 — 本輪改以非串流方式重試（此路由將維持關閉串流）。"
   model_switch:
     large_context_title: "大型上下文切換警告"
     large_context_banner: "!!! 大型上下文模型切換 !!!"

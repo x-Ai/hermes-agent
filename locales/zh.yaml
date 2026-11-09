@@ -4707,6 +4707,14 @@ core:
     stop_hint_cancel_request: "取消请求即可停止"
     stop_hint_stop_command: "发送 /stop 可取消"
     gave_up: "⏳ 自动恢复在 {total} 轮后放弃，服务商仍不可用"
+  reasoning_recovery:
+    effort_rejected: "⚠️  {model} 不接受推理强度 {effort}，在路由变更前改用该路由的默认设置，正在重试..."
+    floor_required: "⚠️  {model} 无法关闭推理，在路由变更前使用 effort={effort}，正在重试..."
+    disable_rejected: "⚠️  {model} 不允许关闭推理，在路由变更前改用该路由的默认设置，正在重试..."
+    replay_stripped: "⚠️  服务商拒绝了加密推理回放，已从 {messages} 条消息中移除 {items} 个过期条目，正在重试..."
+    replay_disabled: "⚠️  服务商拒绝了加密推理回放，已在此路由上停用回放，并从 {messages} 条消息中移除 {items} 个条目，正在重试..."
+  streaming:
+    empty_keepalive_fallback: "⚠️ 服务商的流式响应返回了空的保活帧，本轮改为非流式重试（此路由将保持关闭流式输出）。"
   model_switch:
     large_context_title: "大上下文切换警告"
     large_context_banner: "!!! 大上下文模型切换 !!!"

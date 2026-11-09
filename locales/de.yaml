@@ -4704,6 +4704,14 @@ core:
     stop_hint_cancel_request: "Anfrage abbrechen zum Stoppen"
     stop_hint_stop_command: "/stop senden zum Abbrechen"
     gave_up: "⏳ Automatische Wiederherstellung nach {total} Zyklen aufgegeben — der Anbieter ist weiterhin nicht erreichbar."
+  reasoning_recovery:
+    effort_rejected: "⚠️  {model} lehnt die Reasoning-Stärke {effort} ab — bis zum Routenwechsel gilt der Standard der Route, neuer Versuch..."
+    floor_required: "⚠️  {model} kann Reasoning nicht deaktivieren — bis zum Routenwechsel gilt effort={effort}, neuer Versuch..."
+    disable_rejected: "⚠️  {model} lehnt das Deaktivieren von Reasoning ab — bis zum Routenwechsel gilt der Standard der Route, neuer Versuch..."
+    replay_stripped: "⚠️  Der Anbieter hat das verschlüsselte Reasoning-Replay abgelehnt — {items} veraltete(s) Element(e) aus {messages} Nachricht(en) entfernt, neuer Versuch..."
+    replay_disabled: "⚠️  Der Anbieter hat das verschlüsselte Reasoning-Replay abgelehnt — Replay auf dieser Route deaktiviert und {items} Element(e) aus {messages} Nachricht(en) entfernt, neuer Versuch..."
+  streaming:
+    empty_keepalive_fallback: "⚠️ Der Stream des Anbieters lieferte einen leeren Keepalive-Frame — dieser Durchgang wird ohne Streaming wiederholt (Streaming bleibt auf dieser Route aus)."
   model_switch:
     large_context_title: "Warnung: Wechsel mit großem Kontext"
     large_context_banner: "!!! MODELLWECHSEL MIT GROSSEM KONTEXT !!!"

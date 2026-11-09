@@ -4721,6 +4721,14 @@ core:
     stop_hint_cancel_request: "a leállításhoz vond vissza a kérést"
     stop_hint_stop_command: "a megszakításhoz küldd el a /stop parancsot"
     gave_up: "⏳ Az automatikus helyreállítás {total} ciklus után feladta — a szolgáltató továbbra sem érhető el."
+  reasoning_recovery:
+    effort_rejected: "⚠️  A(z) {model} elutasítja a(z) {effort} gondolkodási erőfeszítést — az útvonal változásáig az útvonal alapértéke érvényes, újrapróbálás..."
+    floor_required: "⚠️  A(z) {model} nem tudja kikapcsolni a gondolkodást — az útvonal változásáig effort={effort} érvényes, újrapróbálás..."
+    disable_rejected: "⚠️  A(z) {model} elutasítja a gondolkodás kikapcsolását — az útvonal változásáig az útvonal alapértéke érvényes, újrapróbálás..."
+    replay_stripped: "⚠️  A szolgáltató elutasította a titkosított gondolkodás visszajátszását — {items} elavult elem eltávolítva {messages} üzenetből, újrapróbálás..."
+    replay_disabled: "⚠️  A szolgáltató elutasította a titkosított gondolkodás visszajátszását — a visszajátszás ezen az útvonalon kikapcsolva, {items} elem eltávolítva {messages} üzenetből, újrapróbálás..."
+  streaming:
+    empty_keepalive_fallback: "⚠️ A szolgáltató streamje üres keepalive keretet adott vissza — ez a kör streaming nélkül újrapróbálva (ezen az útvonalon a streaming kikapcsolva marad)."
   model_switch:
     large_context_title: "Figyelmeztetés: váltás nagy kontextussal"
     large_context_banner: "!!! MODELLVÁLTÁS NAGY KONTEXTUSSAL !!!"

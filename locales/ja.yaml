@@ -4702,6 +4702,14 @@ core:
     stop_hint_cancel_request: "停止するにはリクエストをキャンセルしてください"
     stop_hint_stop_command: "キャンセルするには /stop を送信してください"
     gave_up: "⏳ 自動復旧は {total} サイクル後に断念しました — プロバイダーは依然として利用できません"
+  reasoning_recovery:
+    effort_rejected: "⚠️  {model} は推論強度 {effort} を受け付けません — ルートが変わるまでルートの既定値を使用し、再試行しています..."
+    floor_required: "⚠️  {model} は推論を無効にできません — ルートが変わるまで effort={effort} を使用し、再試行しています..."
+    disable_rejected: "⚠️  {model} は推論の無効化を受け付けません — ルートが変わるまでルートの既定値を使用し、再試行しています..."
+    replay_stripped: "⚠️  暗号化された推論のリプレイがプロバイダーに拒否されました — {messages} 件のメッセージから古い項目 {items} 件を削除し、再試行しています..."
+    replay_disabled: "⚠️  暗号化された推論のリプレイがプロバイダーに拒否されました — このルートでリプレイを無効にし、{messages} 件のメッセージから項目 {items} 件を削除して再試行しています..."
+  streaming:
+    empty_keepalive_fallback: "⚠️ プロバイダーのストリームが空のキープアライブフレームを返しました — このターンをストリーミングなしで再試行します（このルートではストリーミングはオフのままです）。"
   model_switch:
     large_context_title: "大きなコンテキストの切り替え警告"
     large_context_banner: "!!! 大きなコンテキストでのモデル切り替え !!!"

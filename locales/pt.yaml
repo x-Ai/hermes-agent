@@ -4704,6 +4704,14 @@ core:
     stop_hint_cancel_request: "cancele a solicitação para parar"
     stop_hint_stop_command: "envie /stop para cancelar"
     gave_up: "⏳ A recuperação automática desistiu após {total} ciclos — o provedor continua indisponível."
+  reasoning_recovery:
+    effort_rejected: "⚠️  {model} rejeita o esforço de raciocínio {effort} — usando o padrão da rota até a rota mudar, tentando novamente..."
+    floor_required: "⚠️  {model} não consegue desativar o raciocínio — usando effort={effort} até a rota mudar, tentando novamente..."
+    disable_rejected: "⚠️  {model} rejeita a desativação do raciocínio — usando o padrão da rota até a rota mudar, tentando novamente..."
+    replay_stripped: "⚠️  O provedor rejeitou o replay do raciocínio criptografado — {items} item(ns) obsoleto(s) removido(s) de {messages} mensagem(ns), tentando novamente..."
+    replay_disabled: "⚠️  O provedor rejeitou o replay do raciocínio criptografado — replay desativado nesta rota e {items} item(ns) removido(s) de {messages} mensagem(ns), tentando novamente..."
+  streaming:
+    empty_keepalive_fallback: "⚠️ O stream do provedor retornou um frame keepalive vazio — tentando este turno novamente sem streaming (o streaming continua desativado nesta rota)."
   model_switch:
     large_context_title: "Aviso: troca com contexto grande"
     large_context_banner: "!!! TROCA DE MODELO COM CONTEXTO GRANDE !!!"

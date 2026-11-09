@@ -4704,6 +4704,14 @@ core:
     stop_hint_cancel_request: "cancela la solicitud para detener"
     stop_hint_stop_command: "envía /stop para cancelar"
     gave_up: "⏳ La recuperación automática se rindió tras {total} ciclos — el proveedor sigue sin estar disponible."
+  reasoning_recovery:
+    effort_rejected: "⚠️  {model} rechaza el esfuerzo de razonamiento {effort} — se usa el valor predeterminado de la ruta hasta que cambie la ruta, reintentando..."
+    floor_required: "⚠️  {model} no puede desactivar el razonamiento — se usa effort={effort} hasta que cambie la ruta, reintentando..."
+    disable_rejected: "⚠️  {model} rechaza que se desactive el razonamiento — se usa el valor predeterminado de la ruta hasta que cambie la ruta, reintentando..."
+    replay_stripped: "⚠️  El proveedor rechazó la reproducción del razonamiento cifrado — se quitaron {items} elemento(s) obsoleto(s) de {messages} mensaje(s), reintentando..."
+    replay_disabled: "⚠️  El proveedor rechazó la reproducción del razonamiento cifrado — se desactivó la reproducción en esta ruta y se quitaron {items} elemento(s) de {messages} mensaje(s), reintentando..."
+  streaming:
+    empty_keepalive_fallback: "⚠️ El stream del proveedor devolvió un frame keepalive vacío — reintentando este turno sin streaming (el streaming sigue desactivado en esta ruta)."
   model_switch:
     large_context_title: "Aviso de cambio con contexto grande"
     large_context_banner: "!!! CAMBIO DE MODELO CON CONTEXTO GRANDE !!!"

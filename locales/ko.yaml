@@ -4702,6 +4702,14 @@ core:
     stop_hint_cancel_request: "중지하려면 요청을 취소하세요"
     stop_hint_stop_command: "취소하려면 /stop 을 보내세요"
     gave_up: "⏳ 자동 복구가 {total}회 시도 후 포기했습니다 — 공급자를 여전히 사용할 수 없습니다."
+  reasoning_recovery:
+    effort_rejected: "⚠️  {model}이(가) 추론 노력 {effort}을(를) 거부했습니다 — 경로가 바뀔 때까지 경로 기본값을 사용해 다시 시도합니다..."
+    floor_required: "⚠️  {model}은(는) 추론을 끌 수 없습니다 — 경로가 바뀔 때까지 effort={effort}을(를) 사용해 다시 시도합니다..."
+    disable_rejected: "⚠️  {model}이(가) 추론 끄기를 거부했습니다 — 경로가 바뀔 때까지 경로 기본값을 사용해 다시 시도합니다..."
+    replay_stripped: "⚠️  공급자가 암호화된 추론 재전송을 거부했습니다 — 메시지 {messages}개에서 오래된 항목 {items}개를 제거하고 다시 시도합니다..."
+    replay_disabled: "⚠️  공급자가 암호화된 추론 재전송을 거부했습니다 — 이 경로에서 재전송을 끄고 메시지 {messages}개에서 항목 {items}개를 제거한 뒤 다시 시도합니다..."
+  streaming:
+    empty_keepalive_fallback: "⚠️ 공급자 스트림이 빈 keepalive 프레임을 반환했습니다 — 이번 턴을 스트리밍 없이 다시 시도합니다 (이 경로에서는 스트리밍이 계속 꺼져 있습니다)."
   model_switch:
     large_context_title: "대용량 컨텍스트 전환 경고"
     large_context_banner: "!!! 대용량 컨텍스트 모델 전환 !!!"

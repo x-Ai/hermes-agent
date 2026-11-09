@@ -4704,6 +4704,14 @@ core:
     stop_hint_cancel_request: "annulla la richiesta per fermare"
     stop_hint_stop_command: "invia /stop per annullare"
     gave_up: "⏳ Il ripristino automatico ha rinunciato dopo {total} cicli — il provider non è ancora disponibile."
+  reasoning_recovery:
+    effort_rejected: "⚠️  {model} rifiuta lo sforzo di reasoning {effort} — uso il valore predefinito della rotta finché la rotta non cambia, nuovo tentativo..."
+    floor_required: "⚠️  {model} non può disattivare il reasoning — uso effort={effort} finché la rotta non cambia, nuovo tentativo..."
+    disable_rejected: "⚠️  {model} rifiuta la disattivazione del reasoning — uso il valore predefinito della rotta finché la rotta non cambia, nuovo tentativo..."
+    replay_stripped: "⚠️  Il provider ha rifiutato il replay del reasoning cifrato — rimossi {items} elemento/i obsoleto/i da {messages} messaggio/i, nuovo tentativo..."
+    replay_disabled: "⚠️  Il provider ha rifiutato il replay del reasoning cifrato — replay disattivato su questa rotta e rimossi {items} elemento/i da {messages} messaggio/i, nuovo tentativo..."
+  streaming:
+    empty_keepalive_fallback: "⚠️ Lo stream del provider ha restituito un frame keepalive vuoto — ripeto questo turno senza streaming (lo streaming resta disattivato su questa rotta)."
   model_switch:
     large_context_title: "Avviso: cambio con contesto grande"
     large_context_banner: "!!! CAMBIO DI MODELLO CON CONTESTO GRANDE !!!"

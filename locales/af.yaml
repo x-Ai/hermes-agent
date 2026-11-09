@@ -4704,6 +4704,14 @@ core:
     stop_hint_cancel_request: "kanselleer die versoek om te stop"
     stop_hint_stop_command: "stuur /stop om te kanselleer"
     gave_up: "⏳ Outomatiese herstel het ná {total} siklusse opgegee — die verskaffer is steeds nie beskikbaar nie."
+  reasoning_recovery:
+    effort_rejected: "⚠️  {model} verwerp redenering-inspanning {effort} — gebruik die roete se verstek totdat die roete verander, probeer weer..."
+    floor_required: "⚠️  {model} kan nie redenering afskakel nie — gebruik effort={effort} totdat die roete verander, probeer weer..."
+    disable_rejected: "⚠️  {model} verwerp die afskakel van redenering — gebruik die roete se verstek totdat die roete verander, probeer weer..."
+    replay_stripped: "⚠️  Die verskaffer het die herspeel van geënkripteerde redenering verwerp — {items} verouderde item(s) uit {messages} boodskap(pe) verwyder, probeer weer..."
+    replay_disabled: "⚠️  Die verskaffer het die herspeel van geënkripteerde redenering verwerp — herspeel op hierdie roete afgeskakel en {items} item(s) uit {messages} boodskap(pe) verwyder, probeer weer..."
+  streaming:
+    empty_keepalive_fallback: "⚠️ Die verskaffer se stroom het 'n leë keepalive-raam teruggestuur — probeer hierdie beurt weer sonder stroming (stroming bly af op hierdie roete)."
   model_switch:
     large_context_title: "Waarskuwing: oorskakeling met groot konteks"
     large_context_banner: "!!! MODELOORSKAKELING MET GROOT KONTEKS !!!"

@@ -5031,6 +5031,14 @@ core:
     stop_hint_cancel_request: "annulez la requête pour arrêter"
     stop_hint_stop_command: "envoyez /stop pour annuler"
     gave_up: "⏳ La récupération automatique a abandonné après {total} cycles — le fournisseur est toujours indisponible."
+  reasoning_recovery:
+    effort_rejected: "⚠️  {model} refuse l'effort de raisonnement {effort} — réglage par défaut de la route utilisé jusqu'au changement de route, nouvelle tentative..."
+    floor_required: "⚠️  {model} ne peut pas désactiver le raisonnement — effort={effort} utilisé jusqu'au changement de route, nouvelle tentative..."
+    disable_rejected: "⚠️  {model} refuse la désactivation du raisonnement — réglage par défaut de la route utilisé jusqu'au changement de route, nouvelle tentative..."
+    replay_stripped: "⚠️  Le fournisseur a rejeté la relecture du raisonnement chiffré — {items} élément(s) obsolète(s) retiré(s) de {messages} message(s), nouvelle tentative..."
+    replay_disabled: "⚠️  Le fournisseur a rejeté la relecture du raisonnement chiffré — relecture désactivée sur cette route et {items} élément(s) retiré(s) de {messages} message(s), nouvelle tentative..."
+  streaming:
+    empty_keepalive_fallback: "⚠️ Le flux du fournisseur a renvoyé une trame keepalive vide — nouvelle tentative de ce tour sans streaming (le streaming reste désactivé sur cette route)."
   model_switch:
     large_context_title: "Avertissement : changement avec un contexte volumineux"
     large_context_banner: "!!! CHANGEMENT DE MODÈLE AVEC UN CONTEXTE VOLUMINEUX !!!"

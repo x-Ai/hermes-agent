@@ -4704,6 +4704,14 @@ core:
     stop_hint_cancel_request: "cealaigh an t-iarratas chun stopadh"
     stop_hint_stop_command: "seol /stop chun cealú"
     gave_up: "⏳ D'éirigh an t-aisghabháil uathoibríoch as tar éis {total} timthriall — níl an soláthraí ar fáil fós."
+  reasoning_recovery:
+    effort_rejected: "⚠️  Diúltaíonn {model} d'iarracht réasúnaíochta {effort} — úsáidtear réamhshocrú an bhealaigh go dtí go n-athraíonn an bealach, ag triail arís..."
+    floor_required: "⚠️  Ní féidir le {model} an réasúnaíocht a mhúchadh — úsáidtear effort={effort} go dtí go n-athraíonn an bealach, ag triail arís..."
+    disable_rejected: "⚠️  Diúltaíonn {model} do mhúchadh na réasúnaíochta — úsáidtear réamhshocrú an bhealaigh go dtí go n-athraíonn an bealach, ag triail arís..."
+    replay_stripped: "⚠️  Dhiúltaigh an soláthraí d'athsheinm na réasúnaíochta criptithe — baineadh {items} mír as dáta as {messages} teachtaireacht, ag triail arís..."
+    replay_disabled: "⚠️  Dhiúltaigh an soláthraí d'athsheinm na réasúnaíochta criptithe — díchumasaíodh an athsheinm ar an mbealach seo agus baineadh {items} mír as {messages} teachtaireacht, ag triail arís..."
+  streaming:
+    empty_keepalive_fallback: "⚠️ Thug sruth an tsoláthraí fráma keepalive folamh ar ais — ag triail an chasaidh seo arís gan sruthú (fanann an sruthú múchta ar an mbealach seo)."
   model_switch:
     large_context_title: "Rabhadh: athrú le comhthéacs mór"
     large_context_banner: "!!! ATHRÚ SAMHLA LE COMHTHÉACS MÓR !!!"

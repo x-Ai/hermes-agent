@@ -4703,6 +4703,14 @@ core:
     stop_hint_cancel_request: "durdurmak için isteği iptal edin"
     stop_hint_stop_command: "iptal etmek için /stop gönderin"
     gave_up: "⏳ Otomatik kurtarma {total} döngüden sonra vazgeçti — sağlayıcı hâlâ kullanılamıyor."
+  reasoning_recovery:
+    effort_rejected: "⚠️  {model}, {effort} akıl yürütme gücünü reddediyor — yol değişene kadar yolun varsayılanı kullanılıyor, yeniden deneniyor..."
+    floor_required: "⚠️  {model} akıl yürütmeyi kapatamıyor — yol değişene kadar effort={effort} kullanılıyor, yeniden deneniyor..."
+    disable_rejected: "⚠️  {model} akıl yürütmenin kapatılmasını reddediyor — yol değişene kadar yolun varsayılanı kullanılıyor, yeniden deneniyor..."
+    replay_stripped: "⚠️  Sağlayıcı şifreli akıl yürütmenin yeniden oynatılmasını reddetti — {messages} mesajdan {items} eski öğe kaldırıldı, yeniden deneniyor..."
+    replay_disabled: "⚠️  Sağlayıcı şifreli akıl yürütmenin yeniden oynatılmasını reddetti — bu yolda yeniden oynatma kapatıldı ve {messages} mesajdan {items} öğe kaldırıldı, yeniden deneniyor..."
+  streaming:
+    empty_keepalive_fallback: "⚠️ Sağlayıcı akışı boş bir keepalive çerçevesi döndürdü — bu tur akış olmadan yeniden deneniyor (bu yolda akış kapalı kalacak)."
   model_switch:
     large_context_title: "Büyük Bağlamla Geçiş Uyarısı"
     large_context_banner: "!!! BÜYÜK BAĞLAMLA MODEL GEÇİŞİ !!!"

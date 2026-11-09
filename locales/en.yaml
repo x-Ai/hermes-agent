@@ -4833,6 +4833,14 @@ core:
     stop_hint_cancel_request: "cancel the request to stop"
     stop_hint_stop_command: "send /stop to cancel"
     gave_up: "⏳ Automatic recovery gave up after {total} cycles — the provider is still unavailable."
+  reasoning_recovery:
+    effort_rejected: "⚠️  {model} rejects reasoning effort {effort} — using the route's default until the route changes, retrying..."
+    floor_required: "⚠️  {model} cannot disable reasoning — using effort={effort} until the route changes, retrying..."
+    disable_rejected: "⚠️  {model} rejects disabling reasoning — using the route's default until the route changes, retrying..."
+    replay_stripped: "⚠️  Encrypted reasoning replay was rejected by the provider — stripped stale {items} item(s) from {messages} message(s), retrying..."
+    replay_disabled: "⚠️  Encrypted reasoning replay was rejected by the provider — disabled replay on this route and stripped {items} item(s) from {messages} message(s), retrying..."
+  streaming:
+    empty_keepalive_fallback: "⚠️ Provider stream returned an empty keepalive frame — retrying this turn without streaming (streaming stays off on this route)."
   model_switch:
     large_context_title: "Large Context Switch Warning"
     large_context_banner: "!!! LARGE CONTEXT MODEL SWITCH !!!"
