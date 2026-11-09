@@ -333,6 +333,8 @@ brew install ffmpeg
 
 没有 ffmpeg，Edge TTS 音频会作为普通音频文件发送（仍可播放，但使用矩形播放器而非语音气泡）。
 
+MP3 和 M4A 文件会作为 Telegram 音频曲目发送，其说明文字与语音消息一样应用 Markdown 格式。安装 ffmpeg 后，文件自带的艺术家和标题标签以及内嵌的封面图还会填入 Telegram 音乐播放器中的演唱者、曲目名称和专辑封面。
+
 在 `config.yaml` 的 `tts.provider` 键下配置 TTS 提供商。
 
 ## 通过本地 Bot API 服务器处理大文件（>20MB）
@@ -476,7 +478,7 @@ Hermes Agent 在 Telegram 群聊中工作时有几点注意事项：
   - `@botusername` 提及
   - `/command@botusername`（包含机器人名称的 Telegram 机器人菜单命令形式）
   - 与 `telegram.mention_patterns` 中配置的正则唤醒词匹配的内容
-- 在有多个 Hermes 机器人的群组中，`telegram.exclusive_bot_mentions` 使路由具有确定性。当消息明确提及一个或多个 Telegram 机器人用户名时，只有被提及的机器人配置文件处理该消息；其他 Hermes 机器人在回复和唤醒词回退运行之前忽略它。此功能默认启用。
+- 在有多个 Hermes 机器人的群组中，`telegram.exclusive_bot_mentions` 使路由具有确定性。当消息是发给一个或多个 Telegram 机器人用户名的时，只有被提及的机器人配置文件处理该消息；其他 Hermes 机器人在回复和唤醒词回退运行之前忽略它（并记录一行 `Skipping message ... addressed to other bot(s)` 日志）。只有当消息以另一个机器人的 @用户名开头时（`@OtherBot do this`、`@BotA @BotB: compare`、`/status@OtherBot`），才算是发给那个机器人的消息。出现在正文后面的 @用户名，例如 `the shop has its own bot now (@ShopBot)`，只是在谈论那个机器人，不会让本机器人保持沉默。本机器人自己的 @用户名出现在任何位置仍然优先，除非开头的命令（可以位于对本机器人的称呼之后）明确指向另一个机器人。默认启用。
 - 使用 `telegram.ignored_threads` 使 Hermes 在特定 Telegram 论坛话题中保持沉默，即使群组本来允许自由响应或提及触发的回复
 - 如果 `telegram.require_mention` 未设置或为 false，Hermes 保持之前的开放群组行为，响应它能看到的普通群组消息
 
@@ -608,9 +610,10 @@ platforms:
 ### 工作原理
 
 1. gateway 启动时，Hermes 为每个尚未有 `thread_id` 的话题调用 `createForumTopic`
-2. `thread_id` 会自动保存回 `config.yaml`——后续重启会跳过 API 调用
+2. `thread_id` 会自动保存回 `config.yaml`。重启、重新连接以及网络故障后的适配器重建都会复用它，而不会再次创建话题
 3. 每个话题映射到一个隔离的会话键：`agent:main:telegram:dm:{chat_id}:{thread_id}`
 4. 每个话题中的消息都有自己的对话历史、内存刷新和上下文窗口
+5. 每个带有 `thread_id` 的话题（`dm_topics` 和 `group_topics` 中的）都会列在 `channel_directory.json` 中，因此即使没有近期会话，`send_message` 也能按名称定位它。在多个聊天中使用的话题名称会列为 `<chat_id> / <name>`。与其他目录条目（同名的私聊或群组）重名的话题会列为 `<chat_id>:<thread_id> / <name>`，而那个条目会列为 `<its id> / <name>`，因此单独的名称不会解析到其中任何一个
 
 ### 根私聊处理
 
@@ -914,7 +917,7 @@ gateway:
         disable_link_previews: true
 ```
 
-启用后，Hermes 为每条出站消息附加 Telegram 的 `LinkPreviewOptions(is_disabled=True)`，并在旧版 `python-telegram-bot` 版本上回退到旧版 `disable_web_page_preview` 参数。
+启用后，Hermes 为每条出站消息附加 Telegram 的 `LinkPreviewOptions(is_disabled=True)`，包括流式预览编辑和流式回复的最终编辑（解析按钮提示的编辑，例如审批卡片，暂不携带该选项），并在旧版 `python-telegram-bot` 版本上回退到旧版 `disable_web_page_preview` 参数。
 
 ## 群组白名单
 
