@@ -14,11 +14,12 @@ _aux_probe_state = threading.local()
 
 class _AuxProbeClientStub:
     """Non-functional placeholder returned while `aux_probe_mode` is active."""
-    __slots__ = ("api_key", "base_url")
+    __slots__ = ("_hermes_aux_backend_provider", "_hermes_aux_effective_provider", "api_key", "base_url")
 
     def __init__(self, api_key: str = "", base_url: str = "") -> None:
         self.api_key = api_key
         self.base_url = base_url
+        self._hermes_aux_backend_provider = self._hermes_aux_effective_provider = ""
 
     def __getattr__(self, name: str) -> Any:
         # Loud failure if a probe stub ever leaks into a runtime call path.

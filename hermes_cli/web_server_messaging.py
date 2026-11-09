@@ -199,6 +199,8 @@ class _WhatsAppOnboardingSession:
     account_name: str | None = None
     account_phone: str | None = None
     error: str | None = None
+    # The bridge's pairing error code when the dashboard has its own translated text for it.
+    error_code: str | None = None
     starting_process: bool = False
     session_reserved: bool = False
     expiry_timer: threading.Timer | None = None
@@ -214,7 +216,7 @@ def _whatsapp_session_path() -> Path:
 
 _WHATSAPP_PAYLOAD_FIELDS = (
     "status", "qr_payload", "expires_at", "mode", "allowed_users", "account_id", "account_name",
-    "account_phone", "error",
+    "account_phone", "error", "error_code",
 )
 
 

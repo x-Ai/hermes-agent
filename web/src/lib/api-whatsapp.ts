@@ -22,6 +22,8 @@ export interface WhatsAppOnboardingStartResponse {
   account_name?: string | null;
   account_phone?: string | null;
   error?: string | null;
+  /** The bridge's pairing error code when the dashboard words it itself; `error` keeps the English text. */
+  error_code?: string | null;
 }
 
 export type WhatsAppOnboardingStatusResponse = WhatsAppOnboardingStartResponse;

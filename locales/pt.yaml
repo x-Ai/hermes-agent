@@ -3465,6 +3465,8 @@ cli:
     sweep_archived_removed: "arquivada + removida → {ref}"
     sweep_archived_kept: "arquivada, mantida ({reason}) → {ref}"
     discarded: "Worktree removida e alterações descartadas: {path}"
+  whatsapp_setup:
+    pairing_incomplete: "O pareamento está incompleto. Execute 'hermes whatsapp' novamente e escolha parear de novo."
 display:
   verb:
     web_search: "Pesquisando na web"

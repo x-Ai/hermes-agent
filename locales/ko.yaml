@@ -3463,6 +3463,8 @@ cli:
     sweep_archived_removed: "보관 후 제거 → {ref}"
     sweep_archived_kept: "보관됨, 유지 ({reason}) → {ref}"
     discarded: "워크트리를 제거하고 변경 사항을 버렸어요: {path}"
+  whatsapp_setup:
+    pairing_incomplete: "페어링이 완료되지 않았어요. 'hermes whatsapp'을 다시 실행하고 다시 페어링을 선택하세요."
 display:
   verb:
     web_search: "웹 검색 중"

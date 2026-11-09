@@ -46,6 +46,7 @@ import {
   localizeChannelFieldDescription,
   localizeChannelFieldLabel,
   localizeChannelTestResult,
+  localizeWhatsAppPairingError,
 } from "@/i18n/channel-metadata";
 import type { Locale } from "@/i18n/types";
 import { RelayLinkPanel } from "./ChannelsRelayLink";
@@ -772,7 +773,7 @@ export function WhatsAppOnboardingPanel({
           return;
         }
         if (status.status === "error") {
-          setError(status.error || copy.setupFailed);
+          setError(localizeWhatsAppPairingError(status, copy));
           setSetup(null);
           setQrDataUrl("");
           setPhase("idle");
@@ -835,7 +836,7 @@ export function WhatsAppOnboardingPanel({
         await updateQr(res.qr_payload);
       }
       if (res.status === "error") {
-        setError(res.error || copy.setupFailed);
+        setError(localizeWhatsAppPairingError(res, copy));
         setSetup(null);
         setPhase("idle");
       } else {

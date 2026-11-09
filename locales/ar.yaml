@@ -3464,6 +3464,8 @@ cli:
     sweep_archived_removed: "أُرشف + أُزيل → {ref}"
     sweep_archived_kept: "أُرشف، واحتُفظ به ({reason}) → {ref}"
     discarded: "تمت إزالة الـ worktree وتجاهل تغييراته: {path}"
+  whatsapp_setup:
+    pairing_incomplete: "الاقتران غير مكتمل. شغّل 'hermes whatsapp' مرة أخرى واختر إعادة الاقتران."
 display:
   verb:
     web_search: "يبحث في الويب"

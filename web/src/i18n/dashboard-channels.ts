@@ -105,6 +105,8 @@ export const dashboardChannelsEn = {
     whatsappPreparing: 'Preparing the WhatsApp bridge. The QR code will appear when ready.',
     whatsappStarting: 'Starting the WhatsApp pairing bridge. The QR code will appear when ready.',
     whatsappScan: 'Open WhatsApp on your phone, go to Linked Devices, and scan from there.',
+    whatsappPasskeyRequired:
+      'This WhatsApp account requires passkey verification, which dashboard setup cannot do. In a local terminal, run hermes whatsapp --passkey-browser followed by the path to your Chrome or Edge executable.',
     unknownDmPairing: 'Unknown direct messages use Hermes pairing codes unless the number is allowed.',
     linkedAccountDetail: 'This is the WhatsApp account Hermes is now logged into.',
     linkedScannedAccount: 'Hermes is logged into the WhatsApp account that scanned the QR code.',
@@ -228,6 +230,8 @@ export const dashboardChannelsZh: WidenStrings<typeof dashboardChannelsEn> = {
     whatsappPreparing: '正在准备 WhatsApp 桥接器，就绪后会在此显示二维码',
     whatsappStarting: '正在启动 WhatsApp 配对桥接器，就绪后会在此显示二维码',
     whatsappScan: '在手机上打开 WhatsApp，前往"已关联设备"并从那里扫描',
+    whatsappPasskeyRequired:
+      '此 WhatsApp 账号需要通行密钥验证，管理面板中的设置无法完成这一步，请在本地终端运行 hermes whatsapp --passkey-browser，并在其后加上 Chrome 或 Edge 可执行文件的路径',
     unknownDmPairing: '除非号码已允许，否则未知私聊会使用 Hermes 配对码',
     linkedAccountDetail: '这是 Hermes 当前登录的 WhatsApp 账号',
     linkedScannedAccount: 'Hermes 已登录扫描二维码的 WhatsApp 账号',

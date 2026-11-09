@@ -507,7 +507,17 @@ def _fail_whatsapp_pairing(pairing_id: str, error: str, *, proc=None, unless=_WH
         record = _whatsapp_onboarding_sessions.get(pairing_id)
         if record and (proc is None or record.proc is proc) and record.status not in unless:
             record.status = "error"
-            record.error = error
+            record.error, record.error_code = error, None
+
+
+# Readable text for bridge pairing error codes the dashboard displays; other codes show as the bridge sent them.
+# A code listed here also rides ``error_code``: the dashboard shows its own translation, ``error`` stays for
+# older clients.
+_WHATSAPP_PAIRING_ERROR_TEXT = {
+    "passkey_required": "This WhatsApp account requires passkey verification, which dashboard setup cannot do. "
+                        "In a local terminal, run hermes whatsapp --passkey-browser followed by the path to your "
+                        "Chrome or Edge executable.",
+}
 
 
 def _apply_pairing_event(record, payload: dict) -> None:
@@ -517,7 +527,7 @@ def _apply_pairing_event(record, payload: dict) -> None:
         if qr:
             record.qr_payload = qr
             record.status = "waiting"
-            record.error = None
+            record.error = record.error_code = None
     elif event == "connected":
         user = payload.get("user")
         if isinstance(user, dict):
@@ -526,10 +536,12 @@ def _apply_pairing_event(record, payload: dict) -> None:
             record.account_name = str(user.get("name") or "").strip() or None
             record.account_phone = _whatsapp_phone_from_identifier(account_id)
         record.status = "connected"
-        record.error = None
+        record.error = record.error_code = None
     elif event == "error":
         record.status = "error"
-        record.error = str(payload.get("error") or "WhatsApp pairing failed.")
+        code = str(payload.get("error") or "WhatsApp pairing failed.")
+        record.error = _WHATSAPP_PAIRING_ERROR_TEXT.get(code, code)
+        record.error_code = code if code in _WHATSAPP_PAIRING_ERROR_TEXT else None
     elif event == "disconnected" and record.status == "starting":
         record.status = "waiting"
 
@@ -555,11 +567,11 @@ def _watch_whatsapp_pairing(pairing_id: str, proc: subprocess.Popen) -> None:
     except Exception as exc:
         _fail_whatsapp_pairing(pairing_id, str(exc), proc=proc)
         return
-    # An "error" status from the stream may be overwritten by the exit reason.
+    # An error the bridge streamed names the cause; the exit code only says it stopped.
     _fail_whatsapp_pairing(
         pairing_id, "WhatsApp pairing process exited before pairing completed." if returncode == 0
         else f"WhatsApp pairing process exited with code {returncode}.",
-        proc=proc, unless={"connected", "cancelled", "expired"})
+        proc=proc)
 
 
 def _run_whatsapp_pairing(pairing_id: str, session_path: Path, mode: str) -> None:
@@ -614,7 +626,7 @@ def _expire_whatsapp_pairing(record: _WhatsAppOnboardingSession) -> None:
     with _whatsapp_onboarding_lock:
         if record.status not in _WHATSAPP_ONBOARDING_TERMINAL_STATUSES or record.session_reserved:
             record.status = "expired"
-            record.error = "WhatsApp QR setup expired. Start a new setup."
+            record.error, record.error_code = "WhatsApp QR setup expired. Start a new setup.", None
             _terminate_whatsapp_pairing(record.proc)
         _release_whatsapp_reservation(record)
 

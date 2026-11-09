@@ -3467,6 +3467,8 @@ cli:
     sweep_archived_removed: "已归档并移除 → {ref}"
     sweep_archived_kept: "已归档，保留（{reason}）→ {ref}"
     discarded: "工作树已移除，更改已丢弃：{path}"
+  whatsapp_setup:
+    pairing_incomplete: "配对未完成，请重新运行 'hermes whatsapp' 并选择重新配对"
 display:
   verb:
     web_search: "搜索网页"

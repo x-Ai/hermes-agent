@@ -67,6 +67,7 @@ export {
   delegationModelOptions,
   delegationProviderOptions
 } from './delegation-suggestions'
+export { INSTALL_ORIGIN, PACKAGE_MARKER, PLUGIN_CATALOG_NAME_RE } from './desktop-plugin-files'
 export { type ExternalUrlTarget, externalUrlTarget } from './external-url'
 export { fileUrlToNativePath } from './file-url'
 export { compactNumber } from './format'
@@ -91,6 +92,7 @@ export {
   JSON_RPC_METHOD_NOT_FOUND,
   jsonRpcErrorFromFrame,
   type JsonRpcErrorPayload,
+  jsonRpcErrorReason,
   type JsonRpcFrame,
   JsonRpcGatewayError,
   JsonRpcRequestChannel,

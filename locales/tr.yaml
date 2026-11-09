@@ -3464,6 +3464,8 @@ cli:
     sweep_archived_removed: "arşivlendi + kaldırıldı → {ref}"
     sweep_archived_kept: "arşivlendi, tutuldu ({reason}) → {ref}"
     discarded: "Worktree kaldırıldı ve değişiklikleri atıldı: {path}"
+  whatsapp_setup:
+    pairing_incomplete: "Eşleştirme tamamlanmadı. 'hermes whatsapp' komutunu yeniden çalıştırın ve yeniden eşleştirmeyi seçin."
 display:
   verb:
     web_search: "Web'de arıyor"

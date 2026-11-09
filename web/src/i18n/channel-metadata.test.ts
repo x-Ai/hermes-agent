@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { dashboardZh } from './dashboard'
-import { localizeChannelFieldDescription, localizeChannelTestResult } from './channel-metadata'
+import { localizeChannelFieldDescription, localizeChannelTestResult, localizeWhatsAppPairingError } from './channel-metadata'
 
 describe('channel metadata localization', () => {
   const copy = dashboardZh.channels
@@ -36,6 +36,14 @@ describe('channel metadata localization', () => {
       state: 'disabled',
       message: 'Discord is disabled. Enable it, then restart the gateway.'
     }, copy, 'zh')).toBe('已禁用，请启用后重启网关')
+  })
+
+  it('words a WhatsApp pairing failure the backend names by code, and keeps any other as sent', () => {
+    expect(localizeWhatsAppPairingError(
+      { error: 'This WhatsApp account requires passkey verification…', error_code: 'passkey_required' }, copy
+    )).toBe(copy.whatsappPasskeyRequired)
+    expect(localizeWhatsAppPairingError({ error: 'logged_out', error_code: null }, copy)).toBe('logged_out')
+    expect(localizeWhatsAppPairingError({ error: null }, copy)).toBe(copy.setupFailed)
   })
 })
 

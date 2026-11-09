@@ -3482,6 +3482,8 @@ cli:
     sweep_archived_removed: "archiválva + eltávolítva → {ref}"
     sweep_archived_kept: "archiválva, megtartva ({reason}) → {ref}"
     discarded: "Worktree eltávolítva, változásai elvetve: {path}"
+  whatsapp_setup:
+    pairing_incomplete: "A párosítás nem fejeződött be. Futtasd újra a 'hermes whatsapp' parancsot, és válaszd az újrapárosítást."
 display:
   verb:
     web_search: "Keresés a weben"

@@ -3465,6 +3465,8 @@ cli:
     sweep_archived_removed: "cartlannaithe + bainte → {ref}"
     sweep_archived_kept: "cartlannaithe, coinnithe ({reason}) → {ref}"
     discarded: "Worktree bainte agus a athruithe caite uait: {path}"
+  whatsapp_setup:
+    pairing_incomplete: "Níl an phéireáil críochnaithe. Rith 'hermes whatsapp' arís agus roghnaigh athphéireáil."
 display:
   verb:
     web_search: "ag cuardach an ghréasáin"

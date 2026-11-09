@@ -1,7 +1,7 @@
 import type { Locale } from './types'
 import { localizeConfigLabel } from './config-metadata'
 import type { DashboardCopy } from './dashboard'
-import type { MessagingPlatformTestResult } from '@/lib/api'
+import type { MessagingPlatformTestResult, WhatsAppOnboardingStatusResponse } from '@/lib/api'
 
 const ZH_PLATFORM_DESCRIPTIONS: Record<string, string> = {
   telegram: '通过 Telegram 私聊、群组和话题使用 Hermes',
@@ -584,4 +584,14 @@ export function localizeChannelTestResult(
     return copy.testMissingSetup.replace('{fields}', result.message.slice('Missing required setup: '.length))
   }
   return locale === 'zh' ? copy.testConnectionError.replace('{error}', result.message) : result.message
+}
+
+/** A failed WhatsApp pairing in the dashboard's words when the backend names a code it knows
+ *  (`hermes_cli/web_routers/messaging.py::_WHATSAPP_PAIRING_ERROR_TEXT`), else the bridge's own text. */
+export function localizeWhatsAppPairingError(
+  status: Pick<WhatsAppOnboardingStatusResponse, 'error' | 'error_code'>,
+  copy: DashboardCopy['channels']
+): string {
+  const messages: Record<string, string> = { passkey_required: copy.whatsappPasskeyRequired }
+  return (status.error_code && messages[status.error_code]) || status.error || copy.setupFailed
 }

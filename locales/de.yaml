@@ -3465,6 +3465,8 @@ cli:
     sweep_archived_removed: "archiviert + entfernt → {ref}"
     sweep_archived_kept: "archiviert, behalten ({reason}) → {ref}"
     discarded: "Worktree entfernt und Änderungen verworfen: {path}"
+  whatsapp_setup:
+    pairing_incomplete: "Die Kopplung ist unvollständig. Führen Sie 'hermes whatsapp' erneut aus und wählen Sie die erneute Kopplung."
 display:
   verb:
     web_search: "Suche im Web"

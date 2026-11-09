@@ -3463,6 +3463,8 @@ cli:
     sweep_archived_removed: "已封存並移除 → {ref}"
     sweep_archived_kept: "已封存，保留（{reason}）→ {ref}"
     discarded: "工作樹已移除，變更已捨棄：{path}"
+  whatsapp_setup:
+    pairing_incomplete: "配對尚未完成。請再次執行 'hermes whatsapp' 並選擇重新配對。"
 display:
   verb:
     web_search: "搜尋網頁中"

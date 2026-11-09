@@ -3465,6 +3465,8 @@ cli:
     sweep_archived_removed: "geargiveer + verwyder → {ref}"
     sweep_archived_kept: "geargiveer, behou ({reason}) → {ref}"
     discarded: "Werkboom verwyder en sy veranderinge weggegooi: {path}"
+  whatsapp_setup:
+    pairing_incomplete: "Koppeling is onvolledig. Voer 'hermes whatsapp' weer uit en kies om weer te koppel."
 display:
   verb:
     web_search: "Soek op die web"
