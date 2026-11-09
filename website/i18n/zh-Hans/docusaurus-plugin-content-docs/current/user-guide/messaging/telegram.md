@@ -89,7 +89,7 @@ telegram:
   observe_unmentioned_group_messages: true
 ```
 
-启用此模式后，来自明确白名单聊天/话题的未提及群组消息会作为观察上下文追加到共享聊天/话题会话记录中，但不会触发 Agent。`allowed_chats` 控制机器人在哪里响应；`group_allowed_chats` 授权用于观察上下文的共享群组会话，因此在此模式下使用相同的聊天 ID。同一白名单聊天/话题中后续的 `@botname` 提及、对机器人的回复或配置的提及模式可以使用该观察上下文。触发消息还会标记 `[nickname|user_id]`，并获得每轮安全 prompt（提示词），使模型将之前观察到的内容视为上下文而非发给机器人的指令。
+启用此模式后，来自明确白名单聊天/话题的未提及群组消息会作为观察上下文追加到共享聊天/话题会话记录中，但不会触发 Agent。`allowed_chats` 控制机器人在哪里响应；`group_allowed_chats` 授权用于观察上下文的共享群组会话，因此在此模式下使用相同的聊天 ID。同一白名单聊天/话题中后续的 `@botname` 提及、对机器人的回复或配置的提及模式可以使用该观察上下文。触发消息还会标记 `[nickname|user_id]`，并获得每轮安全 prompt（提示词），使模型将之前观察到的内容视为上下文而非发给机器人的指令。在该聊天/话题中发送的斜杠命令（`/new`、`/model`、`/undo`、技能命令）作用于同一个共享会话，而仅限管理员的命令仍按发送者进行检查。
 
 等效环境变量：
 
@@ -427,6 +427,7 @@ platforms:
 - 基于本地服务器构建 python-telegram-bot 客户端
 - 自动将内部文档/音频大小上限从 20 MB 提升至 2 GB
 - 在"文件过大"错误消息中报告当前限制（`Maximum: 2048 MB.`），以便清楚了解所处模式
+- 在 gateway 之外的发送也走同一服务器：`hermes send`、`send_message` 工具，以及回退到独立发送器的 cron 投递
 
 重启 gateway 并查找确认日志行：
 
@@ -762,6 +763,7 @@ Hermes 会确认会话标题，并重放最后一条助手消息以提供上下�
 - BotFather 设置截图每个聊天每 5 分钟限速一次发送——在 Threads Settings 仍然禁用时重复尝试 `/topic` 不会重复上传同一张图片
 - 在话题内启动的 `/bg <prompt>` 会将结果投递回同一话题；后台会话不会触发所属话题的自动重命名
 - `/topic` 本身受机器人用户授权检查限制——未授权的私聊会收到拒绝而非激活
+- 当 Telegram 以 `message thread not found` 拒绝某个话题时（话题已被删除，或在 Telegram 客户端中关闭了话题），Hermes 会先通过 `direct_messages_topic_id` 对同一话题重试一次，然后把回复投递到根聊天（不带回复锚点），并删除该话题的绑定。如果只是回复锚点指向的消息被删除，回复会保留在原话题中，仅去掉锚点。发往 Hermes 刚按名称创建的话题的发送则会直接失败，从而重新创建该话题，而不是让回复落到根聊天中。删除聊天的最后一个绑定会关闭话题模式，使根私聊重新作为普通聊天使用
 
 ### 禁用多会话模式
 
@@ -902,6 +904,8 @@ gateway:
 ```
 
 这个设置用于客户端渲染/复制兼容性；当 Telegram 拒绝富消息 API 调用时，Hermes 已经会自动回退。`rich_drafts` 控制私聊流式预览是否使用富渲染（`sendRichMessageDraft`），默认关闭，因为 Telegram Desktop/macOS 可能在聊天重绘前视觉叠加富草稿帧；关闭时，预览以纯文本流式显示，最终消息仍以原生富消息送达。
+
+同一设置也适用于在 gateway 进程之外进行的发送：`hermes send`、`send_message` 工具，以及回退到独立发送器的 cron 投递，都按相同规则走富消息路径。它们还会转义长消息中的 `(1/2)` 分块标记，并且只把 Telegram 自己的 HTML 标签（`<b>`、`<a>`、`<code>` 等）当作 HTML。因此，`<details>` 块或尖括号占位符会保留其 Markdown 格式。以 HTML 发送但仍被 Bot API 拒绝的消息，会先以 MarkdownV2 重试，再回退为纯文本。一起发送的两张或更多照片会以原生相册送达（`sendMediaGroup`，每个相册 10 张）。
 
 CJK 文本（中文、日文、韩文以及罕见汉字扩展）默认仍走旧版 MarkdownV2 路径，因为受影响的 Telegram Desktop/macOS 客户端曾将 Bot API 富消息渲染成重叠的 CJK 字形。如果你使用不受影响的客户端，并希望 CJK 内容里的表格、任务列表、折叠详情和公式走原生富渲染，可以在 `rich_messages: true` 旁显式设置 `allow_cjk_rich_messages: true`，接受该客户端侧风险。
 
@@ -1066,6 +1070,8 @@ gateway:
 3. DoH 返回的与系统 DNS 结果不同的 IP 被用作备用。
 4. 如果 DoH 也被封锁，使用硬编码的种子 IP（`149.154.167.220`）作为最后手段。
 5. 一旦备用 IP 成功，它就变得"粘性"——后续请求直接使用它，而不先重试主路径。
+
+在 gateway 进程之外进行的发送（`hermes send`、`send_message` 工具、独立 cron 投递）使用相同的传输方式，并采用你配置的 IP 或种子列表。它们跳过 DoH 发现，以便一次性发送保持快速。它们也使用 gateway 的 `HERMES_TELEGRAM_HTTP_*` 超时设置及其 60 秒的媒体上传写入超时。连接超时或连接池超时会在这里重试，因为请求根本没有发出。其他超时不会重试：Telegram 可能已经投递了这条消息。
 
 ### 配置
 
@@ -1232,6 +1238,8 @@ HERMES_TELEGRAM_NOTIFICATIONS=all
 ```
 
 未知值会记录警告并回退到 `important`。
+
+`hermes send`、`send_message` 工具和独立 cron 投递遵循相同的模式。在 `important` 模式下，它们的消息静默送达，但 cron 简报除外：它默认会响铃（`cron.delivery.notify`，与 gateway 通道一致）。
 
 ## 安全
 

@@ -317,9 +317,9 @@ ctx.register_platform(
 )
 ```
 
-为何需要此 hook：内置平台（Telegram、Discord、Slack 等）在 `tools/send_message_tool.py` 中内置了直接 REST 辅助函数，使 cron 无需在同一进程中持有 gateway 即可投递。Plugin 平台历史上依赖 `_gateway_runner_ref()`，该函数在 gateway 进程外返回 `None`，因此若没有 `standalone_sender_fn`，cron 端发送会失败并报 `No live adapter for platform '<name>'`。
+为何需要此 hook：实时适配器只能通过 `_gateway_runner_ref()` 访问，而该函数在 gateway 进程外返回 `None`，因此若没有 `standalone_sender_fn`，cron 端发送会失败并报 `No live adapter for platform '<name>'`。内置平台也使用同一个 hook：Telegram 的进程外发送器（`hermes send`、`send_message` 工具、独立 cron 投递）是 `plugins/platforms/telegram/standalone.py::standalone_send`，Signal 的是 `plugins/platforms/signal/standalone.py`；核心只通过平台注册表访问它们。
 
-该函数接收与实时适配器相同的 `pconfig` 和 `chat_id`，以及可选的 `thread_id`、`media_files` 和 `force_document` 关键字参数。返回 `{"success": True, "message_id": ...}` 视为成功投递；返回 `{"error": "..."}` 会将消息记录到 cron 的 `delivery_errors` 中。函数内抛出的异常由调度器捕获并报告为 `Plugin standalone send failed: <reason>`。参考实现位于 `plugins/platforms/{irc,teams,google_chat}/adapter.py`。
+该函数接收与实时适配器相同的 `pconfig` 和 `chat_id`，以及可选的 `thread_id`、`media_files` 和 `force_document` 关键字参数。之后新增的可选关键字参数只会转发给声明了它们的发送器（按名称声明或通过 `**kwargs`），因此按上述签名编写的发送器仍可正常工作：`notify=True`（cron 的 `cron.delivery.notify`：即使在静默通知模式下，这次投递也应响铃）就是其中之一；Telegram 的发送器接受该参数。返回 `{"success": True, "message_id": ...}` 视为成功投递；返回 `{"error": "..."}` 会将消息记录到 cron 的 `delivery_errors` 中。函数内抛出的异常由调度器捕获并报告为 `Plugin standalone send failed: <reason>`。参考实现位于 `plugins/platforms/{irc,teams,google_chat}/adapter.py`。
 
 ## 在 `hermes config` 中暴露环境变量 {#surfacing-env-vars-in-hermes-config}
 
