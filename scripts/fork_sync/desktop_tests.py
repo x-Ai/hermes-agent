@@ -23,9 +23,10 @@ SOURCE = "apps/desktop/src"
 UI_TEST = re.compile(r"\.test\.tsx?$")  # the ui project's include: src/**/*.test.{ts,tsx}
 COMMAND = ["pnpm", "--dir", "apps/desktop", "exec", "vitest", "run", "--project", "ui", "--passWithNoTests",
            "--reporter=json"]
-# The Bot Mode and i18n folders (192 test files, the largest a step usually reaches) took 208 s on
-# the runner; this bounds a step that reaches far more.
-TIMEOUT = 900
+# About 1.1 s per test file on the runner: 192 files took 208 s, and one step of run 42545414309
+# reached 753 files and took 13.5 min. The whole UI suite (about 1,690 files) takes 18-33 min in
+# validate, so a step that reaches most of it must not fail on the clock instead of on a test.
+TIMEOUT = 2700
 # Files whose change makes the installed node_modules stale.
 DEPENDENCIES = ["pnpm-lock.yaml", "pnpm-workspace.yaml", ":(glob)**/package.json"]
 SHOWN = 300  # characters of one failure kept for Pi

@@ -20,8 +20,8 @@ jobs:
     if: github.repository != 'NousResearch/hermes-agent' && github.ref == 'refs/heads/main' && vars.SYNC_PAUSED != 'true'
     runs-on: ubuntu-latest
     # config.json agent.budget_seconds (100 min) for the merge steps, plus setup, the last step's
-    # desktop UI test check (up to 15 min past the budget) and upload.
-    timeout-minutes: 135
+    # desktop UI test check (up to 45 min past the budget, scripts/fork_sync/desktop_tests.py) and upload.
+    timeout-minutes: 155
     outputs:
       base: ${{ steps.prepare.outputs.base }}
       candidate: ${{ steps.prepare.outputs.candidate }}

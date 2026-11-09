@@ -30,7 +30,7 @@
 3. **Validate 与 Python tests（无 AI 密钥、无写 token，并行运行）**：两类任务都从 Git bundle 恢复准确的候选提交，通过现有 PM 机制构建锁定依赖。Validate 运行 `scripts/check`、TUI check、桌面端 lint/typecheck 与 UI 测试、Web check，以及 desktop i18n 导出一致性检查（`config.json` 的 `checks`）。Python tests 只运行本次合并可能影响的测试文件，分片并行，见下文「Python 测试选择」。测试只能写入任务设置的临时 `HERMES_HOME`，托管 runner 起始时也没有账户默认的 Hermes 主目录；若 `~/.hermes` 在测试期间出现，说明某个测试的子进程没有隔离 `HERMES_HOME`（见 `tests/AGENTS.md`），该分片判定失败。这是 Linux 验证，不包含 macOS/Windows 原生集成或桌面安装包 E2E。
 4. **Publish（仅此任务可写仓库）**：再次确认远端 main 没有被其他人推进，使用普通 fast-forward push 推进 main，然后创建缺失的 Release。测试期间 main 发生变化就失败，下一轮从新 main 重新计算；不会把未经检查的 rebase 结果推送。
 
-fork 的稳定版 Release 也由本工作流发布，原来手动运行的 `fork-stable-release.yml` 已并入（见「Release 语义」），因此只有本工作流移动 Release 的 Tag；同一时间只运行一个同步，较新的排队运行会替换较旧的。发布成功后若还有未合并的 upstream main 或 Release（`remaining`），Publish 任务会立即用 `workflow_dispatch` 启动下一轮，不必等到下一个整点；运行失败或已经追平时不会再触发。AI 时间预算、步骤上限、检查与测试命令、分片参数保存在 `config.json`；Prepare、Validate、每个 Python 测试分片和 Publish 分别有 135/120/90/20 分钟硬超时。有更新才调用 AI；落后很多时，追上之前的几轮 API 花费和执行时间会明显增加。
+fork 的稳定版 Release 也由本工作流发布，原来手动运行的 `fork-stable-release.yml` 已并入（见「Release 语义」），因此只有本工作流移动 Release 的 Tag；同一时间只运行一个同步，较新的排队运行会替换较旧的。发布成功后若还有未合并的 upstream main 或 Release（`remaining`），Publish 任务会立即用 `workflow_dispatch` 启动下一轮，不必等到下一个整点；运行失败或已经追平时不会再触发。AI 时间预算、步骤上限、检查与测试命令、分片参数保存在 `config.json`；Prepare、Validate、每个 Python 测试分片和 Publish 分别有 155/120/90/20 分钟硬超时。有更新才调用 AI；落后很多时，追上之前的几轮 API 花费和执行时间会明显增加。
 
 ## 分步合并与时间预算
 
@@ -73,7 +73,7 @@ Pi 的 bash 工具没有默认超时，每条命令都在自己的进程组里�
 - 每次 Pi 结束一轮后，只要没有残留冲突标记，控制器（`desktop_tests.py`）就自己跑一遍这一步涉及的桌面端 UI 测试：这一步新增或修改的测试文件，加上每个改动的桌面端文件所在目录里的全部测试文件（不含子目录）。不按 import 关系选（`vitest related`），因为任何语言包或 SDK 入口都会牵出几乎整个测试集（在 runner 上约半小时）；同目录的测试就是为这些文件写的，语言包旁边的 i18n 守护测试也在其中。拿那次失败的候选提交回放：50 个改动文件分布在 3 个目录，选中 203 个测试文件，本机 44 秒跑完，失败的正好是 Validate 那 4 个，其余 1,800 个通过。
 - 失败的测试（文件、测试名、错误的第一行和所在行号，最多列 20 个）交给 Pi 做修复，规则与冲突标记、丢失测试相同：剩余时间不少于 5 分钟才修，仍失败则本步失败。第一步失败时整轮失败，后面的步骤失败只丢弃这一步。
 - 这一步改了 `pnpm-lock.yaml`、`pnpm-workspace.yaml` 或任何 `package.json` 时，先执行 `pnpm install --frozen-lockfile`；锁文件装不上也算这一步的问题，交给 Pi 修复。
-- 测试跑的是候选代码，所以测试进程的环境去掉了 `GH_*` 和 `SYNC_*`，不带 AI Key 和 GitHub token。单次最长 15 分钟；最后一步的检查可能超出 Pi 的预算，所以 Prepare 的硬超时从 120 分钟提高到 135 分钟。
+- 测试跑的是候选代码，所以测试进程的环境去掉了 `GH_*` 和 `SYNC_*`，不带 AI Key 和 GitHub token。单次最长 45 分钟：runner 上每个测试文件约 1.1 秒，run 42545414309 的一步选中了 753 个文件，跑了 13.5 分钟，离原来 15 分钟的上限只差一点；完整的 UI 套件在 Validate 里要 18–33 分钟，一步改动波及大部分目录时，检查不能因为超时而误判失败。最后一步的检查可能超出 Pi 的预算，所以 Prepare 的硬超时是 155 分钟。
 
 Pi 的 bash 工具把每个非零退出码都标成 `isError`（没有匹配的 grep、Pi 随后修好的失败测试都会这样），控制器以前把它当成会话错误，所以任何一次正常的失败命令都会让整轮无法发布。现在工具调用失败只是给模型的反馈；模型或服务端错误仍会阻止发布。合并结果的空白检查也只拦截两个父提交里都没有的空白错误，上游自己写的空白（例如 Markdown 用行尾两个空格换行）不再导致失败。
 
