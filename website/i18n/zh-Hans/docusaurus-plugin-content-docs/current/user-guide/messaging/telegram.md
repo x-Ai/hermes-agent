@@ -845,7 +845,7 @@ platforms:
 
 - **Bot API 9.4（2026 年 2 月）：** 私聊话题——机器人可以通过 `createForumTopic` 在一对一私聊中创建论坛话题。Hermes 将此用于两个不同功能：运营商策划的[私聊话题](#private-chat-topics-bot-api-94)（配置驱动，固定话题列表）和用户驱动的[多会话私聊模式](#multi-session-dm-mode-topic)（通过 `/topic` 激活，用户创建的无限话题）。
 - **隐私政策：** Telegram 现在要求机器人有隐私政策。通过 BotFather 的 `/setprivacy_policy` 设置，或 Telegram 可能自动生成占位符。如果你的机器人面向公众，这一点尤为重要。
-- **Bot API 9.5（2026 年 3 月）：通过 `sendMessageDraft` 实现原生流式传输。** Hermes 支持 Telegram 的原生流式草稿 API，作为私聊的可选传输方式。默认仍使用旧版 `editMessageText` 路径，因为草稿预览在某些 Telegram 客户端上可能出现明显的折叠和重新渲染。
+- **Bot API 9.5（2026 年 3 月）：通过 `sendMessageDraft` 实现原生流式传输。** 在默认的 `auto` 传输方式下，Hermes 在私聊中使用 Telegram 的原生流式草稿 API（群组和群组论坛话题始终使用 `editMessageText` 路径；私聊话题也会尝试草稿，若被 Telegram 拒绝则回退到编辑）。如果草稿预览在你的 Telegram 客户端上明显折叠并重新渲染，请设置 `transport: edit`（见下文）。
 
 ### 流式传输（`gateway.streaming.transport`）
 
@@ -854,7 +854,7 @@ platforms:
 | 值 | 行为 |
 |---|---|
 | `auto`（默认） | 在支持的聊天（目前为 Telegram 私聊）上使用原生草稿流式传输；否则使用旧版基于编辑的路径。如果草稿帧失败，会优雅回退。 |
-| `draft` | 强制使用原生草稿。如果聊天不支持草稿（例如群组/话题），记录降级日志并回退到编辑方式。 |
+| `draft` | 强制使用原生草稿。如果聊天不支持草稿（例如群组和群组论坛话题），记录降级日志并回退到编辑方式。 |
 | `edit` | 对所有聊天类型使用旧版渐进式 `editMessageText` 轮询。 |
 | `off` | 完全禁用流式传输（仅最终回复，无渐进更新）。 |
 
@@ -867,11 +867,11 @@ gateway:
     transport: auto    # auto | draft | edit | off
 ```
 
-**使用 `edit` 传输时私聊中的效果** — gateway 发送一条普通预览消息，并通过 `editMessageText` 渐进更新，避免 Telegram 草稿预览折叠/回滚效果。
+**使用 `auto`（默认）或 `draft` 时私聊中的效果** — Telegram 显示逐 token 更新的动画草稿预览。回复完成后，它作为普通消息投递，草稿预览在客户端自然清除。草稿没有消息 ID，因此最终答案才是保留在聊天历史中的内容。
 
-**使用 `auto` 或 `draft` 时私聊中的效果** — Telegram 显示逐 token 更新的动画草稿预览。回复完成后，它作为普通消息投递，草稿预览在客户端自然清除。草稿没有消息 ID，因此最终答案才是保留在聊天历史中的内容。
+**使用 `edit` 时私聊中的效果** — gateway 发送一条普通预览消息，并通过 `editMessageText` 渐进更新。如果你的客户端在草稿预览增长时出现折叠或闪烁，请选择此方式。
 
-**群组、超级群组、论坛话题怎么办？** Telegram 将 `sendMessageDraft` 限制为私聊（私信）。gateway 对其他所有内容透明地回退到基于编辑的路径——与之前的用户体验相同。
+**群组、超级群组和群组论坛话题怎么办？** Telegram 将 `sendMessageDraft` 限制为私聊（私信）。gateway 对这些聊天透明地回退到基于编辑的路径——与之前的用户体验相同。私聊中的话题算作私信：它们会尝试草稿，若被 Telegram 拒绝则回退到编辑。
 
 **如果草稿帧失败怎么办？** 任何失败（瞬时网络错误、服务器端拒绝、旧版 python-telegram-bot 安装）都会将该响应的剩余流切换回基于编辑的路径。下一个响应会重新尝试。
 

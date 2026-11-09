@@ -390,10 +390,12 @@ def register(ctx):
 | `post_api_request` | 观察者 | Provider success 归一化后；忽略返回值。 | `task_id`, `turn_id`, `api_request_id`, `session_id`, `platform`, `model`, `provider`, `base_url`, `api_mode`, `api_call_count`, `api_duration`, `started_at`, `ended_at`, `finish_reason`, `message_count`, `response_model`, `response`, `usage`, `assistant_message`, `assistant_content_chars`, `assistant_tool_call_count` | 可用已清理的 `response`，但原始归一化 `assistant_message` 可能含模型/用户内容；`usage` 是计费数据。 |
 | `api_request_error` | 观察者 | 每次失败的 provider attempt；忽略返回值。 | `task_id`, `turn_id`, `api_request_id`, `session_id`, `platform`, `model`, `provider`, `base_url`, `api_mode`, `api_call_count`, `api_duration`, `started_at`, `ended_at`, `status_code`, `retry_count`, `max_retries`, `retryable`, `reason`, `error`, `request` | Error 文本可能含 provider/用户数据；`request` 设计为已清理。 |
 | `on_session_start` | 观察者 | 新 session 第一轮；忽略返回值。 | `session_id`, `model`, `platform` | 仅标识符和 routing metadata。 |
+| `on_session_open` | 观察者 | 客户端每次创建或打开本地 session（CLI、TUI、Desktop、ACP、kanban/A2A worker）时触发一次，在 gateway 中以该 session 所属的 profile 运行，早于其第一轮；消息平台聊天从不触发。受超时约束；忽略返回值。 | `session_id`, `platform`, `reason`（`create` 或 `resume`） | 仅 session 标识。 |
 | `on_session_end` | 观察者 | Canonical 路径在每轮 finalize；CLI/TUI 退出还有精简 legacy shape。 | Canonical：`session_id`, `task_id`, `turn_id`, `completed`, `failed`, `interrupted`, `turn_exit_reason`, `model`, `platform`；退出路径可能增加 `reason`/`api_request_id` 并省略字段。 | ID、model/platform 和结果；canonical payload 无消息正文。 |
 | `on_session_finalize` | 观察者 | CLI/TUI/gateway 通过 `finalize_session` teardown；gateway 关闭时可只 finalize 而不 reset。忽略返回值。 | 按 surface：`session_id`, `platform`，可选 `reason`, `old_session_id`, `new_session_id` | Session 和 routing 标识。 |
 | `on_session_reset` | 观察者 | CLI/TUI session boundary，或 gateway 创建替代 session 后；忽略返回值。 | CLI：`session_id`, `platform`, `reason`；TUI：`session_id`, `platform`；gateway：另有 `reason`, `old_session_id`, `new_session_id` | Session 和 routing 标识。 |
 | `on_session_delete` | 观察者 | 会话删除或主动归档提交后（CLI、TUI、Desktop/dashboard、gateway API、sweep、prune）；忽略返回值。 | `session_id`、`reason`、`profile`，可选 `deleted_ids`（多于一行时为全集）、`sessions_dir` | 仅 session 标识；无消息内容。 |
+| `post_curator_run` | 观察者 | Curator 一次 pass 写完其每次运行的报告（`logs/curator/<run>/run.json` + `REPORT.md`）后，在执行该 pass 的进程中触发。忽略返回值。 | `run_dir`, `run_json_path`, `report_md_path`, `dry_run` | 本地文件系统路径；报告中会出现技能名称。 |
 | `on_skill_lifecycle` | 观察者 | 权威 skill 使用状态变更后；忽略返回值。 | `action`, `skill_name`, `provenance`, `task_id`, `session_id`, `use_count`, `reused`, `reuse_after_patch` | 暴露本地 skill 名和 provenance。 |
 | `subagent_start` | 观察者 | 子 agent 已构造、即将运行；忽略返回值。 | `parent_session_id`, `parent_turn_id`, `parent_subagent_id`, `child_session_id`, `child_subagent_id`, `child_role`, `child_goal` | Child goal 可能含用户/项目内容。 |
 | `subagent_stop` | 观察者 | 子 agent 退出；忽略返回值。 | `parent_session_id`, `parent_turn_id`, `child_session_id`, `child_role`, `child_summary`, `child_status`, `tool_call_history`, `duration_ms` | Summary 和已脱敏 tool-history metadata 仍可能暴露项目结构。 |
@@ -704,6 +706,38 @@ def register(ctx):
 
 ---
 
+### `on_session_open`
+
+在客户端**创建或打开**本地 session 时触发：在 `hermes`、TUI 或 Desktop 中新建聊天，或通过 `hermes --resume` / session 选择器重新打开已保存的 session。可用它在模型看到对话之前做好准备，例如 memory 插件预加载最近的上下文，或状态栏把该 session 显示为已打开。它不同于 [`on_session_start`](#on_session_start)：后者在第一轮 agent 运行期间触发，重新打开时从不触发。
+
+**回调签名：**
+
+```python
+def my_callback(session_id: str, platform: str, reason: str, **kwargs):
+```
+
+| 参数 | 类型 | 描述 |
+|-----|------|------|
+| `session_id` | `str` | 被打开的 session |
+| `platform` | `str` | 创建它的 surface：`cli`、`tui`、`desktop`、`acp`…… |
+| `reason` | `str` | session 尚无消息时（新聊天）为 `create`，已有对话后（重新打开已保存的聊天）为 `resume` |
+
+**触发位置：** 在 gateway 中（`gateway/session_open.py`），当客户端连接 attach 到它此前未 attach 的本地 session 时触发。每次打开触发一次：客户端重新读取它已打开的 session，或在 socket 断开后重连，都不会再次触发。两个客户端打开同一个 session 会触发两次。它在拥有该 session 的 profile 中运行，因此在服务多个 profile 的 gateway 上，每个 profile 的插件只能看到自己的 session。回调在独立线程上运行：打开 session 从不等待它，但该 session 的下一轮会等待它，最长 5 秒，若 `plugins.hook_callback_timeout` 更长则以其为准；超过后该轮照常进行，回调继续运行。当某个 session 的回调仍在运行时，该 session 后续的打开会合并为一次调用排在它之后：在它结束时触发一次，使用最近一次打开的信息。`--safe-mode` / `--ignore-user-config` session 不触发任何内容。消息平台聊天（Telegram、Discord……）不会触发它：它们的第一条消息才开始 session，因此在那里请使用 `on_session_start`。
+
+**返回值：** 忽略。
+
+**示例——在第一轮之前预加载 memory：**
+
+```python
+def warm(session_id, platform, reason, **kwargs):
+    _cache[session_id] = load_recent_notes(limit=20)
+
+def register(ctx):
+    ctx.register_hook("on_session_open", warm)
+```
+
+---
+
 ### `on_session_end`
 
 在每次 `run_conversation()` 调用**结束时**触发，无论结果如何。若用户在 agent 处理过程中退出，也会从 CLI 的退出处理器触发。
@@ -818,6 +852,29 @@ def my_callback(session_id: str, platform: str, **kwargs):
 **返回值：** 忽略。
 
 **使用场景：** 重置以 `session_id` 为键的每会话缓存、发出"会话已轮换"分析事件、初始化新状态桶。
+
+---
+
+### `post_curator_run`
+
+Curator 一次 pass 写完其每次运行的报告目录后触发一次，让插件或 shell hook 能对 curator 所做的更改作出响应（把新技能路由到另一个 profile、推翻一次归档、写入审计日志），而无需轮询 `logs/curator/`。
+
+**回调签名：**
+
+```python
+def my_callback(run_dir: str, run_json_path: str, report_md_path: str, dry_run: bool, **kwargs):
+```
+
+| 参数 | 类型 | 描述 |
+|-----|------|------|
+| `run_dir` | `str` | 该次运行位于 profile 的 `logs/curator/` 下的报告目录。 |
+| `run_json_path` | `str` | `run.json`，机器可读的记录（新增、归档、合并、修剪、状态转换、cron 重写）。 |
+| `report_md_path` | `str` | `REPORT.md`，人类可读的报告。 |
+| `dry_run` | `bool` | 预览（`hermes curator run --dry-run`）时为 `True`：报告列出的是**将会**发生的更改，没有任何内容被归档或重写。根据报告采取行动前请先检查它。 |
+
+**触发位置：** 在执行该 pass 的进程中（gateway 的定时 curator tick，或 `hermes curator run`），以该 profile 运行，在两个文件都写完之后。报告目录无法创建的 pass 不会触发任何内容。
+
+**返回值：** 忽略。抛出异常的回调会被记录日志并跳过；curator pass 不受影响。
 
 ---
 

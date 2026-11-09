@@ -196,7 +196,7 @@ hermes plugins disable <name>     # 从允许列表移除并添加到禁用列�
 |---|---|
 | **指令/控制** | `pre_tool_call`, `pre_llm_call`, `pre_verify`, `pre_gateway_dispatch` |
 | **Transform** | `transform_tool_result`, `transform_terminal_output`, `transform_llm_output` |
-| **观察者** | `post_tool_call`, `post_llm_call`, `pre_api_request`, `post_api_request`, `api_request_error`, `on_session_start`, `on_session_end`, `on_session_finalize`, `on_session_reset`, `on_skill_lifecycle`, `subagent_start`, `subagent_stop`, `pre_approval_request`, `post_approval_response`, `kanban_task_claimed`, `kanban_task_completed`, `kanban_task_blocked` |
+| **观察者** | `post_tool_call`, `post_llm_call`, `pre_api_request`, `post_api_request`, `api_request_error`, `on_session_start`, `on_session_end`, `on_session_finalize`, `on_session_reset`, `post_curator_run`, `on_skill_lifecycle`, `subagent_start`, `subagent_stop`, `pre_approval_request`, `post_approval_response`, `kanban_task_claimed`, `kanban_task_completed`, `kanban_task_blocked` |
 
 这些类别只描述当前行为，不规定未来命名规则。Plugin middleware 仍是独立的 registry/surface。
 
@@ -348,25 +348,91 @@ context:
 
 ## 注入消息
 
-插件可使用 `ctx.inject_message()` 向活跃对话注入消息：
+插件可使用 `ctx.inject_message()` 向 CLI 对话、已知的 gateway 会话，或指定聊天中的新 gateway 会话注入消息：
 
 ```python
+# 插件正在为之工作的聊天（见下文“不带 session key”；建议传入 session_key）
 ctx.inject_message("New data arrived from the webhook", role="user")
+
+# 现有 gateway 对话
+ctx.inject_message(
+    "New data arrived from the webhook",
+    role="user",
+    session_key="agent:main:telegram:dm:123456789",
+)
+
+# 为某个聊天/线程开始（或继续）会话，例如插件刚刚创建的 Discord 论坛帖子
+ctx.inject_message(
+    "Review the attached spec and post a plan here.",
+    origin={
+        "platform": "discord",
+        "chat_id": "1290000000000000000",   # 论坛帖子（线程）ID
+        "chat_type": "thread",
+        "thread_id": "1290000000000000000",
+        "user_id": "123456789012345678",    # 该轮以谁的身份运行；必须通过 gateway 的允许列表
+        "user_name": "Desk Orchestrator",
+    },
+)
 ```
 
-**签名：** `ctx.inject_message(content: str, role: str = "user") -> bool`
+**签名：** `ctx.inject_message(content: str, role: str = "user", *, session_key: str | None = None, origin: Mapping[str, Any] | None = None) -> bool`
 
-工作原理：
+插件在每个本地 surface（经典 CLI、TUI 和 Desktop）上都运行在 gateway 中，因此注入的消息从不会取消正在进行的工作：
 
-- 若 agent **空闲**（等待用户输入），消息会作为下一条输入排队并开始新一轮。
-- 若 agent **处于轮次中**（正在运行），消息会中断当前操作 — 与用户输入新消息并按下 Enter 效果相同。
+- 若目标会话**空闲**，消息会开始新的一轮。
+- 若它**处于轮次中**，消息会在该会话的队列中等待，并在当前轮结束后作为下一轮运行；正在运行的工具不会被中断。
 - 对于非 `"user"` 角色，内容会以 `[role]` 为前缀（例如 `[system] ...`）。
-- 若消息成功排队返回 `True`，若无 CLI 引用（例如在 gateway 模式下）则返回 `False`。
+- 宿主接受消息时返回 `True`（参见下文各宿主的规则）。
+
+不带 session key 时（`session_key` 和 `origin` 均省略），如果插件运行在 gateway（或其插件宿主）中——经典 CLI、TUI 和 Desktop 会话的插件正是运行在这里——由 gateway 选择聊天：
+
+1. 如果插件正在处理某个本地会话自身的调用（其斜杠命令、为该会话触发的 hook，或其轮次中的工具或 hook），消息会发往该会话。无论打开了多少会话，这都不靠猜测。
+2. 如果调用上下文中没有会话（定时器、后台线程——插件启动的线程不会继承调用的上下文），消息会发往插件所在 profile 中唯一一个由经典 CLI（`hermes chat`）启动且有查看器 attach 的本地会话。TUI 和 Desktop 会话、消息平台聊天以及其他 profile 的会话从不会以这种方式被选中。
+3. 否则（没有这样的会话，或有多个）请求会被拒绝：返回 `False`，任何地方都不会注入内容，gateway 日志会写明该插件并提示传入 session key。
+
+被选中的会话会以排队输入的形式收到文本，与带 key 的注入相同；它需要下文的 `allow_gateway_injection` 权限。若该会话是经典 CLI 会话，该轮及其回复会出现在会话的对话记录中，但 attach 的经典 CLI 不会显示它们。为消息平台聊天发起的不带 key 的调用会像以前一样被拒绝。建议传入 `session_key`：聊天有歧义时，不带 key 的调用可能被拒绝，而且不带 key 的注入以后可能会被移除。
+
+在 gateway 模式下带 key 时：
+
+- `session_key` 必须标识一个现有的 gateway 会话。它是稳定的路由 key，而不是 CLI 会话 ID。
+- Hermes 会复用该会话已存储的平台、聊天、线程、profile 和对话历史。插件无法通过 `session_key` 更改该路由。
+- 该会话必须属于插件自己的 profile：使用其他 profile 的聊天或本地会话的 key 会立即得到 `False`，原因写入 gateway 日志。
+- Hermes 在派发前会根据 gateway 当前的授权规则重新检查已存储的路由。
+- 仅依赖 adapter 阶段或上游授权决定的路由会被拒绝，除非 Hermes 能根据当前的核心允许列表、配对或明确的 allow-all 配置重新验证它们。
+- 注入的文本始终是对话输入。它不能调用斜杠命令、批准工具，也不能处理待定的确认和澄清提示。
+- 派发待处理期间，路由和对话是固定的。如果话题恢复改变了路由，或会话在处理开始前轮换，Hermes 会丢弃该请求。
+- 请求进入平台 adapter 的正常消息路径。活跃会话使用现有的忙碌会话队列，而不是开始一个与之竞争的轮次。
+- 当实时 gateway 接受请求进行异步派发时返回 `True`。这并不确认 agent 轮次或平台投递已经完成。
+- 当同时给出 `session_key` 和 `origin`、两者都未给出且没有选中聊天（见上文）、未授予权限，或没有实时宿主能接受该请求时，返回 `False`。异步接受后才发现的未知或无法路由的 session key 会写入 gateway 日志。
+
+使用 `origin` 开始会话（仅 gateway 模式）：
+
+- `origin` 使用与已存储会话来源相同的结构（`SessionSource.to_dict()`）：`platform` 和 `chat_id` 为必填；`chat_type`、`thread_id`、`user_id`、`user_name`、`chat_name` 以及其他来源字段为可选。在尚无会话时使用它——例如机器人发布的论坛帖子，Discord 等平台从不会把它作为入站消息回传给机器人。
+- 会话通过正常会话路径在**插件自己的 profile**（加载该插件的插件管理器所属的 profile）中创建，使用全新的 prompt 和空历史，回复会投递到该聊天/线程。如果该聊天在该 profile 中已有会话，文本会像人类消息一样加入其中（适用忙碌会话队列），因此同一线程中人类的后续消息会继续同一个会话。
+- 在 gateway 的会话权威之下（每个 gateway 拥有的会话），插件轮次会提交到该会话的持久 FIFO，并借用其中已接纳的某条人类消息的连接器来源（provenance）。因此，聊天中**尚未接纳任何人类消息**的 `origin`（没有会话，或会话中没有已提交的人类轮次）会被拒绝：`inject_message` 立即返回 `False`，gateway 日志会写明 "has no human message admitted yet"。Hermes 从不为平台未投递过的聊天伪造平台来源。请让该聊天中的第一条消息来自平台（或人类），然后再使用 `origin` 或 `session_key` 注入。
+- 插件永远不能以其他 profile 为目标。以下情况会返回 `False`（原因写入 gateway 日志）：origin 指定了不同的 `profile`；gateway 自身的 profile 路由把该聊天发往其他 profile；插件的 profile 不由此 gateway 服务；或该 profile 没有已连接的 `platform` adapter——绝不会借用其他 profile 的机器人。在多路复用的 gateway 上，该轮在插件 profile 的 home 和密钥下运行。
+- 授权不会被绕过：origin 中的用户必须通过 gateway 针对该 profile 当前的允许列表、配对或 allow-all 配置，与 `session_key` 路径的检查相同。请选择已获授权的 `user_id`，否则请求会在派发时被丢弃并记录日志。
+- 同样的文本规则适用：不能使用斜杠命令、批准或处理提示。下文的权限从插件自己 profile 的 `config.yaml` 读取。
+
+Ink TUI（`hermes --tui`）以及 desktop / dashboard 聊天是第三种宿主。它们不设置经典 CLI 引用，也不注册到消息 gateway 的注入器上——这两种宿主保持分离，以免实时 gateway 覆盖 TUI（或反之）。请传入会话的持久 `session_key`（`ses_…` ID），而不是临时的 UI 会话 ID。Hermes 会把文本排入该会话的 prompt 队列：忙碌的会话会把消息留到下一轮，空闲的会话会开始新一轮。不是实时 TUI 会话的 key 会在消息 gateway 运行时交由它处理，且永远不会被改投到其他聊天。
 
 这使得远程控制查看器、消息桥接或 webhook 接收器等插件能够从外部来源向对话注入消息。
 
+Gateway 注入可以把 agent 回复发送到外部消息平台。它对所有插件默认禁用。请在 `config.yaml` 中按插件授予：
+
+```yaml
+plugins:
+  entries:
+    my-plugin:
+      allow_gateway_injection: true
+```
+
+:::warning
+只为你信任的插件授予 gateway 注入权限。Hermes 会检查这一宿主 API 权限，将其限制为现有会话路由或插件自身 profile 中的新会话，并应用当前授权；但 Python 插件在进程内运行，此设置并不是沙箱。
+:::
+
 :::note
-`inject_message` 仅在 CLI 模式下可用。在 gateway 模式下，没有 CLI 引用，该方法返回 `False`。
+此插件 API 不为外部进程提供公共 HTTP 端点或 CLI 命令。插件必须已经知道目标 gateway 的 `session_key`，例如来自其自身可信的配置或先前保留的会话状态。
 :::
 
 完整的处理器约定、schema 格式、hook 行为、错误处理和常见错误请参见 **[完整指南](../../developer-guide/plugins/index.md)**。

@@ -553,6 +553,7 @@ def register(ctx):
 | [`on_session_finalize`](../../user-guide/features/hooks.md#on_session_finalize) | CLI/网关销毁活跃会话 | `session_id: str \| None, platform: str` | 忽略 |
 | [`on_session_reset`](../../user-guide/features/hooks.md#on_session_reset) | 网关切换新会话键（`/new`、`/reset`） | `session_id: str, platform: str` | 忽略 |
 | [`on_session_delete`](../../user-guide/features/hooks.md#on_session_delete) | 会话删除或主动归档提交后（所有入口、sweep、prune） | `session_id: str, reason: str, profile: str \| None`，可选 `deleted_ids: list[str]`、`sessions_dir: str` | 忽略 |
+| [`post_curator_run`](../../user-guide/features/hooks.md#post_curator_run) | Curator 一次 pass 写完其报告目录后 | `run_dir: str, run_json_path: str, report_md_path: str, dry_run: bool` | 忽略 |
 
 大多数钩子是即发即忘的观察者——其返回值被忽略。例外是 `pre_llm_call`，它可以向对话中注入上下文。
 
