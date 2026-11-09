@@ -18,6 +18,7 @@ import { groupDrivenByDesktop } from './canonical-group-capabilities'
 import { $canonicalGroupBindings } from './canonical-group-registry'
 import { _resetCanonicalRoomSyncForTests } from './canonical-room-sync'
 import { GroupDialog } from './create-dialog'
+import { CROSS_GATEWAY_GROUP_LOCALES } from './cross-gateway-locales'
 import { $botMeta, $lastRoster } from './data'
 import { $groupChats, $groupChatWorkspace } from './group-chat'
 import type * as GroupChatModule from './group-chat'
@@ -158,5 +159,20 @@ it('a name with no room record never opens Desktop-run, even when its bots span 
   await waitFor(() => expect(screen.getAllByRole('textbox').length).toBeGreaterThan(0))
   expect(request.mock.calls.filter(call => call[1] === 'groups.list')).toHaveLength(0)
   expect(groupDrivenByDesktop($groupChats.get().Research, [alpha, remote], 'local')).toBe(false)
+  expect(desktopRecords()).toEqual([])
+})
+
+it('a new name on a gateway too old to run group chats says to update it, as New group chat does', async () => {
+  gateway({ driver: false, persistent_process: false })
+  await act(async () => { render(<GroupChatWorkspace group="Research" members={[alpha, beta]} />) })
+
+  // Fork: upstream's capability gate is unused. A gateway without this fork's `room_settings`
+  // cannot host the room, so New group chat keeps the fork's Desktop room there and the name opens
+  // the Desktop room view instead of upstream's update notice. The bare name is still never created
+  // on the gateway nor saved Desktop-run.
+  await waitFor(() => expect(screen.getAllByRole('textbox').length).toBeGreaterThan(0))
+  expect(screen.queryByText(CROSS_GATEWAY_GROUP_LOCALES.en.ownerUpdateRequired('This device'))).toBeNull()
+  expect(request.mock.calls.filter(call => call[1] === 'groups.create')).toHaveLength(0)
+  expect(groupDrivenByDesktop($groupChats.get().Research, [alpha, beta], 'local')).toBe(false)
   expect(desktopRecords()).toEqual([])
 })
