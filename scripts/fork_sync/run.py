@@ -148,13 +148,14 @@ def backoff_until(runs: list[dict], last_publish: datetime, current: int) -> dat
 
 
 def recent_runs(repository: str) -> tuple[list[dict], datetime] | None:
-    """This workflow's latest runs and the last publish (the newest sync-bot commit on HEAD); None if unreadable."""
+    """This workflow's latest runs and the last publish (the newest sync-bot commit on fork main now);
+    None if unreadable."""
     try:
         runs = releases.gh_json(f"repos/{repository}/actions/workflows/{WORKFLOW_FILE}/runs?per_page=30")
     except RuntimeError:
         warn("Could not read this workflow's earlier runs; going on without a backoff")
         return None
-    stamp = output("log", "-1", "--format=%cI", "--fixed-strings", f"--author={BOT}", "HEAD")
+    stamp = output("log", "-1", "--format=%cI", "--fixed-strings", f"--author={BOT}", fetch_main())
     return runs.get("workflow_runs", []), datetime.fromisoformat(stamp) if stamp else datetime.min.replace(tzinfo=UTC)
 
 
@@ -191,11 +192,25 @@ def chain(repository: str, artifacts: Path) -> None:
         raise RuntimeError("Could not start the next run; the schedule picks the sync up again")
 
 
+def start_from_latest_main() -> str:
+    """Merge onto fork main as it is now, not as it was when the run was triggered.
+
+    A run queued behind another starts once that one has published. From its trigger commit it
+    merges the same upstream commits again: run 42612409554 redid 340 that run 42611615376 had
+    just landed, localized one document differently, and conflicted with main at publish.
+    """
+    latest = fetch_main()
+    if latest != output("rev-parse", "HEAD"):
+        git("switch", "--detach", latest)
+        print(f"Fork main moved to {latest[:12]} after this run was triggered; merging onto it", flush=True)
+    return latest
+
+
 def prepare(repository: str, artifacts: Path) -> None:
     if output("status", "--porcelain"):
         raise RuntimeError("Preparation requires a clean disposable checkout")
     settings = config()
-    base = output("rev-parse", "HEAD")
+    base = start_from_latest_main()
     artifacts.mkdir(parents=True, exist_ok=True)
     until = backing_off(repository)
     if until is not None:

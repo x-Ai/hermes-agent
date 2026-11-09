@@ -58,12 +58,16 @@ def test_backoff_doubles_with_each_failed_run_since_the_last_publish_up_to_four_
 
 @pytest.fixture
 def repo(tmp_path, monkeypatch):
+    """A fork checkout whose origin's main is where it stands."""
     root = tmp_path / "repo"
     root.mkdir()
+    git(tmp_path, "init", "-q", "--bare", str(tmp_path / "origin.git"))
     git(root, "init", "-q", "-b", "main")
     git(root, "config", "user.name", "Test")
     git(root, "config", "user.email", "test@example.com")
+    git(root, "remote", "add", "origin", str(tmp_path / "origin.git"))
     commit(root, "file.txt", "base\n", "base")
+    git(root, "push", "-q", "origin", "main")
     monkeypatch.chdir(root)
     return root
 
@@ -90,6 +94,21 @@ def test_a_scheduled_run_after_failures_stops_before_merging_and_a_manual_run_ne
     assert controller.backing_off("owner/repo") is None and len(asked) == 1
 
 
+def test_a_queued_run_merges_onto_fork_main_as_it_is_now(controller, repo, tmp_path, monkeypatch):
+    # Triggered at `triggered`; by the time it starts, the run ahead of it has landed `landed`.
+    triggered = git(repo, "rev-parse", "HEAD")
+    landed = commit(repo, "file.txt", "the run ahead landed this\n", "chore(sync): merge upstream")
+    git(repo, "push", "-q", "origin", "main")
+    git(repo, "switch", "-q", "--detach", triggered)
+    assert controller.start_from_latest_main() == landed
+    assert git(repo, "rev-parse", "HEAD") == landed
+    # prepare records it as the base that validation and publish judge the candidate against.
+    git(repo, "switch", "-q", "--detach", triggered)
+    monkeypatch.setattr(controller, "backing_off", lambda repository: NOW)
+    controller.prepare("owner/repo", tmp_path / "artifacts")
+    assert json.loads((tmp_path / "artifacts" / "manifest.json").read_text(encoding="utf-8"))["base"] == landed
+
+
 def test_the_last_publish_is_the_newest_sync_bot_commit_on_main(controller, repo, tmp_path, monkeypatch):
     # Two failures 20 and 50 minutes ago hold scheduled runs back for an hour from the newer one, until a
     # sync-bot commit that landed after them shows a publish ended the streak.
@@ -104,6 +123,7 @@ def test_the_last_publish_is_the_newest_sync_bot_commit_on_main(controller, repo
            "GIT_AUTHOR_DATE": stamp, "GIT_COMMITTER_DATE": stamp, "PATH": __import__("os").environ["PATH"]}
     (repo / "file.txt").write_text("synced\n", encoding="utf-8")
     git(repo, "commit", "-qam", "chore(sync): merge upstream", env=env)
+    git(repo, "push", "-q", "origin", "main")
     assert controller.backing_off("owner/repo") is None
 
 
@@ -111,10 +131,7 @@ def test_the_last_publish_is_the_newest_sync_bot_commit_on_main(controller, repo
 def test_publish_starts_the_next_run_when_upstream_moved_past_what_landed(
         controller, repo, tmp_path, monkeypatch, upstream_moved):
     origin, upstream_repo = tmp_path / "origin.git", tmp_path / "upstream.git"
-    git(tmp_path, "init", "-q", "--bare", str(origin))
     git(tmp_path, "init", "-q", "--bare", str(upstream_repo))
-    git(repo, "remote", "add", "origin", str(origin))
-    git(repo, "push", "-q", "origin", "main")
     base = git(repo, "rev-parse", "HEAD")
     git(repo, "switch", "-q", "-c", "upstream")
     merged_upstream = commit(repo, "upstream.txt", "one\n", "upstream one")
