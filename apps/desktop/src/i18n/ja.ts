@@ -1737,8 +1737,30 @@ export const jaOverrides = {
           `Tailscale Serve やトンネルなど、すでに運用している HTTPS アドレスで、http://127.0.0.1:${port} に転送するもの。`
       },
       webappHostDesc:
-        'Webapp は常に配信元の Hermes ホストを使用します。ゲートウェイの切り替え、Hermes Cloud へのサインイン、保存済み接続の管理は Hermes Desktop アプリで行ってください。',
-      webappHostTitle: 'Hermes ホスト'
+        'Webapp は常に配信元の Hermes ホスト上で動作します。下の保存済み接続はこのマシンの一覧で、Hermes Desktop アプリと共有されます。他のゲートウェイにはこのホスト経由で接続します。',
+      webappHostTitle: 'Hermes ホスト',
+      webappOauthPaste: {
+        title: 'サインインを完了',
+        description:
+          'サインインのタブが読み込めないアドレスで止まった場合（このブラウザがゲートウェイのマシン上にない場合）、そのアドレスをここに貼り付けてください。',
+        placeholder: 'http://127.0.0.1:…/webapp/gateway-connections/oauth/callback?…',
+        finish: '完了',
+        failed: 'サインインを完了できませんでした'
+      },
+      webappRelay: {
+        signInElsewhere: 'ここから別のゲートウェイにはサインインできません。',
+        signOutHereOnly: 'ここでサインアウトできるのはこのゲートウェイだけです。',
+        testFromRow:
+          'この接続を保存してから、その行の「テスト」を使ってください。Webapp はこのゲートウェイ経由でテストします。',
+        nameBeforeSignIn: 'この接続に名前を付けてから、サインインしてください。',
+        signInUnfinished: 'サインインが完了しませんでした',
+        noSignInForAddress: 'そのアドレスでサインインする保存済み接続はありません。',
+        listUnreadable: 'Hermes が保存済み接続を返しませんでした',
+        relayTicketMissing: 'Hermes が中継チケットを返しませんでした',
+        sshUnreached: label => `${label} は SSH 接続のため、Webapp からはまだ接続できません`,
+        noAnswer: label => `${label} から応答がありませんでした`,
+        chatOpensInTab: '別のゲートウェイのチャットは、新しいウィンドウではなくこのタブで開きます。'
+      }
     },
     keys: {
       loading: 'API キーと認証情報を読み込み中...',

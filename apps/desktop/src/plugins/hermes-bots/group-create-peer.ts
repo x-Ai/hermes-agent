@@ -23,7 +23,7 @@ import {
 import type { CanonicalGroupMessages } from './canonical-group-locales'
 import { createGroupAcrossConnections, readPeerTargets } from './canonical-group-peers'
 import { refreshGatewayGroupRooms, registerCanonicalGroup } from './canonical-group-registry'
-import type { CanonicalGroupRoute, GroupCreationIntent } from './canonical-groups'
+import type { CanonicalGroupRoute, CanonicalRoomMember, GroupCreationIntent } from './canonical-groups'
 import { canonicalGroupRequest } from './canonical-groups'
 import { applyCanonicalCreationSettings, type CanonicalRoomSettingsPatch } from './canonical-room-actions'
 import { durableGroupChatMembers } from './group-membership'
@@ -101,22 +101,32 @@ export interface HostedPeerRoomDraft {
   /** One creation attempt's wire payload, kept while a reply is uncertain (Retry resends it). */
   intent: GroupCreationIntent
   labels: CanonicalGroupMessages
+  /** The name as entered, blank when left empty: with the picked bots it keys the request. */
   name: string
   /** Called when the plan changed since the dialog showed it, so the dialog reads it again. */
   onStalePlan: () => void
   route: CanonicalGroupRoute
   selection: RosterRow[]
+  /** The room name sent, from the entered one, once per request (a blank one is filled from the
+   *  bots' names), so a retry after a lost reply resends the first attempt's name. */
+  sentName?: (name: string) => string
   settings: CanonicalRoomSettingsPatch
   source: string
 }
 
+/** A hosted room New group chat made: its key, and each bot from another computer that did not join. */
+export interface HostedPeerRoom {
+  key: string
+  unjoined: { member: CanonicalRoomMember; error: unknown }[]
+}
+
 /** Re-read the plan, create the room on the gateway here, seat each bot from another computer
  *  through its own gateway, then apply the draft's room settings. A bot that did not join is
- *  named on the opened room's member row (not a toast, which would outlive the room and follow the
- *  person elsewhere) and the room opens anyway. Returns the room's key, or null when the window
- *  left the source that approved it (the room then stays on its owner, unopened). */
-export async function createHostedPeerRoom(draft: HostedPeerRoomDraft): Promise<null | string> {
-  const { capability, intent, labels, name, route, selection, settings, source } = draft
+ *  named on the opened room's member row, which says why and offers Retry, and in New group chat's
+ *  one notice (so a failed seat is never silent); the room opens anyway. Returns the room, or null
+ *  when the window left the source that approved it (the room then stays on its owner, unopened). */
+export async function createHostedPeerRoom(draft: HostedPeerRoomDraft): Promise<HostedPeerRoom | null> {
+  const { capability, intent, labels, name, route, selection, sentName, settings, source } = draft
 
   const { targets, sourceCurrent } = await revalidateGroupCreation(
     route,
@@ -134,7 +144,14 @@ export async function createHostedPeerRoom(draft: HostedPeerRoomDraft): Promise<
     throw new Error(labels.driverUnavailable)
   }
 
-  const created = await createGroupAcrossConnections(route, name, durableGroupChatMembers(selection), targets, intent)
+  const created = await createGroupAcrossConnections(
+    route,
+    name,
+    durableGroupChatMembers(selection),
+    targets,
+    intent,
+    sentName
+  )
 
   if (!sourceCurrent()) {
     return null
@@ -144,7 +161,7 @@ export async function createHostedPeerRoom(draft: HostedPeerRoomDraft): Promise<
   await applyCanonicalCreationSettings(created.binding, settings)
   refreshGatewayGroupRooms()
 
-  return key
+  return { key, unjoined: created.unjoined }
 }
 
 /** Whether upstream's peer-room plan decides how `selection` runs here: it spans machines and the
@@ -165,14 +182,14 @@ export interface HostedPeerStep {
 /** What upstream's peer rooms add to New group chat ahead of this fork's own paths: the hosted
  *  room for a peer plan, or, before a Desktop room spanning machines, one fresh look at whether the
  *  gateway here can now host it (then the dialog reads its plan again and this Create stops).
- *  Undefined when the fork's own paths go on; the room's key, or null for a room the window left
+ *  Undefined when the fork's own paths go on; the room made, or null for a room the window left
  *  behind, when the create was handled here. */
 export async function hostedPeerStep({
   draft,
   engine,
   refresh,
   route
-}: HostedPeerStep): Promise<null | string | undefined> {
+}: HostedPeerStep): Promise<HostedPeerRoom | null | undefined> {
   if (!route) {
     return undefined
   }

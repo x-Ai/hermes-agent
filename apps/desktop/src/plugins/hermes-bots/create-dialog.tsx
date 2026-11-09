@@ -44,6 +44,7 @@ import { isBackfilledFacePng } from './avatar-image'
 import { AvatarPicker } from './avatar-picker'
 import { $selectedBot } from './bot-state'
 import { createCanonicalChat } from './canonical-chat'
+import { canonicalMemberName } from './canonical-group-activity'
 import {
   botOnConnection,
   connectionName,
@@ -74,6 +75,7 @@ import {
   type GroupCreateEngine,
   groupCreateEngine,
   groupCreateView,
+  type HostedPeerRoom,
   hostedPeerStep,
   hostsPeerRooms
 } from './group-create-peer'
@@ -1522,13 +1524,26 @@ export function CreateGroupChatDialog({ open, roster, onClose, onCreated, seed }
 
   const creating = useRef(false)
 
-  /** A hosted room just created on its gateway: give it the picked image, announce it, open it. */
-  const openCreatedRoom = (key: string, base: string) => {
+  /** A hosted room just created on its gateway: give it the picked image, announce it, open it. When
+   *  a bot from another computer did not join, the one notice names it instead (the room is made
+   *  either way, and a seat that failed is never silent); the room's own row still says why and
+   *  offers Retry. */
+  const openCreatedRoom = (key: string, base: string, unjoined: HostedPeerRoom['unjoined'] = []) => {
     if (image) {
       setGroupChatImage(key, image)
     }
 
-    host.notify({ kind: 'info', message: b.group.createdWith(base, selected.length) })
+    host.notify(
+      unjoined.length
+        ? {
+            kind: 'warning',
+            message: b.canonical.createdNotJoined.replace(
+              '{names}',
+              unjoined.map(({ member }) => canonicalMemberName(member)).join(', ')
+            )
+          }
+        : { kind: 'info', message: b.group.createdWith(base, selected.length) }
+    )
     onClose()
     onCreated?.(key, 'key')
   }
@@ -1543,7 +1558,13 @@ export function CreateGroupChatDialog({ open, roster, onClose, onCreated, seed }
     setNotice('')
 
     try {
-      const base = (name.trim() || placeholder).slice(0, 64)
+      // A gateway create is keyed on the name as entered, blank included: the Bots' names that fill
+      // a blank one change with the roster, so the name it sends is chosen once, inside its frozen
+      // request (a retry after a lost reply resends it). A Desktop room takes the filled name as is.
+      const entered = name.trim().slice(0, 64)
+      const fallback = placeholder.slice(0, 64)
+      const base = entered || fallback
+      const sentName = (typed: string) => typed || fallback
 
       if (selected.length < 2 || !base) {
         return
@@ -1585,9 +1606,10 @@ export function CreateGroupChatDialog({ open, roster, onClose, onCreated, seed }
           capability,
           intent: intent.current,
           labels: b.canonical,
-          name: base,
+          name: entered,
           onStalePlan: () => setPeerCheck(value => value + 1),
           selection: selected,
+          sentName,
           settings: { handle: handleCheck.handle, workspace: roomWorkspace },
           source
         },
@@ -1602,7 +1624,7 @@ export function CreateGroupChatDialog({ open, roster, onClose, onCreated, seed }
         // Created on its owner; a window that left the source that approved it does not adopt it.
         if (peerRoom) {
           intent.current = {}
-          openCreatedRoom(peerRoom, base)
+          openCreatedRoom(peerRoom.key, base, peerRoom.unjoined)
         }
 
         return
@@ -1613,10 +1635,11 @@ export function CreateGroupChatDialog({ open, roster, onClose, onCreated, seed }
         // already have made instead of a second one; the catch below says so in the dialog.
         const key = await createCanonicalRoomWithSettings(
           route,
-          base,
+          entered,
           selected,
           { handle: handleCheck.handle, workspace: roomWorkspace },
-          intent.current
+          intent.current,
+          sentName
         )
 
         openCreatedRoom(key, base)
@@ -1814,6 +1837,9 @@ export function CreateGroupChatDialog({ open, roster, onClose, onCreated, seed }
           </div>
         </div>
         <div className="grid gap-2">
+          {/* Upstream offers no picture here (its gateway rooms have no field for one); this fork
+              keeps it: a Desktop room records it, and a hosted room's row keeps it in this Desktop's
+              plugin storage (canonical-room-prefs.ts). */}
           <GroupImageControls
             image={image}
             onImage={setImage}

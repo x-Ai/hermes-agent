@@ -2195,8 +2195,28 @@ export const zhOverrides = {
           `你已有的 HTTPS 地址（例如 Tailscale Serve 或隧道），并转发到 http://127.0.0.1:${port}`
       },
       webappHostDesc:
-        'Webapp 始终使用提供它的 Hermes 主机。如需切换网关、登录 Hermes Cloud 或管理已保存的连接，请使用 Hermes Desktop 应用',
-      webappHostTitle: 'Hermes 主机'
+        'Webapp 始终运行在提供它的 Hermes 主机上。下方已保存的连接是这台机器的列表，与 Hermes Desktop 应用共享，其他网关通过此主机访问',
+      webappHostTitle: 'Hermes 主机',
+      webappOauthPaste: {
+        title: '完成登录',
+        description: '如果登录标签页停在无法打开的地址（此浏览器不在网关所在的机器上），请将该地址粘贴到这里',
+        placeholder: 'http://127.0.0.1:…/webapp/gateway-connections/oauth/callback?…',
+        finish: '完成',
+        failed: '无法完成登录'
+      },
+      webappRelay: {
+        signInElsewhere: '此处无法登录其他网关',
+        signOutHereOnly: '此处只能退出当前网关的登录',
+        testFromRow: '请先保存此连接，再使用其所在行的“测试”：Webapp 会通过当前网关测试它',
+        nameBeforeSignIn: '请先为此连接命名，再登录',
+        signInUnfinished: '登录未完成',
+        noSignInForAddress: '没有已保存的连接在该地址登录',
+        listUnreadable: 'Hermes 未返回已保存的连接',
+        relayTicketMissing: 'Hermes 未返回中继票据',
+        sshUnreached: label => `${label} 是 SSH 连接，Webapp 暂时无法访问`,
+        noAnswer: label => `${label} 没有响应`,
+        chatOpensInTab: '其他网关上的对话会在此标签页中打开，而不是在新窗口中'
+      }
     },
     keys: {
       loading: '正在加载 API 密钥和凭据...',

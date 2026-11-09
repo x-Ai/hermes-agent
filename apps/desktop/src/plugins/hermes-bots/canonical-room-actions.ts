@@ -446,15 +446,18 @@ export async function applyCanonicalCreationSettings(
 
 /** Create the room on the gateway, apply the draft's settings, register and project it. `intent`
  *  is the asking surface's own creation intent: while a reply is lost it keeps the exact request
- *  (same room id), so trying again opens the room the first attempt may have made. */
+ *  (same room id), so trying again opens the room the first attempt may have made. The request is
+ *  keyed on `name` as entered; `sentName` turns it into the name sent, once per request (New group
+ *  chat fills a blank one from the bots' names). */
 export async function createCanonicalRoomWithSettings(
   route: CanonicalGroupRoute,
   name: string,
   members: GroupMember[] | RosterRow[],
   settings: CanonicalRoomSettingsPatch,
-  intent: GroupCreationIntent = {}
+  intent: GroupCreationIntent = {},
+  sentName?: (name: string) => string
 ): Promise<string> {
-  const { binding, room } = await createCanonicalGroup(route, name, members as GroupMember[], intent)
+  const { binding, room } = await createCanonicalGroup(route, name, members as GroupMember[], intent, sentName)
   const key = registerCanonicalGroup(route, room)
   await applyCanonicalCreationSettings(binding, settings)
   await syncCanonicalRoom(key, binding, { full: true })

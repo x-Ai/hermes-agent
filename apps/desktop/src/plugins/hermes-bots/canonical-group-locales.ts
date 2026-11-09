@@ -145,6 +145,8 @@ export interface CanonicalGroupMessages extends GroupReasonMessages {
   disbandServiceRequired: string
   peerStartWithoutRetry: string
   peerStartWithoutKept: string
+  /** A new group chat whose bots from other computers did not all join; `{names}` lists them. */
+  createdNotJoined: string
   peerNotJoinedBadge: string
   peerOfflineBadge: string
   peerRejoinBadge: string
@@ -334,6 +336,8 @@ export const CANONICAL_GROUP_LOCALES = {
     peerStartWithoutRetry: 'Use Retry for these bots in the new group chat.',
     peerStartWithoutKept:
       'The new group chat was created and the original group chat has been kept. {reason} Disband the original when you’re ready.',
+    createdNotJoined:
+      'The group chat was created, but {names} hasn’t joined yet. The group chat says why; use Retry there.',
     peerNotJoinedBadge: 'not joined',
     peerOfflineBadge: 'offline',
     peerRejoinBadge: 'access expired',
@@ -525,6 +529,7 @@ export const CANONICAL_GROUP_LOCALES = {
     peerStartWithoutRetry: '新しいグループチャットで、これらのボットの「再試行」を使ってください。',
     peerStartWithoutKept:
       '新しいグループチャットを作成しました。元のグループチャットも保持されています。{reason} 準備ができたら元のグループチャットを解散してください。',
+    createdNotJoined: 'グループチャットを作成しましたが、{names} はまだ参加していません。理由はグループチャットに表示されます。そこで「再試行」を使ってください。',
     peerNotJoinedBadge: '未参加',
     peerOfflineBadge: 'オフライン',
     peerRejoinBadge: 'アクセス期限切れ',
@@ -705,6 +710,7 @@ export const CANONICAL_GROUP_LOCALES = {
       '必须在运行此群聊的电脑上启动 Hermes，才能停止机器人并撤销其访问权限。请在那台电脑上启动或重新连接 Hermes，然后重试解散。',
     peerStartWithoutRetry: '请在新群聊中对这些机器人使用“重试”。',
     peerStartWithoutKept: '已创建新群聊，原群聊已保留。{reason} 准备好后可解散原群聊。',
+    createdNotJoined: '群聊已创建，但 {names} 尚未加入。原因显示在群聊中，请在那里使用“重试”。',
     peerNotJoinedBadge: '未加入',
     peerOfflineBadge: '离线',
     peerRejoinBadge: '访问权限已过期',
@@ -878,6 +884,7 @@ export const CANONICAL_GROUP_LOCALES = {
       '必須在執行此群組聊天的電腦上啟動 Hermes，才能停止機器人並撤銷其存取權。請在那台電腦上啟動或重新連線至 Hermes，再重試解散。',
     peerStartWithoutRetry: '請在新的群組聊天中對這些機器人使用「重試」。',
     peerStartWithoutKept: '已建立新的群組聊天，原有的群組聊天也已保留。{reason} 準備好後可解散原有的群組聊天。',
+    createdNotJoined: '群組聊天已建立，但 {names} 尚未加入。原因會顯示在群組聊天中，請在那裡使用「重試」。',
     peerNotJoinedBadge: '未加入',
     peerOfflineBadge: '離線',
     peerRejoinBadge: '存取權已過期',
@@ -1059,6 +1066,8 @@ export const CANONICAL_GROUP_LOCALES = {
     peerStartWithoutRetry: 'استخدم إعادة المحاولة لهذه الروبوتات في محادثة المجموعة الجديدة.',
     peerStartWithoutKept:
       'تم إنشاء محادثة المجموعة الجديدة والاحتفاظ بمحادثة المجموعة الأصلية. {reason} يمكنك حل محادثة المجموعة الأصلية عندما تكون مستعدًا.',
+    createdNotJoined:
+      'تم إنشاء محادثة المجموعة، لكن {names} لم ينضم بعد. تعرض محادثة المجموعة السبب؛ استخدم إعادة المحاولة هناك.',
     peerNotJoinedBadge: 'لم ينضم',
     peerOfflineBadge: 'غير متصل',
     peerRejoinBadge: 'انتهت صلاحية الوصول',
@@ -1254,6 +1263,8 @@ export const CANONICAL_GROUP_LOCALES = {
     peerStartWithoutRetry: 'Нажмите «Повторить» для этих ботов в новом групповом чате.',
     peerStartWithoutKept:
       'Новый групповой чат создан, а исходный групповой чат сохранён. {reason} Когда будете готовы, распустите исходный групповой чат.',
+    createdNotJoined:
+      'Групповой чат создан, но {names} ещё не присоединился. Причина показана в групповом чате; нажмите там «Повторить».',
     peerNotJoinedBadge: 'не присоединился',
     peerOfflineBadge: 'не в сети',
     peerRejoinBadge: 'доступ истёк',
@@ -1453,6 +1464,8 @@ export const CANONICAL_GROUP_LOCALES = {
     peerStartWithoutRetry: 'Utilisez Réessayer pour ces bots dans la nouvelle discussion de groupe.',
     peerStartWithoutKept:
       'La nouvelle discussion de groupe a été créée et celle d’origine a été conservée. {reason} Vous pourrez dissoudre la discussion d’origine quand vous serez prêt.',
+    createdNotJoined:
+      'La discussion de groupe a été créée, mais {names} ne l’a pas encore rejointe. La discussion de groupe indique pourquoi ; utilisez Réessayer depuis celle-ci.',
     peerNotJoinedBadge: 'pas encore là',
     peerOfflineBadge: 'hors ligne',
     peerRejoinBadge: 'accès expiré',
@@ -1654,6 +1667,8 @@ export const CANONICAL_GROUP_LOCALES = {
     peerStartWithoutRetry: 'Verwenden Sie für diese Bots im neuen Gruppenchat „Erneut versuchen“.',
     peerStartWithoutKept:
       'Der neue Gruppenchat wurde erstellt und der ursprüngliche Gruppenchat bleibt erhalten. {reason} Lösen Sie den ursprünglichen Gruppenchat auf, wenn Sie bereit sind.',
+    createdNotJoined:
+      'Der Gruppenchat wurde erstellt, aber {names} ist noch nicht beigetreten. Der Gruppenchat zeigt den Grund; verwenden Sie dort „Erneut versuchen“.',
     peerNotJoinedBadge: 'nicht beigetreten',
     peerOfflineBadge: 'nicht erreichbar',
     peerRejoinBadge: 'Zugriff abgelaufen',
@@ -1850,6 +1865,8 @@ export const CANONICAL_GROUP_LOCALES = {
     peerStartWithoutRetry: 'Usa Reintentar para estos bots en el nuevo chat de grupo.',
     peerStartWithoutKept:
       'El nuevo chat de grupo se ha creado y el original se ha conservado. {reason} Disuelve el chat original cuando estés listo.',
+    createdNotJoined:
+      'El chat de grupo se ha creado, pero {names} aún no se ha unido. El chat de grupo indica el motivo; usa Reintentar allí.',
     peerNotJoinedBadge: 'sin unirse',
     peerOfflineBadge: 'sin conexión',
     peerRejoinBadge: 'acceso caducado',

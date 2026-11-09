@@ -965,8 +965,29 @@ export const arSettings = {
           `عنوان HTTPS تديره بالفعل، مثل Tailscale Serve أو نفق، يحوّل إلى http://127.0.0.1:${port}.`
       },
       webappHostDesc:
-        'يستخدم تطبيق الويب دائمًا مضيف Hermes الذي يقدّمه. لتبديل البوابة أو تسجيل الدخول إلى Hermes Cloud أو إدارة الاتصالات المحفوظة، استخدم تطبيق Hermes Desktop.',
-      webappHostTitle: 'مضيف Hermes'
+        'يعمل تطبيق الويب دائمًا على مضيف Hermes الذي يقدّمه. الاتصالات المحفوظة أدناه هي قائمة هذا الجهاز، وهي مشتركة مع تطبيق Hermes Desktop؛ ويُوصَل إلى البوابات الأخرى عبر هذا المضيف.',
+      webappHostTitle: 'مضيف Hermes',
+      webappOauthPaste: {
+        title: 'إكمال تسجيل الدخول',
+        description:
+          'إذا انتهت علامة تبويب تسجيل الدخول عند عنوان لا يُحمَّل (لأن هذا المتصفح ليس على جهاز البوابة)، فالصق ذلك العنوان هنا.',
+        placeholder: 'http://127.0.0.1:…/webapp/gateway-connections/oauth/callback?…',
+        finish: 'إكمال',
+        failed: 'تعذّر إكمال تسجيل الدخول'
+      },
+      webappRelay: {
+        signInElsewhere: 'تسجيل الدخول إلى بوابة أخرى غير متاح هنا.',
+        signOutHereOnly: 'لا يمكن هنا تسجيل الخروج إلا من هذه البوابة.',
+        testFromRow: 'احفظ هذا الاتصال، ثم استخدم «اختبار» في صفّه: يختبره تطبيق الويب عبر هذه البوابة.',
+        nameBeforeSignIn: 'سمِّ هذا الاتصال، ثم سجّل الدخول.',
+        signInUnfinished: 'لم يكتمل تسجيل الدخول',
+        noSignInForAddress: 'لا يوجد اتصال محفوظ يسجّل الدخول على ذلك العنوان.',
+        listUnreadable: 'لم يُرجع Hermes الاتصالات المحفوظة',
+        relayTicketMissing: 'لم يُرجع Hermes تذكرة الترحيل',
+        sshUnreached: label => `«${label}» اتصال SSH، ولا يصل إليه تطبيق الويب بعد`,
+        noAnswer: label => `لم يستجب «${label}»`,
+        chatOpensInTab: 'تُفتح المحادثة الموجودة على بوابة أخرى في علامة التبويب هذه، لا في نافذة جديدة.'
+      }
     },
     keys: {
       loading: 'جار تحميل مفاتيح API وبيانات الاعتماد...',

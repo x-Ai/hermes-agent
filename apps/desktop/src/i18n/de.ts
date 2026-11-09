@@ -1893,8 +1893,30 @@ export const deOverrides = {
           `Eine HTTPS-Adresse, die du bereits betreibst, etwa Tailscale Serve oder ein Tunnel, die an http://127.0.0.1:${port} weiterleitet.`
       },
       webappHostDesc:
-        'Die Webapp nutzt immer den Hermes-Host, der sie ausliefert. Um das Gateway zu wechseln, sich bei Hermes Cloud anzumelden oder gespeicherte Verbindungen zu verwalten, verwenden Sie die Hermes-Desktop-App.',
-      webappHostTitle: 'Hermes-Host'
+        'Die Webapp läuft immer auf dem Hermes-Host, der sie bereitstellt. Die gespeicherten Verbindungen unten sind die Liste dieses Rechners, geteilt mit der Hermes-Desktop-App; andere Gateways werden über diesen Host erreicht.',
+      webappHostTitle: 'Hermes-Host',
+      webappOauthPaste: {
+        title: 'Anmeldung abschließen',
+        description:
+          'Wenn der Anmelde-Tab auf einer Adresse endete, die nicht lädt (dieser Browser läuft nicht auf dem Rechner des Gateways), fügen Sie diese Adresse hier ein.',
+        placeholder: 'http://127.0.0.1:…/webapp/gateway-connections/oauth/callback?…',
+        finish: 'Abschließen',
+        failed: 'Anmeldung konnte nicht abgeschlossen werden'
+      },
+      webappRelay: {
+        signInElsewhere: 'Die Anmeldung bei einem anderen Gateway ist hier nicht verfügbar.',
+        signOutHereOnly: 'Hier können Sie sich nur von diesem Gateway abmelden.',
+        testFromRow:
+          'Speichern Sie diese Verbindung und verwenden Sie dann „Testen“ in ihrer Zeile: Die Webapp testet sie über dieses Gateway.',
+        nameBeforeSignIn: 'Benennen Sie diese Verbindung und melden Sie sich dann an.',
+        signInUnfinished: 'Die Anmeldung wurde nicht abgeschlossen',
+        noSignInForAddress: 'Keine gespeicherte Verbindung meldet sich unter dieser Adresse an.',
+        listUnreadable: 'Hermes hat die gespeicherten Verbindungen nicht zurückgegeben',
+        relayTicketMissing: 'Hermes hat kein Relay-Ticket zurückgegeben',
+        sshUnreached: label => `${label} ist eine SSH-Verbindung, die die Webapp noch nicht erreicht`,
+        noAnswer: label => `${label} hat nicht geantwortet`,
+        chatOpensInTab: 'Ein Chat auf einem anderen Gateway öffnet sich in diesem Tab, nicht in einem neuen Fenster.'
+      }
     },
     keys: {
       loading: 'API-Schlüssel und Anmeldedaten werden geladen…',

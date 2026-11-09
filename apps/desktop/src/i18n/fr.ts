@@ -1899,8 +1899,30 @@ export const frOverrides = {
           `Une adresse HTTPS que vous gérez déjà, comme Tailscale Serve ou un tunnel, redirigée vers http://127.0.0.1:${port}.`
       },
       webappHostDesc:
-        "La Webapp utilise toujours l'hôte Hermes qui la sert. Pour changer de gateway, vous connecter à Hermes Cloud ou gérer les connexions enregistrées, utilisez l'application Hermes Desktop.",
-      webappHostTitle: 'Hôte Hermes'
+        'La Webapp s’exécute toujours sur l’hôte Hermes qui la sert. Les connexions enregistrées ci-dessous sont la liste de cette machine, partagée avec l’application Hermes Desktop ; les autres gateways sont atteints via cet hôte.',
+      webappHostTitle: 'Hôte Hermes',
+      webappOauthPaste: {
+        title: 'Terminer la connexion',
+        description:
+          'Si l’onglet de connexion s’est arrêté sur une adresse qui ne charge pas (ce navigateur n’est pas sur la machine du gateway), collez cette adresse ici.',
+        placeholder: 'http://127.0.0.1:…/webapp/gateway-connections/oauth/callback?…',
+        finish: 'Terminer',
+        failed: 'Impossible de terminer la connexion'
+      },
+      webappRelay: {
+        signInElsewhere: 'La connexion à un autre gateway n’est pas disponible ici.',
+        signOutHereOnly: 'Ici, vous ne pouvez vous déconnecter que de ce gateway.',
+        testFromRow:
+          'Enregistrez cette connexion, puis utilisez Tester sur sa ligne : la Webapp la teste via ce gateway.',
+        nameBeforeSignIn: 'Nommez cette connexion, puis connectez-vous.',
+        signInUnfinished: 'La connexion n’a pas abouti',
+        noSignInForAddress: 'Aucune connexion enregistrée ne se connecte à cette adresse.',
+        listUnreadable: 'Hermes n’a pas renvoyé les connexions enregistrées',
+        relayTicketMissing: 'Hermes n’a pas renvoyé de ticket de relais',
+        sshUnreached: label => `${label} est une connexion SSH, que la Webapp n’atteint pas encore`,
+        noAnswer: label => `${label} n’a pas répondu`,
+        chatOpensInTab: 'Une discussion sur un autre gateway s’ouvre dans cet onglet, pas dans une nouvelle fenêtre.'
+      }
     },
     keys: {
       loading: 'Chargement des clés API et des identifiants...',

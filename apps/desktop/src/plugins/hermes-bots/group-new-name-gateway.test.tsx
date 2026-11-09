@@ -26,6 +26,7 @@ import type * as GroupChatParts from './group-chat-parts'
 import { GroupChatWorkspace } from './group-chat-view'
 import { translateBots } from './i18n-test-helper'
 import type { RosterRow } from './types'
+import { moveGroupChatsToSection } from './user-sections'
 
 const { request, notify, openWorkspace } = vi.hoisted(() => ({ request: vi.fn(), notify: vi.fn(), openWorkspace: vi.fn() }))
 vi.mock('@hermes/plugin-sdk', async importOriginal => {
@@ -174,5 +175,23 @@ it('a new name on a gateway too old to run group chats says to update it, as New
   expect(screen.queryByText(CROSS_GATEWAY_GROUP_LOCALES.en.ownerUpdateRequired('This device'))).toBeNull()
   expect(request.mock.calls.filter(call => call[1] === 'groups.create')).toHaveLength(0)
   expect(groupDrivenByDesktop($groupChats.get().Research, [alpha, beta], 'local')).toBe(false)
+  expect(desktopRecords()).toEqual([])
+})
+
+it.each(['section', 'order'])('a membership-only name filed by a layout write (%s) still never opens Desktop-run', async write => {
+  // Filing a group into a section or reordering it writes an empty record for the name.
+  if (write === 'section') {moveGroupChatsToSection(['Research'], 'work')} else {
+    $groupChats.set({ Research: { log: [], watermarks: {}, epoch: 0, running: false, rosterOrder: 0 } })
+  }
+
+  expect($groupChats.get().Research).toBeTruthy()
+  await act(async () => { render(<GroupChatWorkspace group="Research" members={[alpha, remote]} />) })
+
+  // Fork: every non-canonical name renders through the Desktop room view (upstream opens the
+  // gateway's view and lists its rooms). The empty record a layout write left is still no room
+  // record, so this name, whose bots span computers, is neither inferred nor saved Desktop-run.
+  await waitFor(() => expect(screen.getAllByRole('textbox').length).toBeGreaterThan(0))
+  expect(request.mock.calls.filter(call => call[1] === 'groups.list')).toHaveLength(0)
+  expect(groupDrivenByDesktop($groupChats.get().Research, [alpha, remote], 'local')).toBe(false)
   expect(desktopRecords()).toEqual([])
 })

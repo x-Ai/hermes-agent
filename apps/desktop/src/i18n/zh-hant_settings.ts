@@ -1166,8 +1166,28 @@ export const zhHantSettings = {
           `你已有的 HTTPS 網址（例如 Tailscale Serve 或通道），並轉送到 http://127.0.0.1:${port}。`
       },
       webappHostDesc:
-        'Webapp 一律使用提供它的 Hermes 主機。如需切換閘道、登入 Hermes Cloud 或管理已儲存的連線，請使用 Hermes Desktop 應用程式。',
-      webappHostTitle: 'Hermes 主機'
+        'Webapp 一律在提供它的 Hermes 主機上執行。下方已儲存的連線是這台機器的清單，與 Hermes Desktop 應用程式共用；其他閘道透過此主機連線。',
+      webappHostTitle: 'Hermes 主機',
+      webappOauthPaste: {
+        title: '完成登入',
+        description: '如果登入分頁停在無法開啟的位址（此瀏覽器不在閘道所在的機器上），請將該位址貼到這裡。',
+        placeholder: 'http://127.0.0.1:…/webapp/gateway-connections/oauth/callback?…',
+        finish: '完成',
+        failed: '無法完成登入'
+      },
+      webappRelay: {
+        signInElsewhere: '此處無法登入其他閘道。',
+        signOutHereOnly: '此處只能登出目前這個閘道。',
+        testFromRow: '請先儲存此連線，再使用其所在列的「測試」：Webapp 會透過目前這個閘道測試它。',
+        nameBeforeSignIn: '請先為此連線命名，再登入。',
+        signInUnfinished: '登入未完成',
+        noSignInForAddress: '沒有已儲存的連線在該位址登入。',
+        listUnreadable: 'Hermes 未傳回已儲存的連線',
+        relayTicketMissing: 'Hermes 未傳回中繼票證',
+        sshUnreached: label => `${label} 是 SSH 連線，Webapp 目前還無法連線到它`,
+        noAnswer: label => `${label} 沒有回應`,
+        chatOpensInTab: '其他閘道上的聊天會在此分頁中開啟，而不是在新視窗中。'
+      }
     },
     keys: {
       loading: '正在載入 API 金鑰和憑證...',

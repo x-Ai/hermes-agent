@@ -1903,8 +1903,30 @@ export const ruOverrides = {
           `Уже работающий HTTPS-адрес, например Tailscale Serve или туннель, который перенаправляет на http://127.0.0.1:${port}.`
       },
       webappHostDesc:
-        'Webapp всегда использует хост Hermes, который его обслуживает. Чтобы сменить шлюз, войти в Hermes Cloud или управлять сохранёнными подключениями, используйте приложение Hermes Desktop.',
-      webappHostTitle: 'Хост Hermes'
+        'Webapp всегда работает на хосте Hermes, который его обслуживает. Сохранённые подключения ниже — список этого компьютера, общий с приложением Hermes Desktop; другие шлюзы доступны через этот хост.',
+      webappHostTitle: 'Хост Hermes',
+      webappOauthPaste: {
+        title: 'Завершить вход',
+        description:
+          'Если вкладка входа остановилась на адресе, который не открывается (этот браузер не на компьютере шлюза), вставьте этот адрес сюда.',
+        placeholder: 'http://127.0.0.1:…/webapp/gateway-connections/oauth/callback?…',
+        finish: 'Завершить',
+        failed: 'Не удалось завершить вход'
+      },
+      webappRelay: {
+        signInElsewhere: 'Вход в другой шлюз здесь недоступен.',
+        signOutHereOnly: 'Здесь можно выйти только из этого шлюза.',
+        testFromRow:
+          'Сохраните это подключение, затем нажмите «Проверить» в его строке: Webapp проверяет его через этот шлюз.',
+        nameBeforeSignIn: 'Назовите это подключение, затем войдите.',
+        signInUnfinished: 'Вход не завершён',
+        noSignInForAddress: 'Ни одно сохранённое подключение не входит по этому адресу.',
+        listUnreadable: 'Hermes не вернул сохранённые подключения',
+        relayTicketMissing: 'Hermes не вернул билет ретрансляции',
+        sshUnreached: label => `«${label}» — подключение по SSH, к которому Webapp пока не подключается`,
+        noAnswer: label => `«${label}» не ответил`,
+        chatOpensInTab: 'Чат на другом шлюзе открывается в этой вкладке, а не в новом окне.'
+      }
     },
     keys: {
       loading: 'Загрузка API-ключей и учётных данных...',

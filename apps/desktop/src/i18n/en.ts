@@ -1805,8 +1805,29 @@ export const en: Translations = {
           `An HTTPS address you already run, such as Tailscale Serve or a tunnel, forwarding to http://127.0.0.1:${port}.`
       },
       webappHostDesc:
-        'The Webapp always uses the Hermes host that serves it. To switch gateways, sign in to Hermes Cloud or manage saved connections, use the Hermes Desktop app.',
-      webappHostTitle: 'Hermes host'
+        "The Webapp always runs on the Hermes host that serves it. The saved connections below are this machine's list, shared with the Hermes Desktop app; other gateways are reached through this host.",
+      webappHostTitle: 'Hermes host',
+      webappOauthPaste: {
+        title: 'Finish signing in',
+        description:
+          "If the sign-in tab ended on an address that would not load (this browser is not on the gateway's machine), paste that address here.",
+        placeholder: 'http://127.0.0.1:…/webapp/gateway-connections/oauth/callback?…',
+        finish: 'Finish',
+        failed: 'Could not finish signing in'
+      },
+      webappRelay: {
+        signInElsewhere: 'Signing in to another gateway is not available here.',
+        signOutHereOnly: 'Only this gateway can be signed out here.',
+        testFromRow: 'Save this connection, then use Test on its row: the Webapp tests it through this gateway.',
+        nameBeforeSignIn: 'Name this connection, then sign in.',
+        signInUnfinished: 'The sign-in did not finish',
+        noSignInForAddress: 'No saved connection signs in at that address.',
+        listUnreadable: 'Hermes did not return the saved connections',
+        relayTicketMissing: 'Hermes did not return a relay ticket',
+        sshUnreached: label => `${label} is an SSH connection, which the Webapp does not reach yet`,
+        noAnswer: label => `${label} did not answer`,
+        chatOpensInTab: 'A chat on another gateway opens in this tab, not in a new window.'
+      }
     },
     keys: {
       loading: 'Loading API keys and credentials...',
