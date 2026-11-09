@@ -49,7 +49,7 @@ const REFUSALS = [
   ['a_future_reason', link('a_future_reason'), 'peerSetupGeneric']
 ] as const
 
-const CODES = [...new Set([...REFUSALS.map(([code]) => code), 'canonical_driver_required', 'unreachable', 'default_profile_required'])]
+const CODES = [...new Set([...REFUSALS.map(([code]) => code), 'canonical_driver_required', 'unreachable'])]
 const rawCode = new RegExp(CODES.join('|'))
 
 beforeEach(() => {
@@ -64,8 +64,12 @@ afterEach(() => { cleanup(); localStorage.clear() })
 
 const box = (row: Element | undefined) => row?.closest('label')?.querySelector('button[role="checkbox"]') as HTMLButtonElement
 
-it.each(REFUSALS)('explains a lender refusing with %s in words, not its code', async (code, capabilities, key) => {
-  expect((peerTargetState(capabilities) as { reason?: string }).reason).toBe(code)
+// Upstream refuses such a selection (`unavailable`) instead of falling back to a Desktop-driven room.
+// This fork keeps its Desktop room when a lender answered but cannot lend its bot (group-create-peer.ts),
+// so here the room is the Desktop one; the lender's refusal is still explained in words, never its code,
+// and nothing reaches the gateway's groups.create before the person creates it.
+it.each(REFUSALS)('explains a lender refusing with %s in words, not its code, and never falls back to Desktop', async (code, capabilities, key) => {
+  expect((peerTargetState(capabilities, 'default') as { reason?: string }).reason).toBe(code)
   answerGroupRequests(request, {
     local: method => method === 'groups.capabilities' ? { ...HOME, room_link: { enabled: false } } : undefined,
     mini: method => method === 'groups.capabilities' ? capabilities : undefined
@@ -78,10 +82,12 @@ it.each(REFUSALS)('explains a lender refusing with %s in words, not its code', a
   fireEvent.click(box(rows[1]))
   const note = await waitFor(() => baseElement.querySelector('[data-group-engine="desktop"]')!)
   const words = CANONICAL_GROUP_LOCALES.en
+  expect(baseElement.querySelector('[data-group-engine="unavailable"]')).toBeNull()
   expect(note.textContent).toContain(CROSS_GATEWAY_GROUP_LOCALES.en.desktopDriven)
   expect(note.textContent).toContain(words.peerTargetSetup.replace('{connection}', 'Mac Mini').replace('{reason}', words[key]))
   expect(note.textContent).not.toMatch(rawCode)
   expect(note.textContent).not.toMatch(/[{}]/)
+  expect(request.mock.calls.some(call => call[1] === 'groups.create')).toBe(false)
 })
 
 it.each(Object.keys(CANONICAL_GROUP_LOCALES) as Array<keyof typeof CANONICAL_GROUP_LOCALES>)(

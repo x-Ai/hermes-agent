@@ -3,12 +3,13 @@ import type * as HermesSdk from '@hermes/plugin-sdk'
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 
+import { groupCreationEngine, groupExecutionMode } from './canonical-group-capabilities'
 import {
   answerGroupRequests, CANONICAL_GROUP_CAPABILITIES, DISBAND_FAILURES, PEER_MINI as MINI, PEER_HOME, PEER_REGISTERED, peerInvitation, peerRosterRow,
   STANDALONE_GROUP_CAPABILITIES, strictGroupCreation
 } from './canonical-group-contract-test-utils'
 import { CANONICAL_GROUP_LOCALES } from './canonical-group-locales'
-import { $peerJoinErrors, peerJoinKey, peerJoinText, peerTargetState } from './canonical-group-peers'
+import { $peerJoinErrors, peerJoinKey, peerJoinText, peerSetupText, peerTargetState } from './canonical-group-peers'
 import { $canonicalGroupBindings, publishCanonicalGroup } from './canonical-group-registry'
 import { canonicalGroupCreateError, canonicalGroupRoster } from './canonical-groups'
 import { CreateGroupChatDialog } from './create-dialog'
@@ -87,13 +88,43 @@ async function createWithMini({ rows, onCreated }: Awaited<ReturnType<typeof ope
   await waitFor(() => expect(onCreated).toHaveBeenCalledOnce())
 }
 
+it('seats a named profile from another computer on that gateway, pinned to that profile', async () => {
+  const coder = { ...MINI, room_link: { ...MINI.room_link, profile: 'coder', catalog: { ...MINI.room_link.catalog,
+    execution_policy: { ...MINI.room_link.catalog.execution_policy, target_profile: 'coder' } } } }
+
+  gateways(undefined, (method, params) => method === 'groups.capabilities' && params.profile === 'coder' ? coder
+    : method === 'groups.peer.invite' ? { ...peerInvitation('grant-for-coder'), target_profile: 'coder', catalog: coder.room_link.catalog }
+      : mini()(method, params))
+  const dialog = await openDialog()
+  fireEvent.click(box(dialog.rows[0]))
+  fireEvent.click(box(dialog.baseElement.querySelector('[data-bot-face="coder"]')!))
+  expect(await screen.findByText('Runs on this device, including when this Desktop is closed. Only text is sent to bots on other computers.')).toBeTruthy()
+  expect(dialog.baseElement.querySelector('[data-group-engine="desktop"]')).toBeNull()
+  await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Create group (2)' })) })
+  await waitFor(() => expect(dialog.onCreated).toHaveBeenCalledOnce())
+
+  const calls = request.mock.calls.map(([route, method, params]) => [route, method, params])
+  const create = calls.find(call => call[1] === 'groups.create')![2]
+  expect(create.members[1]).toMatchObject({ profile: 'coder', target: { kind: 'peer', profile: 'coder' } })
+  const invite = calls.find(call => call[1] === 'groups.peer.invite')!
+  expect([invite[0].connectionId, invite[0].targetProfile, invite[2].profile]).toEqual(['mini', 'coder', 'coder'])
+  expect(calls.find(call => call[1] === 'groups.peer.register')![2]).toMatchObject({ target_profile: 'coder', grant: 'grant-for-coder' })
+  // Fork: a hosted room opens by its `canonical:` key, which names its owner; no Desktop room is written.
+  expect(dialog.onCreated).toHaveBeenCalledWith(roomKey(create.room_id), 'key')
+  expect(Object.keys($groupChats.get()).filter(name => !name.startsWith('canonical:'))).toEqual([])
+})
+
+// A named profile whose gateway answers with another profile's catalog cannot be lent yet: this
+// fork keeps its Desktop room for it, and the note says what to change on that computer (the
+// removed "named profiles can't join yet" note is no longer true: the test above seats one).
 it('says why a named profile on another computer keeps the group chat on Desktop', async () => {
   gateways()
   const { baseElement, rows } = await openDialog()
   fireEvent.click(box(rows[0]))
   fireEvent.click(box(baseElement.querySelector('[data-bot-face="coder"]')!))
   const note = await waitFor(() => baseElement.querySelector('[data-group-engine="desktop"]')!)
-  expect(note.textContent).toContain(CROSS_GATEWAY_GROUP_LOCALES.en.namedProfileFallback)
+  expect(note.textContent).toContain(CROSS_GATEWAY_GROUP_LOCALES.en.desktopDriven)
+  expect(note.textContent).toContain(peerSetupText('peer_target_unsupported', 'Mac Mini', CANONICAL_GROUP_LOCALES.en))
 })
 
 it('seats a Bot from another connection: the room on this gateway, the invitation on its own, the registration here', async () => {
@@ -172,6 +203,22 @@ it.each([
   expect(localOnly()).toBe(true)
 })
 
+// Upstream's planner never plans a Desktop-driven group chat for these owners: it names what to change
+// there (the words below), which upstream's dialog shows with Retry. This fork's dialog keeps its
+// Desktop room for them instead (the courier test above), so the planner and its words are checked.
+it.each([
+  ['uses classic groups', { driver: false, persistent_process: false }, 'Hermes on This device is too old to run group chats. Update Hermes there, then retry.'],
+  ['ends with Desktop', { ...HOME, persistent_process: false },
+    'Hermes on This device can’t seat bots from other computers yet. Update Hermes there and run its gateway (hermes gateway run), then retry.']
+])('never makes a Desktop-driven group chat when the owner %s: it says what to change and offers Retry', async (_case, capabilities, words) => {
+  const plan = groupCreationEngine(groupExecutionMode(capabilities), [roster[0], roster[1]], 'local', capabilities)
+  const say = { owner_update_required: CROSS_GATEWAY_GROUP_LOCALES.en.ownerUpdateRequired, peer_owner_unavailable: CROSS_GATEWAY_GROUP_LOCALES.en.ownerCannotSeatPeers }
+  expect(plan.engine).toBe('unavailable')
+  expect(say[plan.reason as keyof typeof say]('This device')).toBe(words)
+  expect(request).not.toHaveBeenCalled()
+  expect($groupChats.get()).toEqual({})
+})
+
 it.each([['owner', false], ['lender', false], ['seatable', false], ['owner', true], ['lender', true]] as const)(
   'refreshes changed %s capabilities (enabled: %s) before another deliberate Create', async (kind, enabled) => {
     let changed = false
@@ -202,7 +249,7 @@ it.each([['owner', false], ['lender', false], ['seatable', false], ['owner', tru
   })
 
 const route = { connectionId: 'local', profile: 'default' }
-const pin = () => ({ installationId: 'install:3f2a0000000000000000000000000000', catalogDigest: 'c'.repeat(64) })
+const pin = () => ({ installationId: 'install:3f2a0000000000000000000000000000', catalogDigest: 'c'.repeat(64), profile: 'default' })
 const peer = (connectionId: string, connectionLabel: string) => ({ name: 'default', handle: 'hermes', connectionId, connectionLabel, remoteSource: true })
 
 it('refuses a roster whose Bots would share a handle or id even after naming their computer', () => {
@@ -231,10 +278,12 @@ it('reads whether another gateway can host a Bot here from its own capabilities'
     CANONICAL_GROUP_CAPABILITIES, { ...MINI, room_link: { enabled: false, reason: 'api_server_required' } },
     link({ protocol_versions: [1] }), link({ link_modes: ['relay'] }), link({ persistent_process: false }), link({ attachments: true }), link({ execution_policy: { target_profile: 'coder' } }),
     link({ endpoint: { available: false, reason: 'room_link_url_required' } }), link({ installation_id: 'install:other' })
-  ].map(answer => (peerTargetState(answer) as { reason?: string }).reason)).toEqual(['peer_invite_unsupported', 'api_server_required',
-    'peer_target_unsupported', 'peer_target_unsupported', 'persistent_process_required', 'text_only_required', 'default_profile_required', 'endpoint_required', 'room_link_unavailable'])
+  ].map(answer => (peerTargetState(answer, 'default') as { reason?: string }).reason)).toEqual(['peer_invite_unsupported', 'api_server_required',
+    'peer_target_unsupported', 'peer_target_unsupported', 'persistent_process_required', 'text_only_required', 'peer_target_unsupported', 'endpoint_required', 'room_link_unavailable'])
+  // A lender lends the profile it was asked for: a catalog for that named profile is ready.
+  expect(peerTargetState(link({ execution_policy: { target_profile: 'coder' } }), 'coder')).toMatchObject({ ready: true, profile: 'coder' })
   // A lender without the renewal feature gets no extended horizon.
-  expect(peerTargetState({ ...MINI, features: STANDALONE_GROUP_CAPABILITIES.features })).toMatchObject({ ready: true, renewal: false })
+  expect(peerTargetState({ ...MINI, features: STANDALONE_GROUP_CAPABILITIES.features }, 'default')).toMatchObject({ ready: true, renewal: false })
 })
 
 /** Canonical lifecycle behind the creation dialog; all writes use the requested room identity. */
@@ -415,7 +464,7 @@ it.each(['owner', 'lender'])('keeps the draft and a working Retry after a failed
     await waitFor(() => expect(dialog.baseElement.querySelector('[data-group-engine="desktop"]')).toBeTruthy())
     expect((screen.getByRole('button', { name: 'Create group (2)' }) as HTMLButtonElement).disabled).toBe(false)
   } else {
-    expect(screen.getByText('Could not check Mac Mini. Retry to find out whether this group chat can run without Desktop.')).toBeTruthy()
+    expect(screen.getByText('Could not check Mac Mini. Make sure Hermes is running there, then retry.')).toBeTruthy()
     expect((screen.getByRole('button', { name: 'Create group (2)' }) as HTMLButtonElement).disabled).toBe(true)
     expect(dialog.baseElement.querySelector('[data-group-engine="desktop"]')).toBeNull()
   }
@@ -450,6 +499,25 @@ it('describes membership storage for the chosen engine', async () => {
   expect(screen.getByText('Pick 2–6 bots. Local memberships sync through each bot profile; cross-machine members stay scoped to this group chat.')).toBeTruthy()
 })
 
+// Upstream shows one membership storage for every selection; in this fork that holds for every
+// selection a gateway hosts (a Desktop room keeps its own, the test above): here a bot from another
+// computer and a named profile its gateway lends both join a hosted room.
+it('describes one membership storage for every selection', async () => {
+  const coder = { ...MINI, room_link: { ...MINI.room_link, profile: 'coder', catalog: { ...MINI.room_link.catalog,
+    execution_policy: { ...MINI.room_link.catalog.execution_policy, target_profile: 'coder' } } } }
+
+  gateways(undefined, (method, params) => method === 'groups.capabilities' && params.profile === 'coder' ? coder : mini()(method, params))
+  const dialog = await openDialog()
+  fireEvent.click(box(dialog.rows[0]))
+  fireEvent.click(box(dialog.rows[1]))
+  await waitFor(() => expect(dialog.baseElement.querySelector('[data-group-engine="gateway-peer"]')).toBeTruthy())
+  expect(screen.getByText('Pick 2–6 bots. Membership is saved with this group chat on its computer.')).toBeTruthy()
+  fireEvent.click(box(dialog.rows[1]))
+  fireEvent.click(box(dialog.baseElement.querySelector('[data-bot-face="coder"]')!))
+  await waitFor(() => expect(dialog.baseElement.querySelector('[data-group-engine="gateway-peer"]')).toBeTruthy())
+  expect(screen.getByText('Pick 2–6 bots. Membership is saved with this group chat on its computer.')).toBeTruthy()
+})
+
 
 it.each([
   ['mixed', 'default-this-device', undefined, 'Hermes'],
@@ -459,7 +527,7 @@ it.each([
 ])('labels a default bot in a %s group without changing its handle (%s, %s)', (kind, handle, display, expected) => {
   const here = { name: 'default', handle, connectionId: 'local', connectionLabel: 'This device', display_name: display }
   const reviewer = { name: 'reviewer', handle: 'reviewer', connectionId: 'local' }
-  const target = peerTargetState(MINI)
+  const target = peerTargetState(MINI, 'default')
 
   const result = canonicalGroupRoster({ connectionId: 'local', profile: 'default' },
     [here, reviewer, ...kind === 'mixed' ? [{ ...peerRosterRow('mini', 'Mac Mini'), handle: 'default-mac-mini' }] : []], () => target.ready ? target : undefined)

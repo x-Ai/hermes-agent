@@ -15,17 +15,21 @@ import {
   $groupChatWorkspace,
   groupChatSyncSnapshot,
   mergeGroupChatSyncSnapshots,
-  mergeRemoteGroupChatSnapshotIntoRooms
+  mergeRemoteGroupChatSnapshotIntoRooms,
+  updateGroupChat
 } from './group-chat'
 import type * as GroupChatModule from './group-chat'
 import type * as GroupChatParts from './group-chat-parts'
 import { GroupChatWorkspace } from './group-chat-view'
+import { setGroupChatMembers } from './group-chat-view-members'
 import { translateBots, translateBotsIn } from './i18n-test-helper'
 import type { RosterRow } from './types'
 
 // Group chats whose bots live on different connected machines (#141178, #142248):
-// the active gateway owns only rooms of its own bots, so a selection spanning
-// connections becomes a Desktop-driven room instead of a refused groups.create.
+// upstream runs every new group chat on a gateway and never makes a Desktop-driven
+// room. This fork keeps one wherever the gateway here cannot host the selection,
+// so a selection spanning connections becomes a Desktop-driven room instead of a
+// refused groups.create, unless that gateway seats the other computers' bots.
 //
 // Fork contract: the gateway here hosts a room only when it advertises the fork's
 // `room_settings` (canonical-room-actions.ts canCreateCanonicalRoom), so this
@@ -212,6 +216,46 @@ it('a selection spanning two connections creates a Desktop-driven room, never a 
     ['alpha', 'local'],
     ['remote', 'other-box']
   ])
+})
+
+// Upstream never makes a spanning selection a Desktop-driven room. This fork still does wherever the
+// gateway here cannot host it (the test above), but on a gateway that seats bots from other computers
+// and keeps this fork's room settings, a lender that could not be checked holds Create back: the
+// dialog names that computer, keeps the draft and offers Retry, and no Desktop room is made.
+it('a selection spanning two connections never becomes a Desktop-driven room: it says which computer must change', async () => {
+  const normal = request.getMockImplementation()!
+  request.mockImplementation(async (route, method, params) => {
+    if (method === 'groups.capabilities' && route?.connectionId === 'other-box') {
+      throw new Error('request timed out')
+    }
+
+    if (method === 'groups.capabilities') {
+      return {
+        driver: true,
+        persistent_process: true,
+        seatable_profiles: ['alpha', 'beta'],
+        features: ['room_settings'],
+        methods: ['groups.peer.register']
+      }
+    }
+
+    return normal(route, method, params)
+  })
+  const { onCreated } = await pick([alpha, beta, remote], ['alpha', 'remote'])
+
+  await waitFor(() =>
+    expect(screen.getByRole('note').textContent).toBe(CROSS_GATEWAY_GROUP_LOCALES.en.peerCheckFailed('Other box'))
+  )
+  const submit = screen.getByRole('button', { name: 'Create group (2)' }) as HTMLButtonElement
+  expect(submit.disabled).toBe(true)
+  await act(async () => {
+    fireEvent.click(submit)
+  })
+
+  expect(screen.getByRole('button', { name: 'Retry' })).toBeTruthy()
+  expect(request.mock.calls.filter(call => call[1] === 'groups.create')).toHaveLength(0)
+  expect(onCreated).not.toHaveBeenCalled()
+  expect($groupChats.get()).toEqual({})
 })
 
 it('a selection on this connection alone still creates the gateway-owned room (control)', async () => {
@@ -404,6 +448,24 @@ it('a room created across connections stays Desktop-driven after its remote memb
   })
 
   expect(screen.queryByRole('button', { name: 'Start gateway group' })).toBeNull()
+  expect(screen.getAllByRole('textbox').length).toBeGreaterThan(0)
+  expect(request.mock.calls.filter(call => call[1] === 'groups.list')).toHaveLength(0)
+})
+
+it('an existing Desktop-driven room stays Desktop-driven after its remote member is removed', async () => {
+  // Saved before this edit (an older build, or this fork's Desktop room): the edit keeps its engine.
+  updateGroupChat('Mixed', room => ({ ...room, engine: 'desktop', members: [alpha, beta, remote], roomId: 'old-room' }))
+  await act(async () => {
+    await setGroupChatMembers('Mixed', [alpha, beta])
+  })
+
+  expect($groupChats.get().Mixed.engine).toBe('desktop')
+
+  // Manage groups removed the remote bot: every remaining member is on this connection.
+  await act(async () => {
+    render(<GroupChatWorkspace group="Mixed" members={[alpha, beta]} />)
+  })
+
   expect(screen.getAllByRole('textbox').length).toBeGreaterThan(0)
   expect(request.mock.calls.filter(call => call[1] === 'groups.list')).toHaveLength(0)
 })

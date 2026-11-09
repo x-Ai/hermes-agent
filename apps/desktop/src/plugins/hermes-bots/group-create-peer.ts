@@ -16,8 +16,8 @@ import type { GroupCapabilityState, GroupCreationEngine, GroupCreationPlan } fro
 import {
   groupCreationEngine,
   groupExecutionMode,
-  groupNeedsDesktopCourier,
   groupSeatsPeers,
+  groupSpansConnections,
   revalidateGroupCreation
 } from './canonical-group-capabilities'
 import type { CanonicalGroupMessages } from './canonical-group-locales'
@@ -29,11 +29,16 @@ import { applyCanonicalCreationSettings, type CanonicalRoomSettingsPatch } from 
 import { durableGroupChatMembers } from './group-membership'
 import type { RosterRow } from './types'
 
-/** What New group chat shows and creates for a selection. */
-export type GroupCreateEngine = Extract<
-  GroupCreationEngine,
-  'checking' | 'desktop' | 'gateway' | 'gateway-peer' | 'unavailable'
->
+/** What New group chat shows and creates for a selection. Upstream never plans a Desktop-driven
+ *  room any more; this fork keeps `desktop` for every selection the gateway here cannot host. */
+export type GroupCreateEngine =
+  | Extract<GroupCreationEngine, 'checking' | 'gateway' | 'gateway-peer' | 'unavailable'>
+  | 'desktop'
+
+/** Peer-plan reasons that hold Create back until Retry: a lender that could not be read, a bot whose
+ *  computer is not connected, or one whose computer now runs another Hermes installation. Any other
+ *  lender reason means it answered and cannot lend its bot yet, which keeps a Desktop room here. */
+const PEER_PLAN_WAITS = new Set(['unreachable', 'route_unavailable', 'peer_gateway_changed'])
 
 /** Whether a `groups.capabilities` answer comes from a gateway that keeps this fork's room settings. */
 export function hostsRoomSettings(snapshot: unknown): boolean {
@@ -55,7 +60,7 @@ export function groupCreateEngine(
   connectionId: null | string,
   snapshot: unknown
 ): GroupCreateEngine {
-  if (!groupNeedsDesktopCourier(selection, connectionId)) {
+  if (!groupSpansConnections(selection, connectionId)) {
     return plan.engine === 'gateway' && hostsRoomSettings(snapshot) ? 'gateway' : 'desktop'
   }
 
@@ -63,9 +68,12 @@ export function groupCreateEngine(
     return 'desktop'
   }
 
-  return plan.engine === 'gateway-peer' || plan.engine === 'checking' || plan.engine === 'unavailable'
-    ? plan.engine
-    : 'desktop'
+  if (plan.engine === 'gateway-peer' || plan.engine === 'checking') {
+    return plan.engine
+  }
+
+  // Upstream refuses a lender that answered but cannot lend its bot; this fork runs that room here.
+  return plan.engine === 'unavailable' && PEER_PLAN_WAITS.has(plan.reason ?? '') ? 'unavailable' : 'desktop'
 }
 
 /** Before a Desktop room with bots on other computers, ask the gateway here once more whether it
@@ -143,7 +151,7 @@ export async function createHostedPeerRoom(draft: HostedPeerRoomDraft): Promise<
  *  gateway here seats peers with this fork's room settings. Only then does a lender's reason for
  *  not hosting its bot explain why the room runs on this Desktop. */
 function peerRoomsApply(selection: RosterRow[], connectionId: null | string, snapshot: unknown): boolean {
-  return groupNeedsDesktopCourier(selection, connectionId) && hostsPeerRooms(snapshot)
+  return groupSpansConnections(selection, connectionId) && hostsPeerRooms(snapshot)
 }
 
 export interface HostedPeerStep {
@@ -189,16 +197,17 @@ export function groupCreateView(
   connectionId: null | string,
   snapshot: unknown
 ) {
-  const spans = groupNeedsDesktopCourier(selection, connectionId)
+  const spans = groupSpansConnections(selection, connectionId)
 
   return {
     /** The room keeps its members on its gateway rather than in each bot's profile. */
     hosted: engine === 'gateway' || engine === 'gateway-peer',
     /** Why a lender cannot host its bot yet: shown only where that is why the room is a Desktop room. */
     noteReason: peerRoomsApply(selection, connectionId, snapshot) ? plan.reason : undefined,
-    /** A lender, or the gateway here while the selection spans machines, could not be read. */
-    retry:
-      (engine === 'unavailable' && plan.reason === 'unreachable') || (spans && plan.reason === 'owner_unavailable'),
+    /** A peer plan is missing something Retry may find (a lender could not be read, a computer is
+     *  not connected or changed installation), or the gateway here could not be read while the
+     *  selection spans machines. */
+    retry: engine === 'unavailable' || (spans && plan.reason === 'owner_unavailable'),
     spans,
     /** Create waits while a peer plan is still being read, or a lender could not be read. */
     waits: engine === 'checking' || engine === 'unavailable'

@@ -168,6 +168,8 @@ export function onCanonicalConnection(route: CanonicalGroupRoute, member: GroupM
 export interface CanonicalPeerPin {
   installationId: string
   catalogDigest: string
+  /** The profile its gateway lends, as that gateway's catalog names it. */
+  profile: string
 }
 
 /** A member on another connection the room seats as a peer, and the Bot it came from. */
@@ -224,8 +226,8 @@ function peerLabel(member: GroupMember) {
 const baseHandle = (member: GroupMember) =>
   member.handle ?? member.route?.targetProfile ?? member.targetProfile ?? member.name
 
-/** One member as `groups.create` takes it: a Bot here as its own profile, a pinned peer as its
- *  gateway's default profile under its handle, or handle-connection when another member has that
+/** One member as `groups.create` takes it: a Bot here as its own profile, a pinned peer as the
+ *  profile its gateway lends under its handle, or handle-connection when another member has that
  *  handle. */
 function rosterEntry(
   member: GroupMember,
@@ -256,14 +258,14 @@ function rosterEntry(
 
   return {
     member_id: handle,
-    profile: 'default',
+    profile: pin.profile,
     handle,
     display_name: peerLabel(member),
     target: {
       kind: 'peer',
       peer_id: pin.installationId,
       installation_id: pin.installationId,
-      profile: 'default',
+      profile: pin.profile,
       capability_digest: pin.catalogDigest
     }
   }

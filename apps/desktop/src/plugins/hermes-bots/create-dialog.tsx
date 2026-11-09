@@ -48,7 +48,7 @@ import {
   botOnConnection,
   connectionName,
   groupCreationEngine,
-  groupNeedsDesktopCourier,
+  groupSpansConnections,
   useGroupCapability
 } from './canonical-group-capabilities'
 import { peerSetupText, usePeerTargets } from './canonical-group-peers'
@@ -1347,16 +1347,15 @@ interface GroupEngineNoteProps {
 
 type BotsCopy = ReturnType<typeof useBots>
 
-/** Lender reasons that need no setup note: the owner seats no peers, or the bot is not its
- *  computer's default profile (a peer room seats only that one). */
-const NO_SETUP_NOTE = new Set(['peer_owner_unavailable', 'default_profile_required'])
+/** Lender reasons that need no setup note: the owner seats no peers. */
+const NO_SETUP_NOTE = new Set(['peer_owner_unavailable'])
 
 /** The note's words for `engine`; `owner` is the connection the plan names, `local` this device. */
 function groupEngineNoteText(b: BotsCopy, engine: GroupCreateEngine, owner: string, local: boolean, reason?: string) {
   const text: Partial<Record<GroupCreateEngine, string>> = {
     'gateway-peer': b.crossGateway.gatewayPeer(owner, local),
     checking: b.crossGateway.checkingPeers,
-    unavailable: reason === 'unreachable' ? b.crossGateway.peerCheckFailed(owner, local) : b.canonical.driverUnavailable
+    unavailable: peerPlanProblem(b, reason, owner, local)
   }
 
   // The lender's refusal code becomes what to change on that computer, never the raw code.
@@ -1365,16 +1364,27 @@ function groupEngineNoteText(b: BotsCopy, engine: GroupCreateEngine, owner: stri
       ? peerSetupText(reason, local ? b.bot.thisDevice : owner, b.canonical)
       : ''
 
-  // A named profile on another computer cannot be seated in a room that runs without Desktop yet.
-  const fallback =
-    engine === 'desktop' && reason === 'default_profile_required' ? b.crossGateway.namedProfileFallback : ''
+  return { setup, text: text[engine] ?? b.crossGateway.desktopDriven }
+}
 
-  return { fallback, setup, text: text[engine] ?? b.crossGateway.desktopDriven }
+/** What a peer plan that cannot go ahead yet is missing, and on which computer (upstream's words);
+ *  `owner` is the connection the plan names, `local` this device. */
+function peerPlanProblem(b: BotsCopy, reason: string | undefined, owner: string, local: boolean): string {
+  const place = local ? b.bot.thisDevice : owner
+
+  const words: Record<string, string> = {
+    unreachable: b.crossGateway.peerCheckFailed(owner, local),
+    route_unavailable: b.crossGateway.peerRouteMissing,
+    peer_gateway_changed: b.crossGateway.peerGatewayChanged(place)
+  }
+
+  return words[reason ?? ''] ?? b.canonical.driverUnavailable
 }
 
 /** Says, before creation, how a selection with a bot from another machine runs. On a gateway that
  *  keeps this fork's room settings and seats peers, the room runs there once every lender answered
- *  (`gateway-peer`; `checking` until then, `unavailable` when a lender could not be read). Anywhere
+ *  (`gateway-peer`; `checking` until then, `unavailable` when a lender could not be read, its
+ *  computer is not connected or now runs another Hermes installation). Anywhere
  *  else it runs on this Desktop, which carries each member's turn to its own gateway; a lender that
  *  cannot host its bot yet says why. This fork never refuses a selection wholly on another
  *  connection (upstream's "elsewhere"): it becomes a Desktop room like any other selection the
@@ -1391,17 +1401,18 @@ function GroupEngineNote({ connectionId, engine, owner, ownerConnectionId, reaso
   return (
     <p className="text-xs text-(--ui-text-secondary)" data-group-engine={peerNote ? engine : 'desktop'} role="note">
       {note.text}
-      {note.fallback && <span> {note.fallback}</span>}
       {note.setup && <span> {note.setup}</span>}
     </p>
   )
 }
 
 /** Discord-style group chat creation: pick 2+ routable bots via checkboxes
- *  (with search), name the group, create. A selection on the current connection
- *  becomes a gateway-owned room there; one that reaches another connection (or
- *  any selection on a legacy gateway) becomes a Desktop-driven room, whose
- *  memberships append to each bot's group list and sync through ui_meta. */
+ *  (with search), name the group, create. A gateway that keeps this fork's room
+ *  settings creates and runs the group chat, which keeps it running with Desktop
+ *  closed; bots on other computers are seated through their own gateways. When a
+ *  peer plan cannot go ahead yet the dialog says what is missing on which computer
+ *  and offers Retry; any selection the gateway here cannot host stays a Desktop
+ *  room (this fork's fallback, see group-create-peer.ts). */
 export function CreateGroupChatDialog({ open, roster, onClose, onCreated }: CreateGroupChatDialogProps) {
   const { t } = useI18n()
   const b = useBots()
@@ -1623,7 +1634,7 @@ export function CreateGroupChatDialog({ open, roster, onClose, onCreated }: Crea
         room.roomId = roomId
 
         // Recorded once: later membership edits must not re-decide who drives it.
-        if (groupNeedsDesktopCourier(selected, connectionId)) {
+        if (groupSpansConnections(selected, connectionId)) {
           room.engine = 'desktop'
         }
 

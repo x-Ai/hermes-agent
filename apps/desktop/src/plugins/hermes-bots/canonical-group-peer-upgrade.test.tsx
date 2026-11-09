@@ -1,9 +1,8 @@
 import type * as HermesSdk from '@hermes/plugin-sdk'
-import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, cleanup, render, screen } from '@testing-library/react'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 
 import { answerGroupRequests, PEER_MINI as MINI, PEER_HOME, PEER_REGISTERED, peerInvitation, peerRosterRow, strictGroupCreation } from './canonical-group-contract-test-utils'
-import { CANONICAL_GROUP_LOCALES } from './canonical-group-locales'
 import { $canonicalGroupBindings } from './canonical-group-registry'
 import { $lastRoster } from './data'
 import { $groupChats } from './group-chat'
@@ -44,37 +43,35 @@ beforeEach(() => {
 })
 afterEach(() => { cleanup(); $groupChats.set({}); $lastRoster.set([]) })
 
+// Upstream removed the "Start a group chat that runs without Desktop" offer (canonical-group-upgrade.tsx)
+// with the copy only it used: an existing Desktop-driven room keeps its history and composer and is
+// never converted on its own. In this fork such a room moves onto its gateway through Group settings'
+// Host on the gateway… (canonical-room-migrate.tsx). These cases keep the old offer's scenarios and
+// check that the room stays usable and that nothing is created behind the person's back.
+const OLD_OFFER = 'Start a group chat that runs without Desktop'
+
 it.each([
   ['ready', MINI, true],
   ['lender unavailable', { ...MINI, room_link: { enabled: false } }, false],
   ['checks pending', new Promise(() => undefined), false]
-])('keeps the Desktop room usable and offers a separate gateway group only when ready (%s)', async (_case, capabilities, canUpgrade) => {
+])('keeps the Desktop room usable and offers a separate gateway group only when ready (%s)', async (_case, capabilities, _ready) => {
   gateways(capabilities)
   await act(async () => { render(<GroupChatWorkspace group="Pair" members={members} />) })
   await screen.findByText('Earlier question')
   expect(screen.getByRole('textbox', { name: 'Message Pair' })).toBeTruthy()
-
-  if (canUpgrade) {
-    await screen.findByRole('button', { name: 'Start a group chat that runs without Desktop' })
-    expect(screen.getByText('Earlier messages stay in this group chat.')).toBeTruthy()
-    await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Start a group chat that runs without Desktop' })) })
-    await waitFor(() => expect(Object.values($canonicalGroupBindings.get())).toHaveLength(1))
-    const create = request.mock.calls.find(call => call[1] === 'groups.create')![2]
-    expect(create.name).not.toBe('Pair')
-    expect(create.members[1]).toMatchObject({ target: { kind: 'peer', installation_id: 'install:3f2a0000000000000000000000000000' } })
-    expect($groupChats.get().Pair).toMatchObject({ engine: 'desktop', log, members })
-    expect($groupChats.get()[create.name].engine).toMatchObject({ kind: 'gateway', roomId: create.room_id })
-    expect($groupChats.get()[create.name].log).toEqual([])
-    expect(notify).not.toHaveBeenCalled()
-  } else {expect(screen.queryByRole('button', { name: 'Start a group chat that runs without Desktop' })).toBeNull()}
+  // Even a lender that is ready gets no separate offer: the room is never converted on its own.
+  await act(async () => {})
+  expect(screen.queryByRole('button', { name: OLD_OFFER })).toBeNull()
+  expect(request.mock.calls.some(call => call[1] === 'groups.create')).toBe(false)
+  expect($groupChats.get().Pair).toMatchObject({ engine: 'desktop', log, members })
+  expect(Object.values($canonicalGroupBindings.get())).toHaveLength(0)
+  expect(notify).not.toHaveBeenCalled()
 })
 
 it.each(['lost', 'refused'])('keeps the upgrade creation intent only while uncertain (%s)', async outcome => {
   const { rooms, create } = strictGroupCreation()
   let lost = true
   gateways(MINI, params => {
-    // A refusal ends the intent only when it rules the room id out; a canonical gateway says so
-    // with a bare invalid_params (095dbdb996). A lost reply keeps the exact request.
     if (lost && outcome === 'refused') {lost = false; throw Object.assign(new Error('invalid_params'), { code: 4001 })}
     const answer = create(params)
 
@@ -83,17 +80,14 @@ it.each(['lost', 'refused'])('keeps the upgrade creation intent only while uncer
     return answer
   })
   render(<GroupChatWorkspace group="Pair" members={members} />)
-  const button = await screen.findByRole('button', { name: 'Start a group chat that runs without Desktop' })
-  await act(async () => { fireEvent.click(button) })
-  // A lost reply says trying again is safe; a refusal keeps the gateway's own reason.
-  expect(await screen.findByRole('alert')).toHaveProperty('textContent', outcome === 'lost'
-    ? CANONICAL_GROUP_LOCALES.en.createUncertain
-    : `${CANONICAL_GROUP_LOCALES.en.createRefused} invalid_params`)
-  await act(async () => { fireEvent.click(button) })
-  await waitFor(() => expect(Object.values($canonicalGroupBindings.get())).toHaveLength(1))
-  expect(rooms.size).toBe(1)
-  const creates = request.mock.calls.filter(call => call[1] === 'groups.create')
-  expect(creates[1][2].room_id === creates[0][2].room_id).toBe(outcome === 'lost')
+  await screen.findByText('Earlier question')
+  await act(async () => {})
+  // No upgrade means no creation intent at all: nothing is sent, so nothing can be lost or refused.
+  expect(screen.queryByRole('button', { name: OLD_OFFER })).toBeNull()
+  expect(screen.queryByRole('alert')).toBeNull()
+  expect(rooms.size).toBe(0)
+  expect(request.mock.calls.filter(call => call[1] === 'groups.create')).toHaveLength(0)
+  expect($groupChats.get().Pair).toMatchObject({ engine: 'desktop', log, members })
 })
 
 it.each(['en', 'fr'] as const)('localizes upgrade roster refusals (%s)', async locale => {
@@ -101,7 +95,12 @@ it.each(['en', 'fr'] as const)('localizes upgrade roster refusals (%s)', async l
   const collision = [...members, { name: 'hermes-mac-mini', connectionId: 'local' }]
   gateways()
   render(<GroupChatWorkspace group="Pair" members={collision} />)
-  fireEvent.click(await screen.findByRole('button', { name: translateBotsIn(locale)('crossGateway.startGatewayGroup') }))
-  expect(await screen.findByRole('alert')).toHaveProperty('textContent', CANONICAL_GROUP_LOCALES[locale].createDuplicateMember)
+  await screen.findByText('Earlier question')
+  await act(async () => {})
+  // The offer and its words are gone in every language; the room keeps its composer and asks nothing.
+  expect(screen.queryByRole('button', { name: OLD_OFFER })).toBeNull()
+  expect(screen.queryByRole('alert')).toBeNull()
+  expect(screen.getAllByRole('textbox').length).toBeGreaterThan(0)
+  expect(translateBotsIn(locale)('crossGateway.startGatewayGroup')).toBe('crossGateway.startGatewayGroup')
   expect(request.mock.calls.some(call => call[1] === 'groups.create')).toBe(false)
 })

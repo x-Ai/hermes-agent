@@ -5,12 +5,14 @@ import type { WritableAtom } from 'nanostores'
 import { useSyncExternalStore } from 'react'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 
+import { groupCreationEngine } from './canonical-group-capabilities'
 import { CANONICAL_GROUP_LOCALES } from './canonical-group-locales'
 import { $canonicalGroupBindings } from './canonical-group-registry'
 import { canonicalGroupCreateError } from './canonical-groups'
 import { HostOnGatewayButton } from './canonical-room-migrate'
 import { _resetCanonicalRoomSyncForTests } from './canonical-room-sync'
 import { CreateGroupChatDialog } from './create-dialog'
+import { CROSS_GATEWAY_GROUP_LOCALES } from './cross-gateway-locales'
 import { $botMeta } from './data'
 import { $groupChats, $groupChatWorkspace, updateGroupChat } from './group-chat'
 import type * as GroupChatModule from './group-chat'
@@ -280,9 +282,9 @@ it('keeps positive classifications working: legacy renders and creates locally, 
   expect(request.mock.calls.filter(call => call[1] === 'groups.create')).toHaveLength(1)
 })
 
-// A bot on another connection is offered again: a selection spanning connections
-// becomes a Desktop-driven room (cross-gateway-group-creation.test.tsx). A row
-// whose route disagrees with its own connection is still never offered.
+// A bot on another connection is offered: its own gateway seats it in the group chat
+// (cross-gateway-group-creation.test.tsx). A row whose route disagrees with its own
+// connection is still never offered.
 it('canonical creation offers this connection and reachable other-connection bots, never a contradictory row', async () => {
   answer({ driver: true, persistent_process: true })
   const { baseElement } = render(<CreateGroupChatDialog onClose={vi.fn()} open roster={mixedRoster} />)
@@ -350,6 +352,55 @@ it('keeps offering bots from other connections; a cross-connection pick creates 
 
   expect(onCreated).toHaveBeenCalledWith(expect.any(String), 'name')
   expect(updateGroupChat).toHaveBeenCalledOnce()
+  expect(request.mock.calls.filter(call => call[1] === 'groups.create')).toHaveLength(0)
+})
+
+// Upstream's planner (`groupCreationEngine`) never plans a room on a legacy gateway: it names
+// `owner_update_required` so the dialog can say to update Hermes there. This fork reads that answer
+// as its Desktop-room fallback (the positive-classification test above creates one), so here the
+// existing room keeps rendering, the planner's own answers are checked, and nothing reaches the
+// gateway's groups.create.
+it('keeps positive classifications working: legacy renders its existing rooms but never creates one, canonical creates a gateway room', async () => {
+  answer(legacy)
+  await act(async () => {
+    render(<GroupChatWorkspace group="Existing" members={roster} />)
+  })
+  expect(screen.getByRole('textbox')).toBeTruthy()
+  expect(groupCreationEngine('legacy', roster, 'local')).toEqual({ engine: 'unavailable', reason: 'owner_update_required' })
+  expect(groupCreationEngine('canonical', roster, 'local', { driver: true, persistent_process: true })).toEqual({
+    engine: 'gateway'
+  })
+  expect(request.mock.calls.filter(call => call[1] === 'groups.create')).toHaveLength(0)
+})
+
+// Upstream refuses a mixed selection on a legacy gateway and, once Retry reads a gateway that runs
+// group chats but cannot seat bots from other computers, says that instead. This fork runs both as a
+// Desktop room (its own Desktop note, never groups.create on the gateway), so the planner's answers
+// are checked against the words upstream shows for them, and the dialog's fallback beside them.
+it('never offers Create for a mixed selection on a legacy gateway, and finds a gateway that can run it on Retry', async () => {
+  const mixed = mixedRoster.slice(0, 3)
+  expect(groupCreationEngine('legacy', mixed, 'local')).toEqual({ engine: 'unavailable', reason: 'owner_update_required' })
+  expect(groupCreationEngine('canonical', mixed, 'local', { driver: true, persistent_process: true })).toEqual({
+    engine: 'unavailable',
+    reason: 'peer_owner_unavailable'
+  })
+  expect(CROSS_GATEWAY_GROUP_LOCALES.en.ownerUpdateRequired('This device')).toBe(
+    'Hermes on This device is too old to run group chats. Update Hermes there, then retry.'
+  )
+  expect(CROSS_GATEWAY_GROUP_LOCALES.en.ownerCannotSeatPeers('This device')).toBe(
+    'Hermes on This device can’t seat bots from other computers yet. Update Hermes there and run its gateway (hermes gateway run), then retry.'
+  )
+
+  answer(legacy)
+  const { baseElement } = render(<CreateGroupChatDialog onClose={vi.fn()} open roster={mixedRoster} />)
+  await waitFor(() => expect(baseElement.querySelector('[data-bot-face="remote"]')).not.toBeNull())
+
+  for (const checkbox of screen.getAllByRole('checkbox').slice(0, 3)) {
+    fireEvent.click(checkbox)
+  }
+
+  expect(screen.getByRole('note').textContent).toBe(CROSS_GATEWAY_GROUP_LOCALES.en.desktopDriven)
+  expect(baseElement.querySelector('[data-group-engine="desktop"]')).not.toBeNull()
   expect(request.mock.calls.filter(call => call[1] === 'groups.create')).toHaveLength(0)
 })
 

@@ -1187,7 +1187,7 @@ it('names the Bot behind each pending action and shows what an approval would al
   expect(within(vague).getByText('Action details are unavailable. Check again before allowing this.')).toBeTruthy()
   expect(within(vague).queryByRole('button', { name: 'Allow once' })).toBeNull()
   expect(within(vague).getByRole('button', { name: 'Deny' })).toBeTruthy()
-  expect(screen.getByText('QA Bot’s turn didn’t finish here. Retry it?')).toBeTruthy()
+  expect(screen.getByText('QA Bot’s turn has not finished. Retry it?')).toBeTruthy()
   expect(screen.queryByText('ops')).toBeNull()
 
   // As in the chat approval card, the plugin's words stand in for its tool label.

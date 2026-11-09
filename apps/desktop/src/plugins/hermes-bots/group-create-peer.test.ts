@@ -22,10 +22,27 @@ it('hosts a room seating bots from other computers only where the gateway keeps 
   expect(groupCreateEngine(plan('gateway-peer'), mixed, 'local', settingsHome)).toBe('gateway-peer')
   // Upstream's gateway seats peers but keeps none of this fork's room settings: a Desktop room.
   expect(groupCreateEngine(plan('gateway-peer'), mixed, 'local', PEER_HOME)).toBe('desktop')
-  // A gateway that seats no peers: a Desktop room, whatever upstream's plan says.
+  // A gateway that seats no peers: a Desktop room, whatever upstream's plan says (upstream now refuses
+  // it as `unavailable` instead of planning a Desktop room itself).
   expect(
-    groupCreateEngine(plan('desktop', 'peer_owner_unavailable'), mixed, 'local', { features: ['room_settings'] })
+    groupCreateEngine(plan('unavailable', 'peer_owner_unavailable'), mixed, 'local', { features: ['room_settings'] })
   ).toBe('desktop')
+})
+
+it('holds Create back with Retry only for a lender that could not be checked, is not connected or changed installation', () => {
+  for (const reason of ['unreachable', 'route_unavailable', 'peer_gateway_changed']) {
+    expect(groupCreateEngine(plan('unavailable', reason), mixed, 'local', settingsHome)).toBe('unavailable')
+    expect(groupCreateView(plan('unavailable', reason), 'unavailable', mixed, 'local', settingsHome)).toMatchObject({
+      noteReason: reason,
+      retry: true,
+      waits: true
+    })
+  }
+
+  // Upstream refuses a lender that answered but cannot lend its bot; this fork runs that room here.
+  for (const reason of ['api_server_required', 'peer_target_unsupported', 'endpoint_required']) {
+    expect(groupCreateEngine(plan('unavailable', reason), mixed, 'local', settingsHome)).toBe('desktop')
+  }
 })
 
 it('waits only on a peer plan still being read, or a lender that could not be read', () => {
@@ -48,7 +65,7 @@ it('keeps a selection on this connection on the fork rule: hosted with room sett
 })
 
 it('names a lender that cannot host its bot only where that is why the room runs on this Desktop', () => {
-  const declined = plan('desktop', 'api_server_required')
+  const declined = plan('unavailable', 'api_server_required')
   expect(groupCreateView(declined, 'desktop', mixed, 'local', settingsHome).noteReason).toBe('api_server_required')
   expect(groupCreateView(declined, 'desktop', mixed, 'local', PEER_HOME).noteReason).toBeUndefined()
   expect(groupCreateView(plan('gateway-peer'), 'gateway-peer', mixed, 'local', settingsHome)).toMatchObject({
