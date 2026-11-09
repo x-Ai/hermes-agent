@@ -3893,6 +3893,22 @@ export const deOverrides = {
     lookupNoMatches: 'Keine Treffer.',
     lookupTry: 'Versuchen Sie',
     lookupOr: 'oder',
+    atStarters: {
+      file: 'Dateireferenz anhängen',
+      folder: 'Ordnerreferenz anhängen',
+      url: 'URL-Referenz anhängen',
+      image: 'Bildreferenz anhängen',
+      tool: 'Tool-Referenz anhängen',
+      git: 'Git-Kontext anhängen'
+    },
+    atScopes: {
+      file: 'Dateien',
+      folder: 'Ordner',
+      url: 'Links',
+      image: 'Bilder',
+      tool: 'Tools',
+      git: 'Git'
+    },
     commonCommands: 'Häufige Befehle',
     hotkeys: 'Tastenkürzel',
     helpFooter: 'öffnet das volle Panel · Backspace schließt',

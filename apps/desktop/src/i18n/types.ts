@@ -2642,6 +2642,10 @@ export interface Translations extends NoticeTranslations, GoalStatusTranslations
     lookupNoMatches: string
     lookupTry: string
     lookupOr: string
+    /** Descriptions of the `@` popover's `@kind:` starter rows, keyed by kind (`file`, `folder`, …). */
+    atStarters: Record<string, string>
+    /** The `@` popover's header while it browses one `@kind:`, keyed by kind. */
+    atScopes: Record<string, string>
     commonCommands: string
     hotkeys: string
     helpFooter: string

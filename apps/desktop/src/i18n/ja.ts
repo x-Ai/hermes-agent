@@ -4061,6 +4061,22 @@ export const jaOverrides = {
     lookupNoMatches: '一致なし。',
     lookupTry: '試す',
     lookupOr: 'または',
+    atStarters: {
+      file: 'ファイル参照を添付',
+      folder: 'フォルダー参照を添付',
+      url: 'URL 参照を添付',
+      image: '画像参照を添付',
+      tool: 'ツール参照を添付',
+      git: 'Git コンテキストを添付'
+    },
+    atScopes: {
+      file: 'ファイル',
+      folder: 'フォルダー',
+      url: 'リンク',
+      image: '画像',
+      tool: 'ツール',
+      git: 'Git'
+    },
     commonCommands: '一般的なコマンド',
     hotkeys: 'ホットキー',
     helpFooter: 'フルパネルを開く · Backspace で閉じる',

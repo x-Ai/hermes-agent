@@ -4003,6 +4003,22 @@ export const ruOverrides = {
     lookupNoMatches: 'Нет совпадений.',
     lookupTry: 'Попробуйте',
     lookupOr: 'или',
+    atStarters: {
+      file: 'Прикрепить ссылку на файл',
+      folder: 'Прикрепить ссылку на папку',
+      url: 'Прикрепить ссылку на URL',
+      image: 'Прикрепить ссылку на изображение',
+      tool: 'Прикрепить ссылку на инструмент',
+      git: 'Прикрепить контекст git'
+    },
+    atScopes: {
+      file: 'Файлы',
+      folder: 'Папки',
+      url: 'Ссылки',
+      image: 'Изображения',
+      tool: 'Инструменты',
+      git: 'Git'
+    },
     commonCommands: 'Частые команды',
     hotkeys: 'Горячие клавиши',
     helpFooter: 'открывает полную панель · backspace закрывает',

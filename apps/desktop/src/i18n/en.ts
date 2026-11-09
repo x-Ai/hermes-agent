@@ -4406,6 +4406,22 @@ export const en: Translations = {
     lookupNoMatches: 'No matches.',
     lookupTry: 'Try',
     lookupOr: 'or',
+    atStarters: {
+      file: 'Attach a file reference',
+      folder: 'Attach a folder reference',
+      url: 'Attach a URL reference',
+      image: 'Attach an image reference',
+      tool: 'Attach a tool reference',
+      git: 'Attach git context'
+    },
+    atScopes: {
+      file: 'Files',
+      folder: 'Folders',
+      url: 'Links',
+      image: 'Images',
+      tool: 'Tools',
+      git: 'Git'
+    },
     commonCommands: 'Common commands',
     hotkeys: 'Hotkeys',
     helpFooter: 'opens the full panel · backspace dismisses',

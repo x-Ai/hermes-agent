@@ -3899,6 +3899,22 @@ export const frOverrides = {
     lookupNoMatches: 'Aucune correspondance.',
     lookupTry: 'Essayez',
     lookupOr: 'ou',
+    atStarters: {
+      file: 'Joindre une référence de fichier',
+      folder: 'Joindre une référence de dossier',
+      url: 'Joindre une référence d’URL',
+      image: 'Joindre une référence d’image',
+      tool: 'Joindre une référence d’outil',
+      git: 'Joindre le contexte git'
+    },
+    atScopes: {
+      file: 'Fichiers',
+      folder: 'Dossiers',
+      url: 'Liens',
+      image: 'Images',
+      tool: 'Outils',
+      git: 'Git'
+    },
     commonCommands: 'Commandes courantes',
     hotkeys: 'Raccourcis clavier',
     helpFooter: 'ouvre le panneau complet · effacer pour fermer',

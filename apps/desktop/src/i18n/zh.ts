@@ -4867,6 +4867,22 @@ export const zhOverrides = {
     lookupNoMatches: '没有匹配项',
     lookupTry: '试试',
     lookupOr: '或',
+    atStarters: {
+      file: '附加文件引用',
+      folder: '附加文件夹引用',
+      url: '附加 URL 引用',
+      image: '附加图片引用',
+      tool: '附加工具引用',
+      git: '附加 git 上下文'
+    },
+    atScopes: {
+      file: '文件',
+      folder: '文件夹',
+      url: '链接',
+      image: '图片',
+      tool: '工具',
+      git: 'Git'
+    },
     commonCommands: '常用命令',
     hotkeys: '快捷键',
     helpFooter: '打开完整面板 · 退格键关闭',

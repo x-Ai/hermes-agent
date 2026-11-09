@@ -193,6 +193,8 @@ export type BotsMessages = {
     loadFailed: string
     groupsLoadFailed: string
     thisDevice: string
+    /** The kind an @-mention row names a bot by, before its name and gateway. */
+    mentionKind: string
     /** Roster badge tooltips per attention class; `attentionFallback` when the class is unknown. */
     attentionFallback: string
     attentionProviderAuth: string

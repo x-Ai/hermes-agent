@@ -160,7 +160,7 @@ export function ComposerTriggerPopover({
       ref={listRef}
       role="listbox"
     >
-      {scope && <div className={cn(GROUP_HEADER_CLASS, 'pt-0.5')}>{referenceStyle(scope).label}</div>}
+      {scope && <div className={cn(GROUP_HEADER_CLASS, 'pt-0.5')}>{copy.atScopes[scope]}</div>}
       {items.length === 0 ? (
         loading ? (
           <div className="flex items-center gap-2 px-2 py-1.5 text-(--ui-text-tertiary)">

@@ -87,6 +87,22 @@ export const zhHantChat = {
     lookupNoMatches: '沒有相符項目。',
     lookupTry: '試試',
     lookupOr: '或',
+    atStarters: {
+      file: '附加檔案參照',
+      folder: '附加資料夾參照',
+      url: '附加 URL 參照',
+      image: '附加圖片參照',
+      tool: '附加工具參照',
+      git: '附加 git 上下文'
+    },
+    atScopes: {
+      file: '檔案',
+      folder: '資料夾',
+      url: '連結',
+      image: '圖片',
+      tool: '工具',
+      git: 'Git'
+    },
     commonCommands: '常用指令',
     hotkeys: '快捷鍵',
     helpFooter: '開啟完整面板 · 退格鍵關閉',

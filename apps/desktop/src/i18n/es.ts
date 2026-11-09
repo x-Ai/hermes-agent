@@ -3878,6 +3878,22 @@ export const esOverrides = {
     lookupNoMatches: 'Sin coincidencias.',
     lookupTry: 'Prueba',
     lookupOr: 'o',
+    atStarters: {
+      file: 'Adjuntar una referencia a un archivo',
+      folder: 'Adjuntar una referencia a una carpeta',
+      url: 'Adjuntar una referencia a una URL',
+      image: 'Adjuntar una referencia a una imagen',
+      tool: 'Adjuntar una referencia a una herramienta',
+      git: 'Adjuntar contexto de Git'
+    },
+    atScopes: {
+      file: 'Archivos',
+      folder: 'Carpetas',
+      url: 'Enlaces',
+      image: 'Imágenes',
+      tool: 'Herramientas',
+      git: 'Git'
+    },
     commonCommands: 'Comandos comunes',
     hotkeys: 'Atajos',
     helpFooter: 'abre el panel completo · retroceso descarta',

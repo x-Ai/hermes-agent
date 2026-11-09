@@ -104,6 +104,22 @@ export const arChat = {
     lookupNoMatches: 'لا توجد نتائج',
     lookupTry: 'جرب',
     lookupOr: 'أو',
+    atStarters: {
+      file: 'إرفاق إشارة إلى ملف',
+      folder: 'إرفاق إشارة إلى مجلد',
+      url: 'إرفاق إشارة إلى رابط',
+      image: 'إرفاق إشارة إلى صورة',
+      tool: 'إرفاق إشارة إلى أداة',
+      git: 'إرفاق سياق git'
+    },
+    atScopes: {
+      file: 'الملفات',
+      folder: 'المجلدات',
+      url: 'الروابط',
+      image: 'الصور',
+      tool: 'الأدوات',
+      git: 'Git'
+    },
     commonCommands: 'الأوامر الشائعة',
     hotkeys: 'الاختصارات',
     helpFooter: 'يفتح اللوحة الكاملة · Backspace يُغلق هذه المساعدة',

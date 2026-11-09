@@ -331,10 +331,11 @@ describe('@-mention completions', () => {
     expect(provide('zzz')).toEqual([])
   })
 
-  it("names This device's untitled default in the UI language from a remote window", async () => {
+  it("names This device's untitled default, and what it is, in the UI language from a remote window", async () => {
     // On a remote window This device's own default is a thin row from another
     // source, and an untitled one is named after its gateway. That label is
     // registry data: English "This device" whatever language the UI runs in.
+    // The row's kind used to be a literal "Bot" in every language too.
     const { provide } = await contributions({
       cacheKeyConnection: 'vera',
       connection: 'vera',
@@ -353,7 +354,7 @@ describe('@-mention completions', () => {
       translate: translateBotsIn('zh')
     })
 
-    expect(provide('')).toEqual([expect.objectContaining({ meta: 'Bot · 本设备 · 本设备' })])
+    expect(provide('')).toEqual([expect.objectContaining({ meta: '机器人 · 本设备 · 本设备' })])
   })
 
   /** Local default plus two remote defaults, each titled on its own host

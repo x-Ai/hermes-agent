@@ -239,7 +239,7 @@ export default {
             items.push({
               insert,
               display: insert,
-              meta: `Bot · ${display}${source}`,
+              meta: `${botsText().bot.mentionKind} · ${display}${source}`,
               // The live gateway's own `@` rows list this backend's profiles
               // by raw name; claim ours so the popover drops that twin row.
               // Remote rows are NOT ours to claim — the local gateway's

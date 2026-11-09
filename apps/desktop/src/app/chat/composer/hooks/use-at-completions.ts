@@ -4,6 +4,7 @@ import { useCallback } from 'react'
 import { refChipLabel } from '@/components/assistant-ui/directive-text'
 import { useContributions } from '@/contrib/react/use-contributions'
 import type { HermesGateway } from '@/hermes'
+import { useI18n } from '@/i18n'
 import { cachedPathCompletion, hasCachedPathCompletion } from '@/lib/slash-completion-cache'
 import { normalize } from '@/lib/text'
 
@@ -19,16 +20,8 @@ const REF_STARTERS = new Set(['file', 'folder', 'url', 'image', 'tool', 'git'])
 // These bare tokens are context actions, not profile handles.
 const SIMPLE_CONTEXT_REFS = new Set(['@diff', '@staged'])
 
-const STARTER_META: Record<string, string> = {
-  file: 'Attach a file reference',
-  folder: 'Attach a folder reference',
-  url: 'Attach a URL reference',
-  image: 'Attach an image reference',
-  tool: 'Attach a tool reference',
-  git: 'Attach git context'
-}
-
-function starterEntries(query: string): CompletionEntry[] {
+/** `descriptions` is `composer.atStarters` in the UI language. */
+function starterEntries(query: string, descriptions: Record<string, string>): CompletionEntry[] {
   const q = normalize(query)
   const kinds = Array.from(REF_STARTERS)
   const filtered = q ? kinds.filter(kind => kind.startsWith(q)) : kinds
@@ -36,7 +29,7 @@ function starterEntries(query: string): CompletionEntry[] {
   return filtered.map(kind => ({
     text: `@${kind}:`,
     display: `@${kind}:`,
-    meta: STARTER_META[kind] || ''
+    meta: descriptions[kind] || ''
   }))
 }
 
@@ -131,6 +124,7 @@ export function useAtCompletions(options: {
 }): { adapter: Unstable_TriggerAdapter; loading: boolean } {
   const { gateway, sessionId, cwd } = options
   const enabled = Boolean(gateway)
+  const starterDescriptions = useI18n().t.composer.atStarters
 
   const contributed = useContributions(COMPOSER_AREAS.atCompletions)
 
@@ -205,7 +199,7 @@ export function useAtCompletions(options: {
 
   const fetcher = useCallback(
     async (query: string): Promise<CompletionPayload> => {
-      const starters = starterEntries(query)
+      const starters = starterEntries(query, starterDescriptions)
       const { entries: extras, claimedHandles } = contributedEntries(query)
 
       if (!gateway) {
@@ -241,7 +235,7 @@ export function useAtCompletions(options: {
         return { items: mergeCompletionEntries(extras, starters, claimedHandles), query }
       }
     },
-    [cacheKey, contributedEntries, gateway, sessionId, cwd]
+    [cacheKey, contributedEntries, gateway, sessionId, cwd, starterDescriptions]
   )
 
   const toItem = useCallback((entry: CompletionEntry, index: number): Unstable_TriggerItem => {
