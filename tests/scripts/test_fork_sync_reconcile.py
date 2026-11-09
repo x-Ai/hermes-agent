@@ -108,6 +108,8 @@ def checks(controller, monkeypatch):
 def released(controller, monkeypatch):
     calls = []
     monkeypatch.setattr(controller.releases, "publish", lambda *args: calls.append(args))
+    # Publish asks real upstream whether to start the next run (test_fork_sync_continuity.py covers it).
+    monkeypatch.setattr(controller, "upstream_ahead", lambda landed: False)
     return calls
 
 

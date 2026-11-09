@@ -2,7 +2,12 @@ name: Fork upstream sync
 
 on:
   schedule:
-    - cron: '7 * * * *'
+    # Twice an hour, away from the top of the hour. GitHub runs schedules best-effort and drops or
+    # delays them under load, worst at the start of each hour: the hourly '7 * * * *' created 7 runs
+    # in 37 hours (2026-11-08/09), most 35-50 minutes late. A trigger that lands while a run is in
+    # progress waits as the one pending run and starts when that run ends. After failed runs a
+    # scheduled run backs off (scripts/fork_sync/run.py backoff_until) instead of merging again.
+    - cron: '23,53 * * * *'
   workflow_dispatch:
 
 permissions:
@@ -22,12 +27,16 @@ jobs:
     # config.json agent.budget_seconds (100 min) for the merge steps, plus setup, the last step's
     # desktop UI test check (up to 45 min past the budget, scripts/fork_sync/desktop_tests.py) and upload.
     timeout-minutes: 155
+    permissions:
+      contents: read
+      # This workflow's earlier runs, for the failure backoff of scheduled runs.
+      actions: read
     outputs:
       base: ${{ steps.prepare.outputs.base }}
       candidate: ${{ steps.prepare.outputs.candidate }}
       changed: ${{ steps.prepare.outputs.changed }}
       needed: ${{ steps.prepare.outputs.needed }}
-      # true while upstream main or a release is still unmerged: publish starts the next run.
+      # true while upstream main or a release was still unmerged when prepare finished.
       remaining: ${{ steps.prepare.outputs.remaining }}
       # JSON list of Python test shards, [] when the merge reaches no Python test.
       shards: ${{ steps.prepare.outputs.shards }}
@@ -333,17 +342,19 @@ jobs:
         with:
           python-version: '3.12'
       - name: Advance main and publish upstream releases
+        id: publish
         env:
           GH_TOKEN: ${{ secrets.SYNC_PUSH_TOKEN || github.token }}
         run: |
           gh auth setup-git
           python scripts/fork_sync/run.py publish --artifacts "$RUNNER_TEMP/fork-sync-artifacts" \
             --reconciled "$RUNNER_TEMP/fork-sync-reconciled"
-      # A run that stopped at a release (or ran out of budget) leaves upstream main for the
-      # next one; start it now instead of at the next hourly slot. A run that fails or has
-      # nothing left publishes nothing here, so this never loops on its own.
+      # Upstream lands commits all hour, so a run that published is usually behind again: start
+      # the next one now (publish's `continue`: something was left at prepare, or upstream main
+      # moved past what landed). A failed run publishes nothing; the schedule retries it, backing
+      # off as failures repeat.
       - name: Continue with the rest of upstream
-        if: needs.prepare.outputs.remaining == 'true'
+        if: steps.publish.outputs.continue == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh workflow run fork-upstream-sync.yml --repo "$GITHUB_REPOSITORY" --ref main

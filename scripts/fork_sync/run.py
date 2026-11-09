@@ -51,6 +51,13 @@ REASON_SHOWN = 600
 # scripts/run_tests_parallel.py's summary lists each file that passed only on its retry as the
 # file's own line, then a report that starts with this.
 FLAKY_REPORT = "⚠ FLAKY:"
+WORKFLOW_FILE = "fork-upstream-sync.yml"
+BOT = "hermes-upstream-sync[bot]"
+# After failed runs a scheduled run waits 30 minutes, then 1, 2 and 4 hours, at most 8, from the last
+# failure before it merges again, so a failure that repeats does not spend a model budget every half
+# hour. Runs started by hand, or by a run that published, never wait.
+BACKOFF_SECONDS = (1800, 8 * 3600)
+FAILED = ("failure", "timed_out", "startup_failure")
 
 
 def git(*args: str, check: bool = True) -> subprocess.CompletedProcess:
@@ -118,18 +125,56 @@ def warn(message: str) -> None:
     print(f"::warning title=Fork sync::{text}", flush=True)
 
 
+def backoff_until(runs: list[dict], last_publish: datetime, current: int) -> datetime | None:
+    """When a scheduled run may merge again: the failed runs since the last publish set the wait.
+
+    A run that skipped (nothing to merge, or backing off) neither counts nor resets the streak.
+    """
+    failed = [datetime.fromisoformat(run["updated_at"]) for run in runs
+              if run.get("id") != current and run.get("status") == "completed" and run.get("conclusion") in FAILED]
+    failed = [ended for ended in failed if ended > last_publish]
+    if not failed:
+        return None
+    first, longest = BACKOFF_SECONDS
+    return max(failed) + timedelta(seconds=min(first * 2 ** (len(failed) - 1), longest))
+
+
+def backing_off(repository: str) -> datetime | None:
+    """The time a scheduled run waits for after failed runs; None for other events or when it may run."""
+    if os.environ.get("GITHUB_EVENT_NAME") != "schedule":
+        return None
+    try:
+        runs = releases.gh_json(f"repos/{repository}/actions/workflows/{WORKFLOW_FILE}/runs?per_page=30")
+    except RuntimeError:
+        warn("Could not read this workflow's earlier runs; merging without a backoff")
+        return None
+    stamp = output("log", "-1", "--format=%cI", "--fixed-strings", f"--author={BOT}", "HEAD")
+    last = datetime.fromisoformat(stamp) if stamp else datetime.min.replace(tzinfo=UTC)
+    until = backoff_until(runs.get("workflow_runs", []), last, int(os.environ.get("GITHUB_RUN_ID") or 0))
+    return until if until is not None and until > datetime.now(UTC) else None
+
+
 def prepare(repository: str, artifacts: Path) -> None:
     if output("status", "--porcelain"):
         raise RuntimeError("Preparation requires a clean disposable checkout")
     settings = config()
     base = output("rev-parse", "HEAD")
-    git("config", "user.name", "hermes-upstream-sync[bot]")
+    artifacts.mkdir(parents=True, exist_ok=True)
+    until = backing_off(repository)
+    if until is not None:
+        warn(f"Earlier runs failed: the next scheduled merge starts after {until:%Y-%m-%d %H:%M} UTC."
+             " Dispatch the workflow to retry now")
+        manifest = dict(repository=repository, base=base, upstream=base, upstream_tip=base, candidate=base,
+                        changed=False, needed=False, remaining=False, releases=[], steps=[])
+        write_json(artifacts / "manifest.json", manifest)
+        emit(manifest)
+        return
+    git("config", "user.name", BOT)
     git("config", "user.email", "hermes-upstream-sync@users.noreply.github.com")
     git("fetch", "--no-tags", UPSTREAM, "+refs/heads/main:refs/remotes/fork-upstream/main")
     tip = output("rev-parse", "refs/remotes/fork-upstream/main")
     since = os.environ.get("SYNC_RELEASES_SINCE") or settings["releases_since"]
     pending = releases.discover(repository, since)
-    artifacts.mkdir(parents=True, exist_ok=True)
     manifest = dict(repository=repository, base=base, upstream=tip, upstream_tip=tip,
                     candidate=base, changed=False, needed=False, releases=pending, steps=[])
     write_json(artifacts / "manifest.json", manifest)
@@ -704,6 +749,18 @@ def publish(artifacts: Path, repository: str, reconciled: Path | None = None) ->
               flush=True)
     releases.publish(repository, data["releases"], data["candidate"])
     print(f"Published main {landed[:12]} and {len(data['releases'])} release(s)")
+    # Upstream lands commits all hour: a run that reached its tip is usually behind again by now.
+    more = bool(data.get("remaining")) or upstream_ahead(landed)
+    destination = os.environ.get("GITHUB_OUTPUT")
+    if destination:
+        with open(destination, "a", encoding="utf-8") as handle:
+            handle.write(f"continue={str(more).lower()}\n")
+
+
+def upstream_ahead(landed: str) -> bool:
+    """Whether upstream main, fetched now, has commits the landed fork main does not."""
+    git("fetch", "--no-tags", UPSTREAM, "+refs/heads/main:refs/remotes/fork-upstream/main")
+    return not ancestor(output("rev-parse", "refs/remotes/fork-upstream/main"), landed)
 
 
 def main() -> None:

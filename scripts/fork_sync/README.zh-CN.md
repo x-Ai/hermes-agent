@@ -1,6 +1,6 @@
 # Fork 自动同步上游
 
-工作流：`.github/workflows/fork-upstream-sync.yml`。**每小时检查一次**，在 UTC 每小时第 **7 分钟**轮询 `NousResearch/hermes-agent/main` 和 Releases，也支持在 Actions 页面手动执行。GitHub 的定时任务可能延迟；长任务串行执行，排队的定时任务也可能被替换，不能承诺严格一小时内完成同步。
+工作流：`.github/workflows/fork-upstream-sync.yml`。**每小时检查两次**，在 UTC 每小时第 **23 分和 53 分**轮询 `NousResearch/hermes-agent/main` 和 Releases，也支持在 Actions 页面手动执行。GitHub 的定时任务是尽力而为：负载高时会延迟或直接丢弃，整点前后最严重。原来的 `7 * * * *` 在 2026-11-08/09 的 37 个小时里只触发了 7 次，大多晚了 35–50 分钟，所以有好几个小时没有任何运行，看起来像没在自动跑。现在改成每半小时一次、避开整点；运行期间到来的触发会作为唯一的待运行任务排队，上一轮结束就立即开始。失败后，定时触发的运行会退避（见「故障与重试」），手动触发不受影响。
 
 ## 启用
 
@@ -31,7 +31,7 @@
 4. **Reconcile（无写 token）**：一轮约两小时，期间 fork 自己的会话常会推送 main。以前发布时 main 一变就整轮作废：2026-11-09 的 run 42545414309 合进了 514 个上游提交，因为期间三个桌面文案修复被推上 main 而被拒，下一轮的起点不到一小时也被两次推送超过。上游的做法是直接推送、事后在 main 上跑 CI；这里仍坚持“未经检查的内容不发布”，但只复查 main 的新提交在候选之上改变了什么（`reconcile.py`）：git 必须能无冲突地合并新 main 和候选；合并结果上跑 `config.json` 的检查——不带 `--dir` 的每次都跑（`scripts/check` 以新 main 为基准），带 `pnpm --dir <目录>` 的只在新提交改到那个目录（或根目录的 `package.json`、`pnpm-lock.yaml`、`pnpm-workspace.yaml`、`apps/shared/`）时跑；再跑新提交改动的每个桌面文件同目录的 UI 测试，以及从候选到合并结果能波及的 Python 测试（`select_tests.py`）。Python 测试超过一个分片（例如依赖锁或 conftest 改了），或者有冲突，就不合并，下一轮照旧从新 main 开始。main 没变时这个任务只花约一分钟。用当时的真实数据回放：自动生成的合并和手动落地的 `2f5ab6fb04` 树完全一致，选中的检查是 `scripts/check`、桌面 typecheck+lint、i18n key 导出，以及同样的 771 个桌面测试文件。
 5. **Publish（仅此任务可写仓库）**：main 还是这一轮的起点时，用普通 fast-forward push 推进到候选；main 已经包含候选（例如只发布 Release 的一轮）时不推送；否则只推送 Reconcile 复查过的合并，并先证明它正是“当前 main 与已验证候选的无冲突合并”：两个父提交分别是当前 main 和候选，树与 `git merge-tree` 重算的结果相同。复查期间 main 又变了，或者没有复查过的合并，就照旧失败，下一轮从新 main 重新计算。然后创建缺失的 Release，Tag 仍打在候选的历史里。
 
-fork 的稳定版 Release 也由本工作流发布，原来手动运行的 `fork-stable-release.yml` 已并入（见「Release 语义」），因此只有本工作流移动 Release 的 Tag；同一时间只运行一个同步，较新的排队运行会替换较旧的。发布成功后若还有未合并的 upstream main 或 Release（`remaining`），Publish 任务会立即用 `workflow_dispatch` 启动下一轮，不必等到下一个整点；运行失败或已经追平时不会再触发。AI 时间预算、步骤上限、检查与测试命令、分片参数保存在 `config.json`；Prepare、每条 Validate lane、每个 Python 测试分片、Reconcile 和 Publish 分别有 155/60/90/90/20 分钟硬超时。有更新才调用 AI；落后很多时，追上之前的几轮 API 花费和执行时间会明显增加。
+fork 的稳定版 Release 也由本工作流发布，原来手动运行的 `fork-stable-release.yml` 已并入（见「Release 语义」），因此只有本工作流移动 Release 的 Tag；同一时间只运行一个同步，较新的排队运行会替换较旧的。发布成功后，只要还有没合并的内容，Publish 任务就立即用 `workflow_dispatch` 启动下一轮：准备阶段结束时还有没合并的 upstream main 或 Release（`remaining`），或者发布时重新拉取的 upstream main 已经超过刚落地的提交。上游整个小时都在合并，一轮跑完通常又落后了；以前只看准备阶段的 `remaining`，一轮追平上游后就停下来等定时任务：run 42581981713 合完了全部 193 个提交，发布时上游又多了一批，之后 1.5 小时都没有运行。运行失败时不会触发下一轮，由定时任务重试。AI 时间预算、步骤上限、检查与测试命令、分片参数保存在 `config.json`；Prepare、每条 Validate lane、每个 Python 测试分片、Reconcile 和 Publish 分别有 155/60/90/90/20 分钟硬超时。有更新才调用 AI；落后很多时，追上之前的几轮 API 花费和执行时间会明显增加。
 
 ## 分步合并与时间预算
 
@@ -129,7 +129,7 @@ fork 的 vX.Y.Z = 上游 vX.Y.Z 加上本仓库的改动，`hermes update --set-
 
 Pi 非零退出、超时、JSONL 中的模型错误、缺少 `agent_settled` 或最终成功 JSON、冲突残留、丢失测试、测试失败（重跑一次仍失败）或推送拒绝都会让对应步骤或整轮失败，不能发布未通过检查的内容；第一步之后的步骤失败时，只丢弃这一步，已完成的步骤照常验证发布。模型错误采用保守策略：即使 Pi 后续自行重试成功，这一步仍算失败。prepare 会尽量上传 `fork-sync-candidate` 诊断产物；成功准备时包含候选 bundle/manifest，每个失败的步骤还会保存 `step-<n>.patch`（已跟踪文件的工作区 patch）和 `step-<n>.json`（步骤信息、错误和冲突列表）。以前的恢复 bundle 打包了整个仓库历史（约 1.2 GB），已删除。产物保存 7 天，不包含 API Key、模型完整对话或环境转储。失败时没有自动创建 PR/远端待处理分支，避免依赖额外 PR 写权限。
 
-工作流下一轮会重试。新 Release 优先处理，所以一个反复合并失败的 Release 也会挡住 main 的同步；要跳过它，在 fork 中为同一个 Tag 创建 Release（草稿也可以，它会占用这个 Tag 名），同步就不再处理它。持续失败时可设置 `SYNC_PAUSED=true` 控制 API 支出，在 Actions 日志定位失败步骤。检查失败不会自动放松测试；调整规则应作为独立维护变更审查。发布阶段若 main 已推进但 Release 创建失败，不回滚 main，后续轮询补齐尚未创建的 Release；已发布版本不会重复创建。
+失败后由定时任务重试，并按失败次数退避：自上次成功发布（同步机器人在 main 上最新的提交）以来每多失败一轮，等待时间翻倍，从最近一次失败结束算起，依次为 30 分钟、1、2、4 小时，最长 8 小时（`run.py` 的 `backoff_until`）。这样偶发的网络故障（例如 GitHub Release 下载 504，2026-11-09 的 run 42568240608 就是因此在Validate 安装依赖时失败）半小时内就会重试，而反复出现的失败不会每半小时花一次模型预算。手动触发的运行和由成功发布接力的运行不会退避；退避中的定时运行只做检查就结束，并在运行页面给出下一次合并的时间。新 Release 优先处理，所以一个反复合并失败的 Release 也会挡住 main 的同步；要跳过它，在 fork 中为同一个 Tag 创建 Release（草稿也可以，它会占用这个 Tag 名），同步就不再处理它。持续失败时可设置 `SYNC_PAUSED=true` 控制 API 支出，在 Actions 日志定位失败步骤。检查失败不会自动放松测试；调整规则应作为独立维护变更审查。发布阶段若 main 已推进但 Release 创建失败，不回滚 main，后续轮询补齐尚未创建的 Release；已发布版本不会重复创建。
 
 上游无变更、且没有待同步的新 Release 时结束，不安装项目依赖、不调用模型。准备任务仍会安装固定版 CLI，确保运行环境一致。每轮 Pi 总预算默认 100 分钟，配置位于 `config.json`；Pi CLI 没有采用自研轮数计数器，上下文压缩交给 Pi。任一 Validate lane、Python 测试分片或 Reconcile 的复查失败后，本轮停止，下一轮重新尝试。
 

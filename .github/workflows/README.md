@@ -10,7 +10,9 @@ The YAML is the source of truth. If this file and a workflow disagree, the
 workflow wins. Fix this file in the same PR.
 
 Fork-specific automation: [`fork-upstream-sync.yml`](fork-upstream-sync.yml) polls upstream
-main and published releases once per hour at minute 7 (UTC). It merges upstream in bounded steps with Pi, using a configured
+main and published releases twice an hour (minutes 23 and 53 UTC; GitHub drops many schedules near the top of the hour),
+chains the next run right after a publish while upstream has more, and backs off after failed runs. It merges upstream in
+bounded steps with Pi, using a configured
 Anthropic-compatible endpoint, and validates the exact candidate without secrets (parallel validate lanes with the desktop UI
 suite sharded, and the Python tests the merge can affect, in parallel shards), then advances fork main. When fork main moved
 during the run, a reconcile job merges it into the candidate and re-checks only what the newer commits change, and publish
