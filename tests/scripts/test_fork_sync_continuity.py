@@ -152,38 +152,23 @@ def test_publish_starts_the_next_run_when_upstream_moved_past_what_landed(
     assert out.read_text(encoding="utf-8").strip() == f"continue={str(upstream_moved).lower()}"
 
 
-def needs(prepare="success", needed="true", publish="success", more="false"):
-    """The workflow's ``needs`` context as the next job receives it."""
-    return {"prepare": {"result": prepare, "outputs": {"needed": needed}},
-            "validate": {"result": "success" if publish == "success" else "failure", "outputs": {}},
-            "publish": {"result": publish, "outputs": {"continue": more} if publish == "success" else {}}}
-
-
-def test_the_next_run_waits_according_to_how_this_run_ended(controller):
-    assert controller.next_delay(needs(more="true"), failures=0) == 0  # upstream has more: go on now
-    assert controller.next_delay(needs(more="false"), failures=0) == 30  # caught up: look again later
-    assert controller.next_delay(needs(needed="false", publish="skipped"), failures=0) == 30  # nothing to merge
-    failed = needs(publish="skipped")
-    assert [controller.next_delay(failed, failures=n) for n in range(5)] == [30, 60, 120, 240, 240]
-    assert controller.next_delay(needs(prepare="failure", needed="", publish="skipped"), failures=0) == 30
-
-
-def test_every_run_starts_the_next_one_with_its_wait(controller, repo, tmp_path, monkeypatch):
-    runs = {"workflow_runs": [run(41, "failure", 30), run(40, "failure", 90), run(39, "success", 200)]}
-    monkeypatch.setattr(controller.releases, "gh_json", lambda path, missing_ok=False: runs)
-    monkeypatch.setenv("GITHUB_RUN_ID", "42")
-    monkeypatch.setenv("RESULTS", json.dumps(needs(publish="skipped")))
-    real = subprocess.run
-    dispatched = []
+def test_publish_keeps_only_this_workflow_enabled_on_the_fork(controller, monkeypatch):
+    # Upstream's workflows, including one a merge just brought in, start out enabled on the fork.
+    listing = "\n".join([
+        "11\t.github/workflows/docker.yml\tactive",
+        "12\t.github/workflows/fork-upstream-sync.yml\tactive",
+        "13\t.github/workflows/ci.yaml\tdisabled_manually",
+        "14\t.github/workflows/brand-new-upstream.yml\tactive",
+    ]) + "\n"
+    calls = []
 
     def fake(argv, **kwargs):
-        if argv[0] != "gh":
-            return real(argv, **kwargs)
-        dispatched.append(argv)
-        return subprocess.CompletedProcess(argv, 0, "", "")
+        calls.append(argv)
+        return subprocess.CompletedProcess(argv, 0, listing if "--paginate" in argv else "", "")
 
     monkeypatch.setattr(controller.subprocess, "run", fake)
-    controller.chain("owner/repo", tmp_path)
-    # Two failed runs before this failed one: the next waits two hours.
-    assert dispatched == [["gh", "workflow", "run", "fork-upstream-sync.yml", "--repo", "owner/repo", "--ref", "main",
-                           "-f", "delay_minutes=120"]]
+    controller.quiet_others("owner/repo", Path("unused"))
+    assert [argv for argv in calls if "-X" in argv] == [
+        ["gh", "api", "-X", "PUT", "repos/owner/repo/actions/workflows/11/disable"],
+        ["gh", "api", "-X", "PUT", "repos/owner/repo/actions/workflows/14/disable"],
+    ]

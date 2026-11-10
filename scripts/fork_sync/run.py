@@ -53,12 +53,10 @@ REASON_SHOWN = 600
 FLAKY_REPORT = "⚠ FLAKY:"
 WORKFLOW_FILE = "fork-upstream-sync.yml"
 BOT = "hermes-upstream-sync[bot]"
-# After a failed run the next one waits 30 minutes, then 1 and 2 hours, at most 4, as failures repeat, so
-# a failure that repeats does not spend a model budget every half hour. The cap fits one waiting job.
+# After failed runs a scheduled run waits 30 minutes, then 1 and 2 hours, at most 4, from the last
+# failure before it merges again, so a failure that repeats does not spend a model budget every slot.
 BACKOFF_SECONDS = (1800, 4 * 3600)
 FAILED = ("failure", "timed_out", "startup_failure")
-# A run that found nothing to merge has the next one check again after this long.
-IDLE_MINUTES = 30
 
 
 def git(*args: str, check: bool = True) -> subprocess.CompletedProcess:
@@ -167,29 +165,24 @@ def backing_off(repository: str) -> datetime | None:
     return until if until is not None and until > datetime.now(UTC) else None
 
 
-def next_delay(results: dict, failures: int) -> int:
-    """Minutes the next run waits before merging, from this run's job results (the workflow's ``needs``).
+def quiet_others(repository: str, artifacts: Path) -> None:
+    """Keep every workflow but this one disabled on the fork.
 
-    0 after a publish that left upstream with more to merge, IDLE_MINUTES after a run that merged
-    nothing, and the backoff for this failed run plus the ``failures`` before it otherwise.
+    Upstream tests its own code, and its workflows cannot run here anyway: they ask for Blacksmith
+    runners the fork does not have and sit queued until cancelled. Each sync publish pushes main and
+    triggered dozens of them, and on 2026-11-10 GitHub disabled Actions on the fork to stop the waste.
+    Disabling them once is not enough, because merges bring in upstream's new workflow files enabled.
     """
-    publish, prepared = results.get("publish", {}), results.get("prepare", {})
-    if publish.get("result") == "success":
-        return 0 if publish.get("outputs", {}).get("continue") == "true" else IDLE_MINUTES
-    if prepared.get("result") == "success" and prepared.get("outputs", {}).get("needed") != "true":
-        return IDLE_MINUTES
-    return backoff_seconds(failures + 1) // 60
-
-
-def chain(repository: str, artifacts: Path) -> None:
-    """Start the next run when this one ends: GitHub fires only a fraction of this repository's schedule."""
-    found = recent_runs(repository)
-    failures = failures_since(*found, int(os.environ.get("GITHUB_RUN_ID") or 0)) if found else []
-    delay = next_delay(json.loads(os.environ.get("RESULTS") or "{}"), len(failures))
-    print(f"Starting the next run; it waits {delay} minute(s) before merging", flush=True)
-    argv = ["gh", "workflow", "run", WORKFLOW_FILE, "--repo", repository, "--ref", "main", "-f", f"delay_minutes={delay}"]
-    if subprocess.run(argv, timeout=120, check=False).returncode:
-        raise RuntimeError("Could not start the next run; the schedule picks the sync up again")
+    own = f".github/workflows/{WORKFLOW_FILE}"
+    listed = subprocess.run(["gh", "api", "--paginate", f"repos/{repository}/actions/workflows?per_page=100",
+                             "--jq", ".workflows[] | [.id, .path, .state] | @tsv"],
+                            capture_output=True, text=True, encoding="utf-8", timeout=120, check=True).stdout
+    for line in listed.splitlines():
+        workflow, path, state = line.split("\t")
+        if state == "active" and path != own:
+            subprocess.run(["gh", "api", "-X", "PUT", f"repos/{repository}/actions/workflows/{workflow}/disable"],
+                           capture_output=True, text=True, encoding="utf-8", timeout=120, check=True)
+            print(f"Disabled {path}", flush=True)
 
 
 def start_from_latest_main() -> str:
@@ -819,7 +812,7 @@ def main() -> None:
     logging.basicConfig(level=logging.INFO, format="%(message)s")
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("phase", choices=("prepare", "materialize", "validate", "test", "reconcile", "recheck",
-                                          "publish", "next"))
+                                          "publish", "quiet"))
     parser.add_argument("--artifacts", type=Path, required=True)
     parser.add_argument("--shard", type=int, default=0, help="test phase: 1-based shard number")
     parser.add_argument("--lane", help="validate phase: one of validation_lanes()")
@@ -835,7 +828,7 @@ def main() -> None:
     phases = dict(prepare=prepare, materialize=checkout_candidate, validate=partial(validate, lane=args.lane),
                   test=partial(run_shard, shard=args.shard), reconcile=partial(reconcile_main, reconciled=reconciled),
                   recheck=partial(recheck, reconciled=reconciled), publish=partial(publish, reconciled=reconciled),
-                  next=chain)
+                  quiet=quiet_others)
     phases[args.phase](repository=args.repository, artifacts=artifacts)
 
 

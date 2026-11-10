@@ -10,10 +10,10 @@ The YAML is the source of truth. If this file and a workflow disagree, the
 workflow wins. Fix this file in the same PR.
 
 Fork-specific automation: [`fork-upstream-sync.yml`](fork-upstream-sync.yml) polls upstream
-main and published releases continuously: every run starts the next one when it ends, which waits before merging (not
-at all while upstream has more, 30 minutes after a run with nothing to merge, 30 minutes doubling to 4 hours after failed
-runs). A schedule at minutes 23 and 53 UTC only restarts a broken chain, because GitHub fires a fraction of this
-repository's scheduled slots. It merges upstream in bounded steps with Pi, using a configured
+main and published releases at minutes 23 and 53 UTC, and starts the next run right after a publish while upstream has
+more; nothing ever waits on a runner. It is the only workflow enabled on this fork: GitHub disabled the fork's Actions on
+2026-11-10 after every sync push queued dozens of upstream workflows that need runners only upstream has, so every other
+workflow is disabled and publish disables any that merges bring back. It merges upstream in bounded steps with Pi, using a configured
 Anthropic-compatible endpoint, and validates the exact candidate without secrets (parallel validate lanes with the desktop UI
 suite sharded, and the Python tests the merge can affect, in parallel shards), then advances fork main. When fork main moved
 during the run, a reconcile job merges it into the candidate and re-checks only what the newer commits change, and publish
