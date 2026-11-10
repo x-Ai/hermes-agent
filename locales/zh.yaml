@@ -3478,6 +3478,17 @@ cli:
     discarded: "工作树已移除，更改已丢弃：{path}"
   whatsapp_setup:
     pairing_incomplete: "配对未完成，请重新运行 'hermes whatsapp' 并选择重新配对"
+  fallback_check:
+    none_configured: "尚未配置备用提供方。添加方式：hermes fallback add"
+    static_only: "仅做静态检查（未发送推理请求）。使用 --live 可为每个条目发送一个最小请求。"
+    col_provider_model: "提供方 / 模型"
+    col_config: "配置"
+    col_auth: "认证"
+    col_live: "实测"
+    col_latency: "延迟"
+    col_status: "状态"
+    mark_ok: "正常"
+    mark_fail: "失败"
 display:
   verb:
     web_search: "搜索网页"

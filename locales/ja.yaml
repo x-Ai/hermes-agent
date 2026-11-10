@@ -3474,6 +3474,17 @@ cli:
     discarded: "ワークツリーを削除し、変更を破棄しました: {path}"
   whatsapp_setup:
     pairing_incomplete: "ペアリングが完了していません。'hermes whatsapp' をもう一度実行し、再ペアリングを選択してください。"
+  fallback_check:
+    none_configured: "フォールバックプロバイダーが設定されていません。追加するには: hermes fallback add"
+    static_only: "静的チェックのみです（推論リクエストは送信していません）。--live を付けると、エントリーごとに最小限のリクエストを 1 件送信します。"
+    col_provider_model: "プロバイダー / モデル"
+    col_config: "設定"
+    col_auth: "認証"
+    col_live: "実測"
+    col_latency: "レイテンシ"
+    col_status: "状態"
+    mark_ok: "OK"
+    mark_fail: "失敗"
 display:
   verb:
     web_search: "ウェブを検索中"

@@ -3476,6 +3476,17 @@ cli:
     discarded: "Worktree eliminado y cambios descartados: {path}"
   whatsapp_setup:
     pairing_incomplete: "La vinculación está incompleta. Ejecuta 'hermes whatsapp' de nuevo y elige volver a vincular."
+  fallback_check:
+    none_configured: "No hay proveedores de respaldo configurados. Añade uno con: hermes fallback add"
+    static_only: "Solo comprobación estática (no se envió ninguna solicitud de inferencia). Usa --live para enviar una solicitud mínima por entrada."
+    col_provider_model: "Proveedor / modelo"
+    col_config: "Config"
+    col_auth: "Credenciales"
+    col_live: "En vivo"
+    col_latency: "Latencia"
+    col_status: "Estado"
+    mark_ok: "ok"
+    mark_fail: "FALLO"
 display:
   verb:
     web_search: "Buscando en la web"

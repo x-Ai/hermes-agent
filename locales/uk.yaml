@@ -3476,6 +3476,17 @@ cli:
     discarded: "Робоче дерево видалено, зміни відкинуто: {path}"
   whatsapp_setup:
     pairing_incomplete: "Зв'язування не завершено. Знову запустіть 'hermes whatsapp' і виберіть повторне зв'язування."
+  fallback_check:
+    none_configured: "Резервних провайдерів не налаштовано. Додайте провайдера командою: hermes fallback add"
+    static_only: "Лише статична перевірка (запит до моделі не надсилався). З --live для кожного запису надсилається один мінімальний запит."
+    col_provider_model: "Провайдер / модель"
+    col_config: "Конфіг"
+    col_auth: "Доступ"
+    col_live: "Запит"
+    col_latency: "Затримка"
+    col_status: "Статус"
+    mark_ok: "ОК"
+    mark_fail: "ЗБІЙ"
 display:
   verb:
     web_search: "Шукає в інтернеті"

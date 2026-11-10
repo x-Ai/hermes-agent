@@ -3475,6 +3475,17 @@ cli:
     discarded: "تمت إزالة الـ worktree وتجاهل تغييراته: {path}"
   whatsapp_setup:
     pairing_incomplete: "الاقتران غير مكتمل. شغّل 'hermes whatsapp' مرة أخرى واختر إعادة الاقتران."
+  fallback_check:
+    none_configured: "لا يوجد مزوّد احتياطي مُعدّ. أضف واحدًا باستخدام: hermes fallback add"
+    static_only: "فحص ثابت فقط (لم يُرسَل أي طلب استدلال). استخدم --live لإرسال طلب واحد بالحد الأدنى لكل إدخال."
+    col_provider_model: "المزوّد / النموذج"
+    col_config: "الإعداد"
+    col_auth: "المصادقة"
+    col_live: "مباشر"
+    col_latency: "زمن الاستجابة"
+    col_status: "الحالة"
+    mark_ok: "سليم"
+    mark_fail: "فشل"
 display:
   verb:
     web_search: "يبحث في الويب"

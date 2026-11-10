@@ -3476,6 +3476,17 @@ cli:
     discarded: "Worktree удалён, изменения отброшены: {path}"
   whatsapp_setup:
     pairing_incomplete: "Сопряжение не завершено. Снова запустите 'hermes whatsapp' и выберите повторное сопряжение."
+  fallback_check:
+    none_configured: "Резервные провайдеры не настроены. Добавьте провайдера командой: hermes fallback add"
+    static_only: "Только статическая проверка (запрос к модели не отправлялся). С --live для каждой записи отправляется один минимальный запрос."
+    col_provider_model: "Провайдер / модель"
+    col_config: "Конфиг"
+    col_auth: "Доступ"
+    col_live: "Запрос"
+    col_latency: "Задержка"
+    col_status: "Статус"
+    mark_ok: "ОК"
+    mark_fail: "СБОЙ"
 display:
   verb:
     web_search: "Ищу в интернете"

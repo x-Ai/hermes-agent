@@ -3475,6 +3475,17 @@ cli:
     discarded: "Worktree kaldırıldı ve değişiklikleri atıldı: {path}"
   whatsapp_setup:
     pairing_incomplete: "Eşleştirme tamamlanmadı. 'hermes whatsapp' komutunu yeniden çalıştırın ve yeniden eşleştirmeyi seçin."
+  fallback_check:
+    none_configured: "Yapılandırılmış yedek sağlayıcı yok. Eklemek için: hermes fallback add"
+    static_only: "Yalnızca statik denetim (çıkarım isteği gönderilmedi). Her girdi için tek bir asgari istek göndermek üzere --live kullanın."
+    col_provider_model: "Sağlayıcı / model"
+    col_config: "Yapılandırma"
+    col_auth: "Kimlik"
+    col_live: "Canlı"
+    col_latency: "Gecikme"
+    col_status: "Durum"
+    mark_ok: "tamam"
+    mark_fail: "HATA"
 display:
   verb:
     web_search: "Web'de arıyor"

@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 import enum
 import os
+import posixpath
 import threading
 from contextlib import contextmanager
 from typing import Any, Dict, List, Optional
@@ -229,7 +230,21 @@ def _build_child_system_prompt(
     return "\n".join(parts)
 
 def _resolve_host_workspace_hint(parent_agent) -> Optional[str]:
-    """Best-effort host workspace used for loading project context files."""
+    """Best-effort host workspace used for loading project context files; also the child's
+    WORKSPACE PATH on every backend that does not translate it (see ``_resolve_workspace_hint``).
+    Only a concrete absolute directory is ever returned.
+
+    On SSH a candidate must name the target, not this host. Skip a relative or
+    ``~`` cwd (expanding it against this host's HOME or process cwd can land on
+    a same-named local directory), read the session cwd raw instead of the
+    subdirectory tracker's copy (resolved on this host, and the host process
+    cwd when unset), and skip a directory the SSH cwd rewrite changes (the
+    official image's ``/opt/data`` and its subprocess home exist only where
+    Hermes runs).
+    """
+    from tools.terminal_scope import terminal_env
+    from tools.terminal_tool_config import coerce_ssh_remote_cwd
+
     runtime_workspace = None
     with _quiet("subagent: runtime workspace resolution failed", exc_info=True):
         from agent.runtime_cwd import scope_terminal_cwd
@@ -242,6 +257,12 @@ def _resolve_host_workspace_hint(parent_agent) -> Optional[str]:
         raw_parent_task_id = getattr(parent_agent, "_current_task_id", None)
         parent_task_id = raw_parent_task_id if isinstance(raw_parent_task_id, str) else None
         registered_workspace = resolve_task_overrides(parent_task_id).get("cwd")
+    env_type = terminal_env("TERMINAL_ENV", "local")
+    on_ssh = env_type.strip().lower() == "ssh"
+    session_dir = (
+        getattr(parent_agent, "session_cwd", None) if on_ssh
+        else getattr(getattr(parent_agent, "_subdirectory_hints", None), "working_dir", None)
+    )
     # The session's registered project outranks the process launch cwd: a Desktop session on
     # project B whose backend was launched in A must hand the child B's AGENTS.md/CLAUDE.md. The
     # raw ``TERMINAL_CWD`` env var is the launch profile's under multiplex and is deliberately not
@@ -249,14 +270,19 @@ def _resolve_host_workspace_hint(parent_agent) -> Optional[str]:
     candidates = [
         registered_workspace,
         runtime_workspace,
-        getattr(getattr(parent_agent, "_subdirectory_hints", None), "working_dir", None),
+        session_dir,
         getattr(parent_agent, "terminal_cwd", None),
         getattr(parent_agent, "cwd", None),
     ]
     for candidate in filter(None, candidates):
         with _quiet(None):
-            text = os.path.abspath(os.path.expanduser(str(candidate)))
-            if os.path.isabs(text) and os.path.isdir(text):
+            raw = str(candidate)
+            if on_ssh and not posixpath.isabs(raw):
+                continue
+            text = os.path.abspath(os.path.expanduser(raw))
+            if coerce_ssh_remote_cwd(text, env_type) != text:
+                continue
+            if os.path.isdir(text):
                 return text
     return None
 

@@ -3494,6 +3494,17 @@ cli:
     discarded: "Worktree eltávolítva, változásai elvetve: {path}"
   whatsapp_setup:
     pairing_incomplete: "A párosítás nem fejeződött be. Futtasd újra a 'hermes whatsapp' parancsot, és válaszd az újrapárosítást."
+  fallback_check:
+    none_configured: "Nincs beállítva tartalék szolgáltató. Hozzáadás: hermes fallback add"
+    static_only: "Csak statikus ellenőrzés (nem ment ki következtetési kérés). A --live kapcsolóval bejegyzésenként egy minimális kérés megy ki."
+    col_provider_model: "Szolgáltató / modell"
+    col_config: "Konfig"
+    col_auth: "Hitelesítés"
+    col_live: "Élő"
+    col_latency: "Késleltetés"
+    col_status: "Állapot"
+    mark_ok: "rendben"
+    mark_fail: "HIBA"
 display:
   verb:
     web_search: "Keresés a weben"

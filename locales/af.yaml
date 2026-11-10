@@ -3476,6 +3476,17 @@ cli:
     discarded: "Werkboom verwyder en sy veranderinge weggegooi: {path}"
   whatsapp_setup:
     pairing_incomplete: "Koppeling is onvolledig. Voer 'hermes whatsapp' weer uit en kies om weer te koppel."
+  fallback_check:
+    none_configured: "Geen rugsteunverskaffers is opgestel nie. Voeg een by met: hermes fallback add"
+    static_only: "Slegs 'n statiese kontrole (geen inferensieversoek gestuur nie). Gebruik --live om een minimale versoek per inskrywing te stuur."
+    col_provider_model: "Verskaffer / model"
+    col_config: "Konfig"
+    col_auth: "Magtiging"
+    col_live: "Regstreeks"
+    col_latency: "Latensie"
+    col_status: "Status"
+    mark_ok: "ok"
+    mark_fail: "FOUT"
 display:
   verb:
     web_search: "Soek op die web"

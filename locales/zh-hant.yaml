@@ -3474,6 +3474,17 @@ cli:
     discarded: "工作樹已移除，變更已捨棄：{path}"
   whatsapp_setup:
     pairing_incomplete: "配對尚未完成。請再次執行 'hermes whatsapp' 並選擇重新配對。"
+  fallback_check:
+    none_configured: "尚未設定備用提供方。新增方式：hermes fallback add"
+    static_only: "僅做靜態檢查（未傳送推理請求）。使用 --live 可為每個項目傳送一個最小請求。"
+    col_provider_model: "提供方 / 模型"
+    col_config: "設定"
+    col_auth: "驗證"
+    col_live: "實測"
+    col_latency: "延遲"
+    col_status: "狀態"
+    mark_ok: "正常"
+    mark_fail: "失敗"
 display:
   verb:
     web_search: "搜尋網頁中"

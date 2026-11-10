@@ -3474,6 +3474,17 @@ cli:
     discarded: "워크트리를 제거하고 변경 사항을 버렸어요: {path}"
   whatsapp_setup:
     pairing_incomplete: "페어링이 완료되지 않았어요. 'hermes whatsapp'을 다시 실행하고 다시 페어링을 선택하세요."
+  fallback_check:
+    none_configured: "설정된 대체 제공자가 없어요. 추가하려면: hermes fallback add"
+    static_only: "정적 검사만 했어요(추론 요청은 보내지 않았어요). --live를 쓰면 항목마다 최소 요청을 하나씩 보내요."
+    col_provider_model: "제공자 / 모델"
+    col_config: "설정"
+    col_auth: "인증"
+    col_live: "실측"
+    col_latency: "지연 시간"
+    col_status: "상태"
+    mark_ok: "정상"
+    mark_fail: "실패"
 display:
   verb:
     web_search: "웹 검색 중"

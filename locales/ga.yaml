@@ -3476,6 +3476,17 @@ cli:
     discarded: "Worktree bainte agus a athruithe caite uait: {path}"
   whatsapp_setup:
     pairing_incomplete: "Níl an phéireáil críochnaithe. Rith 'hermes whatsapp' arís agus roghnaigh athphéireáil."
+  fallback_check:
+    none_configured: "Níl aon soláthraí cúltaca cumraithe. Cuir ceann leis le: hermes fallback add"
+    static_only: "Seiceáil statach amháin (níor seoladh aon iarratas tátail). Úsáid --live chun iarratas íosta amháin a sheoladh in aghaidh na hiontrála."
+    col_provider_model: "Soláthraí / samhail"
+    col_config: "Cumraíocht"
+    col_auth: "Údarú"
+    col_live: "Beo"
+    col_latency: "Moill"
+    col_status: "Stádas"
+    mark_ok: "ceart"
+    mark_fail: "TEIP"
 display:
   verb:
     web_search: "ag cuardach an ghréasáin"

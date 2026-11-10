@@ -3593,6 +3593,17 @@ cli:
   whatsapp_setup:
     pairing_incomplete: "Pairing is incomplete. Run 'hermes whatsapp' again and choose to re-pair."
 
+  fallback_check:
+    none_configured: "No fallback providers configured. Add one with: hermes fallback add"
+    static_only: "Static check only (no inference request sent). Use --live to send one minimal request per entry."
+    col_provider_model: "Provider / model"
+    col_config: "Config"
+    col_auth: "Auth"
+    col_live: "Live"
+    col_latency: "Latency"
+    col_status: "Status"
+    mark_ok: "ok"
+    mark_fail: "FAIL"
 display:
   # Tool verbs, spinner/progress text, completion rows and failure suffixes (agent/display.py).
   # ``verb.<tool>`` is resolved at call time by get_tool_verb(); the connector joins verb + preview.
