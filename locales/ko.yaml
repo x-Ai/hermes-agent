@@ -4685,7 +4685,7 @@ core:
     codex_incomplete_error: "{n}번 이어쓰기를 요청한 뒤에도 Codex 응답이 불완전합니다"
   empty_recovery:
     post_tool_nudge: "⚠️ 도구 호출 후 모델이 빈 응답을 반환했습니다 — 계속하도록 유도합니다 ({n}/{budget})"
-    thinking_prefill: "↻ 사고만 있고 표시할 텍스트가 없습니다 — 계속 생성하도록 프리필합니다 ({n}/{budget})"
+    thinking_prefill: "↻ 사고만 있고 표시할 텍스트가 없습니다 — 응답을 완성하도록 요청합니다 ({n}/{budget})"
     retry_status: "⚠️ 모델이 빈 응답을 반환했습니다 — {wait}초 후 다시 시도합니다 ({n}/{budget}){note}"
     high_cost_note: " — 고비용 요청이므로 재시도 횟수를 줄였습니다"
   failed_turn:

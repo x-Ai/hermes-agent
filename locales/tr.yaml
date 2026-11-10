@@ -4686,7 +4686,7 @@ core:
     codex_incomplete_error: "Codex yanıtı {n} devam denemesinden sonra eksik kaldı"
   empty_recovery:
     post_tool_nudge: "⚠️ Model araç çağrılarından sonra boş yanıt döndürdü — devam etmesi için dürtülüyor ({n}/{budget})"
-    thinking_prefill: "↻ Yalnızca düşünme içeren yanıt, görünür metin yok — devam için ön doldurma yapılıyor ({n}/{budget})"
+    thinking_prefill: "↻ Yalnızca düşünme içeren yanıt, görünür metin yok — yanıtın tamamlanması isteniyor ({n}/{budget})"
     retry_status: "⚠️ Modelden boş yanıt — {wait}s içinde yeniden deneniyor ({n}/{budget}){note}"
     high_cost_note: " — maliyetli istek, yeniden deneme bütçesi azaltıldı"
   failed_turn:

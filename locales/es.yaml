@@ -4687,7 +4687,7 @@ core:
     codex_incomplete_error: "La respuesta de Codex siguió incompleta tras {n} intento(s) de continuación"
   empty_recovery:
     post_tool_nudge: "⚠️ El modelo devolvió una respuesta vacía tras las llamadas a herramientas — se le pide continuar ({n}/{budget})"
-    thinking_prefill: "↻ Respuesta solo de razonamiento, sin texto visible — se prerrellena para continuar ({n}/{budget})"
+    thinking_prefill: "↻ Respuesta solo de razonamiento, sin texto visible — se solicita completar la respuesta ({n}/{budget})"
     retry_status: "⚠️ Respuesta vacía del modelo — reintentando ({n}/{budget}) en {wait}s{note}"
     high_cost_note: " — solicitud costosa, presupuesto de reintentos reducido"
   failed_turn:

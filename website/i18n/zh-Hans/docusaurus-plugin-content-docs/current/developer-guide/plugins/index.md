@@ -559,6 +559,57 @@ def register(ctx):
 
 所有回调都应接受 `**kwargs` 以保持向前兼容性。如果钩子回调崩溃，会被记录日志并跳过。其他钩子和代理继续正常运行。
 
+### 每个钩子的触发位置 {#hook-fire-sites}
+
+`hermes_cli.plugins.VALID_HOOKS` 中的每个名称在核心代码中都至少有一个触发位置。下表列出触发每个钩子的函数，方便你查阅确切的调用和载荷。路径相对于仓库根目录。新增钩子时，请在同一次改动中在这里补上对应的行。
+
+| 钩子 | 触发位置 |
+|------|----------|
+| `pre_tool_call` | `hermes_cli/plugins.py` `_dispatch_pre_tool_call_hooks`，由 `agent/tool_executor.py` `_pre_tool_block`、`agent/agent_runtime_helpers.py` `_pre_tool_block_message` 和 `model_tools.py` `_pre_dispatch_guards` 调用 |
+| `post_tool_call` | `model_tools.py` `_emit_post_tool_call_hook` |
+| `transform_terminal_output` | `tools/terminal_tool_result.py` `_apply_output_transform_hook` |
+| `transform_tool_result` | `model_tools.py` `_apply_transform_tool_result_hook` |
+| `transform_llm_output` | `agent/turn_finalizer.py` `apply_llm_output_transform` |
+| `pre_llm_call` | `agent/turn_context.py` `_collect_pre_llm_call_context` |
+| `post_llm_call` | `agent/turn_finalizer.py` `_apply_output_hooks` |
+| `on_stream_start` / `on_stream_end` | `agent/stream_delivery.py` `StreamDeliveryMixin._emit_stream_start` / `_emit_stream_end` |
+| `on_stream_delta` | `agent/stream_delivery.py` `StreamDeliveryMixin._fire_stream_delta`（文本）和 `_fire_reasoning_delta`（推理） |
+| `on_interim_message` | `agent/stream_delivery.py` `StreamDeliveryMixin._emit_interim_assistant_message` |
+| `pre_verify` | `hermes_cli/plugins.py` `get_pre_verify_continue_message`，由 `agent/turn_stop_gates.py` `_pre_verify_nudge` 调用 |
+| `pre_api_request` | `agent/turn_api_request.py` `_fire_pre_api_request_hook` |
+| `post_api_request` | `agent/turn_response_intake.py` `_fire_post_api_request_hook` |
+| `api_request_error` | `agent/api_request_hooks.py` `ApiRequestHooksMixin._invoke_api_request_error_hook` |
+| `pre_auxiliary_call` / `post_auxiliary_call` | `agent/auxiliary_hooks.py` `_AuxCallHooks.pre` / `_AuxCallHooks.post` |
+| `transform_api_error_classification` | `hermes_cli/plugins.py` `get_plugin_error_classification`，由 `agent/error_classifier.py` `_plugin_verdict` 调用 |
+| `on_session_start` | `agent/conversation_loop.py` `_restore_or_build_system_prompt` |
+| `on_session_end` | `agent/turn_finalizer.py` `finalize_turn`；中断退出：`hermes_cli/cli_shutdown.py` `_invoke_interrupted_session_end`、`tui_gateway/session_lifecycle.py` `_finalize_session` |
+| `on_session_finalize` | `hermes_cli/lifecycle.py` `finalize_session`，由 `hermes_cli/cli_session_mixin.py` `CLISessionMixin._notify_session_boundary`、`hermes_cli/cli_shutdown.py` `_notify_session_finalize`、`tui_gateway/session_lifecycle.py` `_notify_session_boundary` 和 `gateway/run_shutdown_session_end.py` `GatewaySessionEndMixin._finalize_session_off_loop` 调用 |
+| `on_session_reset` | `hermes_cli/cli_session_mixin.py` `CLISessionMixin._notify_session_boundary`；`tui_gateway/session_registry.py` `_start_session_services`；`gateway/slash_commands_session.py` `GatewaySessionCommandsMixin._handle_reset_command`；`gateway/run_shutdown_session_end.py` `GatewaySessionEndMixin._reset_session_off_loop` |
+| `on_session_delete` | `hermes_state_common.py` `emit_session_deleted` |
+| `on_session_open` | `gateway/session_open.py` `_Open._deliver` |
+| `on_skill_lifecycle` | `tools/skill_usage.py` `_emit_skill_lifecycle` |
+| `subagent_start` | `tools/delegate_tool.py` `_build_child_agent` |
+| `subagent_stop` | `tools/delegate_tool_results.py` `_fire_subagent_stop_hooks` |
+| `pre_gateway_dispatch` | `gateway/run_inbound_hooks.py` `GatewayInboundHooksMixin._hm_pre_gateway_dispatch_hook`；webhook 与中继入口：`gateway/platforms/webhook_ingress.py` `_admit_once` |
+| `post_gateway_admission` | `gateway/run_inbound_consumer.py` `run_post_admission_hook`；`gateway/platforms/webhook_ingress.py` `_admit_once` |
+| `agent_loop_stopped` | `gateway/run_agent_cache.py` `GatewayAgentCacheMixin._interrupt_and_clear_session`；`tui_gateway/session_lifecycle.py` `_interrupt_session_turn` |
+| `pre_approval_request` / `post_approval_response` | `tools/approval_context.py` `_fire_approval_hook`，由 `tools/approval.py`、`tools/approval_prompt.py`、`tools/approval_gateway_wait.py`、`tools/approval_smart.py` 和 `tools/file_tools_write_guards.py` 调用 |
+| `on_human_input_request` / `on_human_input_resolved` | `tools/human_input_hooks.py` `human_input_request` |
+| `on_room_member_activity` | `tui_gateway/hosted_room_member_activity.py` `emit_room_member_activity` |
+| `pre_transcription` | `tools/transcription_command.py` `_apply_pre_transcription_hook` |
+| `kanban_task_claimed` | `hermes_cli/kanban_db.py` `claim_task`（经由 `_fire_task_hook`） |
+| `kanban_task_completed` | `hermes_cli/kanban_db.py` `complete_task`（经由 `_fire_task_hook`）；`hermes_cli/kanban_swarm.py` `create_swarm` |
+| `kanban_task_blocked` | `hermes_cli/kanban_db.py` `block_task`（经由 `_fire_task_hook`） |
+| `on_kanban_worker_spawned` | `hermes_cli/kanban_db.py` `_fire_worker_spawned_hook` |
+| `on_kanban_worker_exited` | `hermes_cli/kanban_db_dispatch.py` `detect_crashed_workers` |
+| `on_kanban_worker_stale_claim` | `hermes_cli/kanban_db.py` `release_stale_claims` |
+| `on_kanban_task_updated` | `hermes_cli/kanban_db.py` `notify_task_updated` |
+| `on_kanban_dispatch_tick` | `hermes_cli/kanban_db.py` `_fire_dispatch_tick_hook` |
+| `gateway_platform_event` | `gateway/run_adapters.py` `GatewayAdapterLifecycleMixin._handle_gateway_platform_event`（事件来自 Telegram 和 Discord 适配器） |
+| `pre_command` | `hermes_cli/plugins.py` `fire_pre_command_hook`，由 `cli.py` `HermesCLI.process_command`、`gateway/run_inbound_hooks.py` `GatewayInboundHooksMixin._hm_command_hooks` 和 `gateway/session_commands.py` 调用 |
+| `post_compaction` | `agent/compaction_events.py` `fire_post_compaction` |
+| `post_curator_run` | `agent/curator.py` `_notify_post_curator_run` |
+
 ### `pre_llm_call` 上下文注入
 
 这是唯一一个返回值有意义的钩子。当 `pre_llm_call` 回调返回包含 `"context"` 键的字典（或纯字符串）时，Hermes 会将该文本注入**当前轮次的用户消息**中。这是记忆插件、RAG 集成、护栏以及任何需要向模型提供额外上下文的插件所使用的机制。

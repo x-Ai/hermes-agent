@@ -4705,7 +4705,7 @@ core:
     codex_incomplete_error: "A Codex-válasz {n} folytatási kísérlet után is hiányos maradt"
   empty_recovery:
     post_tool_nudge: "⚠️ A modell üres választ adott az eszközhívások után — folytatásra ösztönzöm ({n}/{budget})"
-    thinking_prefill: "↻ Csak gondolkodás, látható szöveg nélkül — előtöltés a folytatáshoz ({n}/{budget})"
+    thinking_prefill: "↻ Csak gondolkodás, látható szöveg nélkül — a válasz befejezésének kérése ({n}/{budget})"
     retry_status: "⚠️ Üres válasz a modelltől — újrapróbálás ({n}/{budget}) {wait}s múlva{note}"
     high_cost_note: " — költséges kérés, az újrapróbálási keret csökkentve"
   failed_turn:

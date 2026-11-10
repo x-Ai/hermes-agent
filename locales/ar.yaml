@@ -4686,7 +4686,7 @@ core:
     codex_incomplete_error: "ظل رد Codex غير مكتمل بعد {n} من محاولات المتابعة"
   empty_recovery:
     post_tool_nudge: "⚠️ أعاد النموذج ردًا فارغًا بعد استدعاءات الأدوات — جارٍ حثه على المتابعة ({n}/{budget})"
-    thinking_prefill: "↻ رد يتضمن التفكير فقط دون نص مرئي — جارٍ التعبئة المسبقة للمتابعة ({n}/{budget})"
+    thinking_prefill: "↻ رد يتضمن التفكير فقط دون نص مرئي — جارٍ طلب إكمال الإجابة ({n}/{budget})"
     retry_status: "⚠️ رد فارغ من النموذج — إعادة المحاولة ({n}/{budget}) خلال {wait} ث{note}"
     high_cost_note: " — طلب مكلف، تم تقليص ميزانية إعادة المحاولة"
   failed_turn:

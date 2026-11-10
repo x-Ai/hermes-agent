@@ -4687,7 +4687,7 @@ core:
     codex_incomplete_error: "Codex-Antwort blieb nach {n} Fortsetzungsversuch(en) unvollständig"
   empty_recovery:
     post_tool_nudge: "⚠️ Modell lieferte nach Tool-Aufrufen eine leere Antwort — stupse zum Weitermachen an ({n}/{budget})"
-    thinking_prefill: "↻ Nur Denken, kein sichtbarer Text — fülle vor, um fortzufahren ({n}/{budget})"
+    thinking_prefill: "↻ Nur Denken, kein sichtbarer Text — fordere eine fertige Antwort an ({n}/{budget})"
     retry_status: "⚠️ Leere Antwort vom Modell — neuer Versuch ({n}/{budget}) in {wait}s{note}"
     high_cost_note: " — teure Anfrage, Wiederholungsbudget reduziert"
   failed_turn:

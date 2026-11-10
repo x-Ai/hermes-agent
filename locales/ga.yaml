@@ -4687,7 +4687,7 @@ core:
     codex_incomplete_error: "D'fhan freagra Codex neamhiomlán tar éis {n} iarracht(aí) leanúna"
   empty_recovery:
     post_tool_nudge: "⚠️ Thug an tsamhail freagra folamh tar éis glaonna uirlise — á spreagadh le leanúint ar aghaidh ({n}/{budget})"
-    thinking_prefill: "↻ Freagra smaointeoireachta amháin gan téacs infheicthe — ag réamhlíonadh le leanúint ar aghaidh ({n}/{budget})"
+    thinking_prefill: "↻ Freagra smaointeoireachta amháin gan téacs infheicthe — ag iarraidh an freagra a chríochnú ({n}/{budget})"
     retry_status: "⚠️ Freagra folamh ón tsamhail — ag atriail ({n}/{budget}) i gceann {wait}s{note}"
     high_cost_note: " — iarratas costasach, buiséad atrialacha laghdaithe"
   failed_turn:

@@ -4685,7 +4685,7 @@ core:
     codex_incomplete_error: "{n} 回の続行要求後も Codex の応答が不完全なままです"
   empty_recovery:
     post_tool_nudge: "⚠️ ツール呼び出し後にモデルが空の応答を返しました — 続行を促しています（{n}/{budget}）"
-    thinking_prefill: "↻ 思考のみで表示テキストがありません — 続きを生成するためプレフィルします（{n}/{budget}）"
+    thinking_prefill: "↻ 思考のみで表示テキストがありません — 回答を完成させるよう要求しています（{n}/{budget}）"
     retry_status: "⚠️ モデルから空の応答 — {wait} 秒後に再試行します（{n}/{budget}）{note}"
     high_cost_note: " — 高コストのリクエストのため再試行回数を減らしました"
   failed_turn:

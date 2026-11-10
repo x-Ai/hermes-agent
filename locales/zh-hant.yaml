@@ -4685,7 +4685,7 @@ core:
     codex_incomplete_error: "續寫 {n} 次後 Codex 回覆仍不完整"
   empty_recovery:
     post_tool_nudge: "⚠️ 模型在工具呼叫後回傳空回應 — 正在提示其繼續（{n}/{budget}）"
-    thinking_prefill: "↻ 只有思考而沒有可見文字 — 正在預先填入以繼續產生（{n}/{budget}）"
+    thinking_prefill: "↻ 只有思考而沒有可見文字 — 正在請求其完成回答（{n}/{budget}）"
     retry_status: "⚠️ 模型回傳空回應 — {wait} 秒後重試（{n}/{budget}）{note}"
     high_cost_note: " — 高成本請求，已縮減重試預算"
   failed_turn:

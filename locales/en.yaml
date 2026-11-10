@@ -4818,7 +4818,7 @@ core:
     codex_incomplete_error: "Codex response remained incomplete after {n} continuation attempt(s)"
   empty_recovery:
     post_tool_nudge: "⚠️ Model returned empty after tool calls — nudging to continue ({n}/{budget})"
-    thinking_prefill: "↻ Thinking-only response — prefilling to continue ({n}/{budget})"
+    thinking_prefill: "↻ Thinking-only response — requesting completion ({n}/{budget})"
     retry_status: "⚠️ Empty response from model — retrying ({n}/{budget}) in {wait}s{note}"
     high_cost_note: " — high-cost request, reduced retry budget"
   failed_turn:

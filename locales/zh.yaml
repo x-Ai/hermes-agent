@@ -4690,7 +4690,7 @@ core:
     codex_incomplete_error: "续写 {n} 次后 Codex 回复仍不完整"
   empty_recovery:
     post_tool_nudge: "⚠️ 模型在工具调用后返回空响应，正在提示其继续（{n}/{budget}）"
-    thinking_prefill: "↻ 只有思考没有可见文本，正在预填充以继续生成（{n}/{budget}）"
+    thinking_prefill: "↻ 只有思考没有可见文本，正在请求其完成回答（{n}/{budget}）"
     retry_status: "⚠️ 模型返回空响应，{wait} 秒后重试（{n}/{budget}）{note}"
     high_cost_note: "，高成本请求，已缩减重试预算"
   failed_turn:

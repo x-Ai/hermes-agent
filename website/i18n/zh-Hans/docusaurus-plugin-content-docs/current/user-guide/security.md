@@ -198,6 +198,8 @@ approvals:
 
 当其他人点击按钮、添加表情回应，或发送 `/approve`、`/deny` 或单独的“yes”时，会收到 *只有 &lt;名称&gt; 可以回应此审批请求*（英文界面为 *Only &lt;name&gt; can answer this approval.*）。命令仍保持待处理状态，请求者仍然可以回应。在支持私密回复的平台上，只有点击者能看到这条提示：Slack 的仅自己可见消息、Discord 的临时回复、Telegram 的回调弹窗、飞书的 toast 提示或 Teams 的卡片响应。Matrix、WhatsApp 和中继则会把它发到聊天中。
 
+同样的规则也适用于成员能够替他人回应的其他提示：斜杠命令确认（`/reload-mcp` 的“批准一次 / 始终批准 / 取消”）以及 agent 的澄清问题（选项按钮、“其他”或直接输入的回答）。其他成员点击时会收到同样的提示，该提示保持待处理状态；其他成员输入的消息会作为其本人的消息处理，绝不会被当作回答。
+
 该设置在触发审批时读取，因此在多路复用 profile 的情况下，由各 profile 自己的 `config.yaml` 决定。宿主界面（CLI、TUI、桌面应用、API 服务器）以宿主身份回应，不受影响。Matrix 保留其自己更严格的 `MATRIX_APPROVAL_REQUIRE_SENDER`（默认开启）。QQBot 本来就只接受会话自身用户的点击。
 
 ### 永久允许列表
