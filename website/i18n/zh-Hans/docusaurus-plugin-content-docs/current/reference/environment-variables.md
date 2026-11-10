@@ -248,6 +248,9 @@ description: "Hermes Agent 使用的所有环境变量完整参考"
 | `TELEGRAM_BOTS_REQUIRE_MENTION` | 启用后，其他 bot 发送的消息必须显式 `@本bot` 才会触发回复——仅引用回复会被忽略，从而避免两个 bot 互相回复形成死循环。人类用户的回复不受影响。默认：`false`。等同于 `telegram.bots_require_mention`。 |
 | `TELEGRAM_REPLY_TO_MODE` | 回复引用行为：`off`、`first`（默认）或 `all`。与 Discord 模式一致。 |
 | `TELEGRAM_IGNORED_THREADS` | bot 永不响应的逗号分隔 Telegram 论坛话题/线程 ID |
+| `TELEGRAM_ALLOWED_TOPICS` | bot 处理的逗号分隔 Telegram 论坛话题/线程 ID。设置后，来自其他任何群组/论坛话题的消息都会被忽略（每个聊天/话题首次丢弃消息时会以 INFO 级别记录日志）。私聊永远不会被过滤。Telegram 的 General 话题会被规范化为 ID `1`。在 `TELEGRAM_IGNORED_THREADS` 之前应用。等同于 `config.yaml` 中的 `telegram.allowed_topics`。 |
+| `TELEGRAM_FREE_RESPONSE_CHATS` | 逗号分隔的聊天 ID，在这些聊天中绕过 `require_mention`，Hermes 会响应每一条群组消息。等同于 `telegram.free_response_chats`。 |
+| `TELEGRAM_FREE_RESPONSE_TOPICS` | 逗号分隔的 `<chat_id>:<thread_id>` 对，仅对单个论坛话题绕过 `require_mention`。Telegram 的 General 话题会被规范化为线程 ID `1`。等同于 `telegram.free_response_topics`。 |
 | `TELEGRAM_PROXY` | Telegram 连接的代理 URL——覆盖 `HTTPS_PROXY`。支持 `http://`、`https://`、`socks5://` |
 | `DISCORD_BOT_TOKEN` | Discord bot token |
 | `DISCORD_ALLOWED_USERS` | 允许使用 bot 的逗号分隔 Discord 用户 ID |

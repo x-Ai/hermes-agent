@@ -48,6 +48,10 @@ sethome - Set this chat as the home channel
 ```
 :::
 
+### 论坛话题
+
+在启用了话题的 Telegram 超级群组中，命令菜单**不会**继承全局的 `AllGroupChats` 作用域——每个论坛超级群组都需要单独的聊天级命令注册。Hermes 会自动处理这一点：论坛超级群组中第一次收到消息时，gateway 会按需为该聊天注册同一份（受数量上限约束的）命令菜单（`BotCommandScopeChat`）。每次 gateway 运行中，每个论坛聊天只注册一次，对用户透明——无需任何配置，`/` 菜单就会像在普通群组中一样出现在论坛话题里。
+
 ## 第三步：隐私模式（群组关键设置）
 
 Telegram 机器人有一个**隐私模式**，**默认启用**。这是在群组中使用机器人时最常见的困惑来源。
@@ -485,6 +489,8 @@ Hermes Agent 在 Telegram 群聊中工作时有几点注意事项：
   - 与 `telegram.mention_patterns` 中配置的正则唤醒词匹配的内容
 - 在有多个 Hermes 机器人的群组中，`telegram.exclusive_bot_mentions` 使路由具有确定性。当消息是发给一个或多个 Telegram 机器人用户名的时，只有被提及的机器人配置文件处理该消息；其他 Hermes 机器人在回复和唤醒词回退运行之前忽略它（并记录一行 `Skipping message ... addressed to other bot(s)` 日志）。只有当消息以另一个机器人的 @用户名开头时（`@OtherBot do this`、`@BotA @BotB: compare`、`/status@OtherBot`），才算是发给那个机器人的消息。出现在正文后面的 @用户名，例如 `the shop has its own bot now (@ShopBot)`，只是在谈论那个机器人，不会让本机器人保持沉默。本机器人自己的 @用户名出现在任何位置仍然优先，除非开头的命令（可以位于对本机器人的称呼之后）明确指向另一个机器人。默认启用。
 - 使用 `telegram.ignored_threads` 使 Hermes 在特定 Telegram 论坛话题中保持沉默，即使群组本来允许自由响应或提及触发的回复
+- 使用 `telegram.allowed_topics` 作为论坛话题白名单——设置后，Hermes 会忽略来自其他任何群组/论坛话题的消息，并在每个聊天/话题首次丢弃消息时以 INFO 级别记录日志（私聊永远不会被过滤）。Telegram 的 General 话题，以及任何不带 `message_thread_id` 的群组消息，都会被规范化为话题 ID `1`。白名单检查在 `ignored_threads` 之前进行。
+- 使用 `telegram.free_response_chats` / `telegram.free_response_topics`，分别对整个聊天或仅对单个论坛话题绕过 `require_mention`。
 - 如果 `telegram.require_mention` 未设置或为 false，Hermes 保持之前的开放群组行为，响应它能看到的普通群组消息
 
 ### 同一群组中的多个 Hermes 机器人
@@ -619,6 +625,10 @@ platforms:
 3. 每个话题映射到一个隔离的会话键：`agent:main:telegram:dm:{chat_id}:{thread_id}`
 4. 每个话题中的消息都有自己的对话历史、内存刷新和上下文窗口
 5. 每个带有 `thread_id` 的话题（`dm_topics` 和 `group_topics` 中的）都会列在 `channel_directory.json` 中，因此即使没有近期会话，`send_message` 也能按名称定位它。在多个聊天中使用的话题名称会列为 `<chat_id> / <name>`。与其他目录条目（同名的私聊或群组）重名的话题会列为 `<chat_id>:<thread_id> / <name>`，而那个条目会列为 `<its id> / <name>`，因此单独的名称不会解析到其中任何一个
+
+:::caution 已读状态限制
+Telegram 私聊话题存在 Bot API 已读状态限制。Hermes 可以接收用户创建的话题中的消息，并把回复路由回该话题，但普通机器人账号没有可靠的 API 来把用户来信在话题中的那份副本标记为已读。Telegram 可能会在根“All Messages”聊天和该话题上显示不同的未读/已读标记。这是 Telegram 的预期行为，并不一定意味着 Hermes 处理失败。
+:::
 
 ### 根私聊处理
 
@@ -1072,9 +1082,10 @@ gateway:
 
 1. 如果设置了 `TELEGRAM_FALLBACK_IPS`，直接使用这些 IP。
 2. 否则，适配器自动通过 DNS-over-HTTPS（DoH）查询 **Google DNS** 和 **Cloudflare DNS**，以发现 `api.telegram.org` 的备用 IP。
-3. DoH 返回的与系统 DNS 结果不同的 IP 被用作备用。
-4. 如果 DoH 也被封锁，使用硬编码的种子 IP（`149.154.167.220`）作为最后手段。
-5. 一旦备用 IP 成功，它就变得"粘性"——后续请求直接使用它，而不先重试主路径。
+3. 已知的 Telegram API IPv4 地址会在双栈主机名 `api.telegram.org` **之前**尝试。被黑洞的 IPv6 路径可能卡在 `connect()` 中而不报错，过去这会卡住事件循环，导致 30 秒的初始化截止时间永远不会触发。
+4. 硬编码的 IPv4 种子列表（`149.154.166.110`、`149.154.167.220`）始终排在 DoH 返回的 IP 之后（DoH 经常只返回单个边缘节点，否则它就会成为唯一的备用路径）；当 DoH 被封锁或超时时，种子列表就是全部备用 IP。主机名仍是最后手段。
+5. 一旦某条路径成功，它就变得"粘性"——后续请求直接使用它。主机名作为仅 IPv6 网络的最后手段保留。
+6. 单个请求在这些路径之间的依次尝试共享 15 秒的连接预算，即 30 秒发送截止时间的一半。第一条路径保留其完整的连接超时，后续路径平分剩余时间。如果每条路径都卡住，发送会在截止时间之前以连接超时失败。由于消息根本没有发出，gateway 会重试它。
 
 在 gateway 进程之外进行的发送（`hermes send`、`send_message` 工具、独立 cron 投递）使用相同的传输方式，并采用你配置的 IP 或种子列表。它们跳过 DoH 发现，以便一次性发送保持快速。它们也使用 gateway 的 `HERMES_TELEGRAM_HTTP_*` 超时设置及其 60 秒的媒体上传写入超时。连接超时或连接池超时会在这里重试，因为请求根本没有发出。其他超时不会重试：Telegram 可能已经投递了这条消息。
 
