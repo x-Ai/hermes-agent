@@ -527,7 +527,7 @@ SDK.fetchJSON("/api/plugins/my-plugin/data")
   .catch((err) => console.error("API call failed:", err));
 ```
 
-`fetchJSON` 会自动注入会话认证 token，将错误作为异常抛出，并自动解析 JSON。
+`fetchJSON` 会自动注入会话认证 token，将错误作为异常抛出，并自动解析 JSON。`fetchJSON` 和 `authedFetch` 只会请求当前 dashboard 自身的源（origin）：指向其他主机的绝对 URL 会被直接拒绝，而不会把会话 token 发给该主机；因此请用普通的 `fetch` 请求第三方 URL（如 CDN 资源、游戏服务器）。
 
 #### 调用内置 Hermes 端点
 
