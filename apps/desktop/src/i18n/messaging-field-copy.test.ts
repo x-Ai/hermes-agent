@@ -37,13 +37,27 @@ function manifestEnvKeys(manifest: string): string[] {
   return keys
 }
 
+// Home Assistant left this tree for hermes-official-plugins (plugin-catalog/homeassistant.yaml
+// pins the commit). Its installed manifest still declares these fields; the ones its card does
+// not claim render on Settings › Keys, which takes the same help text. Keep the list in step
+// with the pinned version.
+const CATALOG_PLATFORM_KEYS = [
+  'HASS_TOKEN',
+  'HASS_URL',
+  'HASS_HOME_CHANNEL',
+  'HASS_ENTITY_DENYLIST',
+  'HASS_ENTITY_ALLOWLIST',
+  'HASS_MAX_ENTITIES'
+]
+
 const manifestKeys = [
-  ...new Set(
-    readdirSync(PLATFORMS_DIR)
+  ...new Set([
+    ...readdirSync(PLATFORMS_DIR)
       .map(dir => resolve(PLATFORMS_DIR, dir, 'plugin.yaml'))
       .filter(path => existsSync(path))
-      .flatMap(path => manifestEnvKeys(readFileSync(path, 'utf8')))
-  )
+      .flatMap(path => manifestEnvKeys(readFileSync(path, 'utf8'))),
+    ...CATALOG_PLATFORM_KEYS
+  ])
 ]
 
 describe('messaging field copy', () => {

@@ -584,6 +584,21 @@ export const zhHantCommandCenter = {
         help: '排程任務以 deliver=homeassistant 投遞時使用的預設通知目標（如 mobile_app_my_phone）。',
         placeholder: 'mobile_app_my_phone'
       },
+      HASS_ENTITY_DENYLIST: {
+        label: '實體拒絕清單',
+        help: '逗號分隔的 entity_id 前綴或萬用字元模式，工具一律排除這些實體（最終否決）：在 ha_list_entities 中隱藏，並遭 ha_get_state 與 ha_call_service 拒絕。',
+        placeholder: 'office_thermostat_*'
+      },
+      HASS_ENTITY_ALLOWLIST: {
+        label: '實體允許清單',
+        help: '逗號分隔的 entity_id 前綴或萬用字元模式，列出、讀取與 ha_call_service 控制都僅限這些實體（白名單；拒絕清單仍可否決）。',
+        placeholder: 'climate.*, sensor.office_*'
+      },
+      HASS_MAX_ENTITIES: {
+        label: '每次列出的實體上限',
+        help: 'ha_list_entities 結果數量的選用上限（未設定則不限制；單次呼叫傳入的 max 會覆寫此值）。',
+        placeholder: '留空則不限制'
+      },
       EMAIL_ADDRESS: { label: '電子郵件位址', help: '電子郵件帳戶位址。' },
       EMAIL_PASSWORD: { label: '電子郵件密碼', help: '電子郵件帳戶密碼 / 應用程式專用密碼。' },
       EMAIL_IMAP_HOST: { label: 'IMAP 主機', help: '收件輪詢使用的 IMAP 主機。', placeholder: 'imap.gmail.com' },

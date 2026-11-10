@@ -214,6 +214,21 @@ export const zhMessagingFieldCopy: Translations['messaging']['fieldCopy'] = {
     help: '定时任务以 deliver=homeassistant 投递时使用的默认通知目标（如 mobile_app_my_phone）',
     placeholder: 'mobile_app_my_phone'
   },
+  HASS_ENTITY_DENYLIST: {
+    label: '实体拒绝列表',
+    help: '逗号分隔的 entity_id 前缀或通配模式，工具始终排除这些实体（最终否决）：在 ha_list_entities 中隐藏，被 ha_get_state 和 ha_call_service 拒绝',
+    placeholder: 'office_thermostat_*'
+  },
+  HASS_ENTITY_ALLOWLIST: {
+    label: '实体允许列表',
+    help: '逗号分隔的 entity_id 前缀或通配模式，列出、读取和 ha_call_service 控制都仅限这些实体（白名单，拒绝列表仍可否决）',
+    placeholder: 'climate.*, sensor.office_*'
+  },
+  HASS_MAX_ENTITIES: {
+    label: '单次列出的实体上限',
+    help: 'ha_list_entities 结果数量的可选上限（未设置则不限制，单次调用传入的 max 会覆盖此值）',
+    placeholder: '留空则不限制'
+  },
   EMAIL_ADDRESS: { label: '邮箱地址', help: '邮箱账户地址' },
   EMAIL_PASSWORD: { label: '邮箱密码', help: '邮箱账户密码 / 应用专用密码' },
   EMAIL_IMAP_HOST: { label: 'IMAP 主机', help: '收件轮询使用的 IMAP 主机', placeholder: 'imap.gmail.com' },

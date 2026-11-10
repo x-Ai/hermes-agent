@@ -540,6 +540,26 @@ export const jaMessagingFieldCopy: Translations['messaging']['fieldCopy'] = {
     placeholder: 'http://homeassistant.local:8123'
   },
   HASS_TOKEN: { label: '長期アクセストークン', help: 'Home Assistant の長期アクセストークン。' },
+  HASS_HOME_CHANNEL: {
+    label: 'デフォルト通知先',
+    help: 'Cron の deliver=homeassistant で使うデフォルトの通知先（例：mobile_app_my_phone）。',
+    placeholder: 'mobile_app_my_phone'
+  },
+  HASS_ENTITY_DENYLIST: {
+    label: 'エンティティ拒否リスト',
+    help: 'ツールが常に除外する entity_id のプレフィックスまたは glob パターン。最終的な拒否として働き、ha_list_entities には表示されず、ha_get_state と ha_call_service でも拒否されます。カンマ区切り。',
+    placeholder: 'office_thermostat_*'
+  },
+  HASS_ENTITY_ALLOWLIST: {
+    label: 'エンティティ許可リスト',
+    help: '一覧表示・読み取り・ha_call_service による操作の対象を、この entity_id のプレフィックスまたは glob パターンに限定します（ホワイトリスト。拒否リストが常に優先されます）。カンマ区切り。',
+    placeholder: 'climate.*, sensor.office_*'
+  },
+  HASS_MAX_ENTITIES: {
+    label: '一覧あたりの最大エンティティ数',
+    help: 'ha_list_entities の結果件数の上限（任意。未設定なら上限なし。呼び出しごとの max が優先されます）。',
+    placeholder: '空欄で上限なし'
+  },
   EMAIL_ADDRESS: { label: 'メールアドレス', help: 'メールアカウントのアドレス。' },
   EMAIL_PASSWORD: { label: 'メールパスワード', help: 'メールアカウントのパスワード / アプリパスワード。' },
   EMAIL_IMAP_HOST: {
