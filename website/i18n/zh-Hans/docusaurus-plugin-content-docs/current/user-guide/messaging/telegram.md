@@ -287,6 +287,10 @@ TELEGRAM_CRON_THREAD_ID=<topic_thread_id>
 
 `TELEGRAM_CRON_THREAD_ID` 仅针对 cron 投递覆盖 `TELEGRAM_HOME_CHANNEL_THREAD_ID`。在该话题中的回复会继续该话题的现有会话。
 
+## 共享联系人和位置
+
+你分享给机器人的联系人名片或位置图钉会以一段简短文本（联系人包含姓名、电话号码和 vCard；位置包含坐标和地点信息）送达 agent，便于 agent 据此采取行动。
+
 ## 语音消息
 
 ### 接收语音（语音转文字）
@@ -651,7 +655,7 @@ ChatGPT 风格的多会话私聊——一个机器人，多个并行对话。与
 
 | 形式 | 上下文 | 效果 |
 |------|---------|--------|
-| `/topic` | 根私聊，尚未启用 | 检查 BotFather 功能，启用多会话模式，创建置顶 System 话题 |
+| `/topic` | 根私聊，尚未启用 | 检查 BotFather 功能，启用多会话模式 |
 | `/topic` | 根私聊，已启用 | 显示状态：可供恢复的未链接会话 |
 | `/topic` | 话题内部 | 显示当前话题的会话绑定 |
 | `/topic help` | 任意位置 | 内联使用说明 |
@@ -694,8 +698,7 @@ Hermes 将：
 
 1. 检查 `getMe().has_topics_enabled` 和 `allows_users_to_create_topics`
 2. 如果两者都为 true，为此私聊启用多会话话题模式
-3. 创建并置顶一个 **System** 话题用于状态/命令（尽力而为）
-4. 回复用户可以恢复的之前未链接 Telegram 会话列表
+3. 回复用户可以恢复的之前未链接 Telegram 会话列表
 
 激活后，**根私聊变为大厅**：普通 prompt 会被拒绝，并引导用户前往 **All Messages**。系统命令（`/status`、`/sessions`、`/usage`、`/help` 等）在根目录仍然有效。
 
@@ -1001,6 +1004,8 @@ TELEGRAM_GUEST_MODE=true
 启用 `guest_mode: true` 后，来自非白名单群组的消息**仅在**明确 @mention 机器人时才被处理。每轮都需要提及——访客交互没有会话粘性，因此机器人永远不会在未被 ping 的朋友群组线程中自动参与。
 
 私聊和白名单群组的行为与之前完全相同。
+
+广播**频道**中的帖子与群组一样经过 `allowed_chats`、`require_mention` 和话题门控，但永远不会获得访客绕过：否则任何拥有频道发帖权限的人都能越过白名单。请将频道 ID 添加到 `allowed_chats`，并在帖子中 @mention 机器人来与它对话。
 
 ## 斜杠命令访问控制
 
