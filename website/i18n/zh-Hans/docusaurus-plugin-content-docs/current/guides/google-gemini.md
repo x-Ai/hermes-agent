@@ -6,7 +6,7 @@ description: "将 Hermes Agent 与 Google Gemini 配合使用——原生 AI Stu
 
 # Google Gemini
 
-Hermes Agent 通过 **Google AI Studio / Gemini API** 原生支持 Google Gemini——而非 OpenAI 兼容端点。这使 Hermes 能够将其内部 OpenAI 格式的消息和工具循环转换为 Gemini 原生的 `generateContent` API，同时保留工具调用、流式传输、多模态输入以及 Gemini 特有的响应元数据。
+Hermes Agent 通过 **Google AI Studio / Gemini API** 原生支持 Google Gemini——而非 OpenAI 兼容端点。这使 Hermes 能够将其内部 OpenAI 格式的消息和工具循环转换为 Gemini 的原生 API（Gemini 3 及更新的模型使用 [Interactions API](#interactions-api)，较旧的模型使用 `generateContent`），同时保留工具调用、流式传输、多模态输入以及 Gemini 特有的响应元数据。
 
 ## 前提条件
 
@@ -90,13 +90,32 @@ Google 还提供了 OpenAI 兼容端点：
 https://generativelanguage.googleapis.com/v1beta/openai/
 ```
 
-对于 Hermes Agent 会话，请优先使用上述原生 Gemini 端点。Hermes 内置原生 Gemini 适配器，可将多轮工具调用、工具调用结果、流式传输、多模态输入以及 Gemini 响应元数据直接映射到 Gemini 的 `generateContent` API。OpenAI 兼容端点在你明确需要 OpenAI API 兼容性时仍然有用。
+对于 Hermes Agent 会话，请优先使用上述原生 Gemini 端点。Hermes 内置原生 Gemini 适配器，可将多轮工具调用、工具调用结果、流式传输、多模态输入以及 Gemini 响应元数据直接映射到 Gemini 的原生 API。OpenAI 兼容端点在你明确需要 OpenAI API 兼容性时仍然有用。
 
 如果你之前将 `GEMINI_BASE_URL` 设置为 `/openai` URL，请将其删除或修改：
 
 ```bash
 GEMINI_BASE_URL=https://generativelanguage.googleapis.com/v1beta
 ```
+
+### Interactions API
+
+在 Google AI Studio 上，Hermes 会通过 Google 的 [Interactions API](https://aistudio.google.com/docs/interactions-overview)（Google 为这些模型推荐的 API）发送 Gemini 3 及更新的模型（以及 `gemini-*-latest` 别名）的请求。Gemini 2.x 和 Gemma 模型使用 `generateContent`。
+
+你可以自行选择 API，既可以对所有模型统一设置，也可以按模型单独设置：
+
+```yaml
+providers:
+  gemini:
+    gemini_api: generate_content    # 所有 Gemini 模型
+    models:
+      gemini-3.8-flash:
+        gemini_api: interactions    # 这个模型除外
+```
+
+每个设置可取 `interactions`、`generate_content` 或 `auto`（默认值，行为如上所述）。按模型的设置优先于整个 provider 的设置。修改在下一次请求时生效，无需重启。Gemini 2.x 通过 token 预算控制思考，而 Interactions API 没有对应的设置，因此强制让 2.x 模型使用 `interactions` 会丢弃该预算。
+
+Hermes 以无状态方式调用 Interactions（`store: false`）：与 `generateContent` 一样，每次请求都会发送完整对话，因此 Google 不会保留对话副本，提示缓存的工作方式也相同。例外是长解码（Gemini 4 在 `xhigh` 及以上推理强度时）：Google 只能从已存储的 interaction 继续这类跨多个请求的回答，因此这些请求会设置 `store: true`，Google 会按其标准期限保留它们（付费层级 55 天，免费层级 1 天）。Interactions 仅在 AI Studio 主机（`generativelanguage.googleapis.com`）上可用。Vertex AI express 或代理 base URL 始终使用 `generateContent`。
 
 ## 可用模型
 

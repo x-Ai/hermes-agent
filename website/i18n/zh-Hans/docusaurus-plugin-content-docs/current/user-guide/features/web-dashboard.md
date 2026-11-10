@@ -180,6 +180,17 @@ Chat 标签页是每次 `hermes dashboard` 启动的一部分——内嵌的浏�
 Web Dashboard 会读写包含 API 密钥和机密的 `.env` 文件。它默认绑定到 `127.0.0.1`——只能从本机访问。如果绑定到 `0.0.0.0`，网络上的任何人都可以查看和修改你的凭据。Dashboard 本身没有任何认证机制。
 :::
 
+## 报告仪表盘后台服务 {#reporting-dashboard-background-services}
+
+Hermes 从不为 `hermes dashboard` 或 `hermes serve` 安装服务，因此任何在后台运行的此类服务都是手动设置的：从文档中复制的 systemd unit、launchd plist、Nix 的 `hermes-backend` unit、Docker 镜像的 `dashboard` 槽位或 Compose sidecar，或者桌面应用的 SSH 后端。要列出它们及其当前归属：
+
+```bash
+hermes gateway migrate --backends --dry-run          # 人类可读的报告
+hermes gateway migrate --backends --dry-run --json   # 同一份报告的 JSON 格式
+```
+
+报告会为每个后端显示它的监管程序（systemd unit 名称、作用域和 unit 文件；launchd 标签和 plist；由 Nix 管理；s6 槽位；容器；桌面应用；分离的进程；或未知）、它服务的 `HERMES_HOME` 以及它的归属。后端迁移功能尚不可用。该报告从不停止、重启或终止任何进程，从不编辑或写入服务文件、unit、plist 或台账（ledger），也不打开任何网络连接；即使扫描失败，它也以 0 退出。与任何 `hermes` 命令一样，Hermes 的常规启动流程仍会先运行：在缺失时创建 `HERMES_HOME` 目录结构和默认的 `SOUL.md`，在 `HERMES_HOME/installs/` 下记录本次安装，打开 `logs/agent.log` 和 `logs/errors.log`，并清理 `cache/scratch`。正在运行的后端按其运行的命令识别，与 unit 的名称无关；已启用但未运行的 unit 只有在名称为 `hermes-serve*`、`hermes-dashboard*` 或 `hermes-backend*` 时才会列出。
+
 ## `/reload` 斜杠命令
 
 Dashboard 还为交互式 CLI 添加了 `/reload` 斜杠命令。通过 Web Dashboard（或直接编辑 `.env`）更改 API 密钥后，在活跃的 CLI 会话中使用 `/reload` 即可获取更改，无需重启：

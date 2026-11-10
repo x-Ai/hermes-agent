@@ -126,7 +126,8 @@ _KNOWN_PROVIDER_KEYS = {
     "context_length", "max_input_tokens", "max_output_tokens", "max_tokens", "rate_limit_delay",
     "request_timeout_seconds", "stale_timeout_seconds",
     "discover_models", "extra_body", "extra_headers", "capabilities", "ssl_ca_cert", "ssl_verify",
-    "auth_scheme", "max_tokens_field", "catalog_provider", "session_affinity_header"}
+    "auth_scheme", "max_tokens_field", "catalog_provider", "session_affinity_header",
+    "gemini_api"}  # read by the gemini provider plugin (which Gemini API a model's calls use)
 
 
 def _pick_provider_base_url(entry: dict[str, Any], provider_key: str) -> str:
