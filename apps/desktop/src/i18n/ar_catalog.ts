@@ -15,6 +15,10 @@ export const arCatalog: TranslationOverride<Translations['catalog']> = {
   mostStarred: 'الأكثر نجومًا',
   newest: 'الأحدث',
   recentlyUpdated: 'المحدثة مؤخرًا',
+  mostUsed: 'الأكثر استخدامًا',
+  // A badge on an installed entry, not the action that applies the update.
+  updateAvailable: 'تحديث متاح',
+  updatesAvailable: (count: number) => `التحديثات · ${count}`,
   alphabetical: 'الاسم',
   sortBy: 'ترتيب حسب',
   seeAll: 'عرض الكل',

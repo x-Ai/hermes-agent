@@ -322,6 +322,53 @@ describe('PluginsTab', () => {
     expect(screen.queryByText(zh.skills.plugins.bundledNames['disk-cleanup'])).toBeNull()
   })
 
+  // The installed catalog entry carries both the curated localized copy and the
+  // pending-update flag: the updates filter narrows to it under its zh title.
+  it('narrows the zh updates filter to a pending plugin update without losing its curated title', () => {
+    $agentPlugins.set([
+      {
+        catalog_name: 'homeassistant',
+        catalog_sha: 'b'.repeat(40),
+        catalog_tier: 'official',
+        description: 'Home Assistant manifest',
+        installed_sha: 'a'.repeat(40),
+        key: 'homeassistant',
+        name: 'homeassistant',
+        source: 'git',
+        status: 'enabled',
+        update_available: true,
+        version: '2.0.1'
+      },
+      {
+        catalog_name: 'demo-weather',
+        description: 'Local weather forecasts',
+        installed_sha: 'c'.repeat(40),
+        key: 'demo-weather',
+        name: 'demo-weather',
+        source: 'git',
+        status: 'enabled',
+        version: '1.0.0'
+      }
+    ])
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <I18nProvider configClient={null} initialLocale="zh">
+          <PluginsTab profile={null} />
+        </I18nProvider>
+      </QueryClientProvider>
+    )
+
+    expect(screen.getAllByRole('button', { name: 'demo-weather' }).length).toBeGreaterThan(0)
+
+    fireEvent.click(screen.getByRole('button', { name: zh.catalog.updatesAvailable(1) }))
+
+    expect(screen.queryAllByRole('button', { name: 'demo-weather' })).toEqual([])
+    expect(screen.getAllByText(zh.skills.plugins.bundledNames['homeassistant']).length).toBeGreaterThan(0)
+    expect(screen.getAllByText(zh.catalog.updateAvailable).length).toBeGreaterThan(0)
+    expect(screen.queryByText('homeassistant')).toBeNull()
+  })
+
   // A desktop half can only be copied out of a backend that runs on THIS
   // machine; against a remote one the reconcile is a structural no-op, so the
   // row must say so instead of pending forever (#114079).
