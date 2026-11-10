@@ -4800,3 +4800,12 @@ shared:
     ask: "Attivare l'eliminazione automatica? [y = attiva / n = non eliminare mai, non chiederlo più / Enter = ricordamelo più tardi]"
     answered_off: "{setting}. Non ti verrà più chiesto."
     later: "Più tardi. {command} lo decide in qualsiasi momento."
+  profile_create:
+    subscription_logins_kept: "accessi in abbonamento non trasferiti ({providers}): il profilo usa quelli del profilo predefinito; esegui `hermes -p {name} auth add <provider>` per accedere separatamente"
+    copied_keys: "Chiavi API copiate da '{launch}' (token dei bot e liste di autorizzazione esclusi)."
+    providers_shared: "I provider di modelli e le relative chiavi API vengono letti in tempo reale dal profilo predefinito invece di essere copiati."
+    auth_shared: "Accessi e abbonamenti sono condivisi con il profilo predefinito."
+    auth_shared_hint: "Accessi e abbonamenti sono condivisi con il profilo predefinito (--isolated-auth li copia)."
+    copied_logins: "Accessi copiati da '{launch}' (gli accessi OAuth monouso vengono ancora letti dal profilo predefinito)."
+    model_inherited: "Modello ereditato da '{launch}'."
+    no_credentials_with_clone: "Errore: --no-credentials non può essere combinato con --clone / --clone-from / --clone-all (un clone copia le chiavi della sorgente); crea il profilo senza clonare."

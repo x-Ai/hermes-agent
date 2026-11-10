@@ -4800,3 +4800,12 @@ shared:
     ask: "Cas air an glanadh uathoibríoch? [y = cas air / n = ná glan riamh, ná fiafraigh arís / Enter = meabhraigh dom níos déanaí]"
     answered_off: "{setting}. Ní fhiafrófar díot arís."
     later: "Níos déanaí. Socraíonn {command} é am ar bith."
+  profile_create:
+    subscription_logins_kept: "níor tugadh logálacha isteach síntiúis anonn ({providers}): úsáideann an phróifíl iad siúd atá ag an bpróifíl réamhshocraithe; rith `hermes -p {name} auth add <provider>` chun í a logáil isteach ar leith"
+    copied_keys: "Cóipeáladh eochracha API ó '{launch}' (gan chomharthaí bota ná liostaí ceadaithe)."
+    providers_shared: "Léitear soláthraithe samhlacha agus a n-eochracha API beo ón bpróifíl réamhshocraithe in ionad iad a chóipeáil."
+    auth_shared: "Roinntear logálacha isteach agus síntiúis leis an bpróifíl réamhshocraithe."
+    auth_shared_hint: "Roinntear logálacha isteach agus síntiúis leis an bpróifíl réamhshocraithe (cóipeálann --isolated-auth iad)."
+    copied_logins: "Cóipeáladh logálacha isteach ó '{launch}' (léitear logálacha isteach OAuth aonúsáide ón bpróifíl réamhshocraithe fós)."
+    model_inherited: "Fuarthas an tsamhail le hoidhreacht ó '{launch}'."
+    no_credentials_with_clone: "Earráid: ní féidir --no-credentials a úsáid in éineacht le --clone / --clone-from / --clone-all (cóipeálann clón eochracha na foinse); cruthaigh an phróifíl gan chlónáil."

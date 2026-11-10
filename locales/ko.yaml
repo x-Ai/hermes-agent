@@ -4798,3 +4798,12 @@ shared:
     ask: "자동 정리를 켤까요? [y = 켜기 / n = 정리 안 함, 다시 묻지 않음 / Enter = 나중에 알림]"
     answered_off: "{setting}. 다시 묻지 않습니다."
     later: "나중에 다시 묻겠습니다. {command}로 언제든 결정할 수 있습니다."
+  profile_create:
+    subscription_logins_kept: "구독 로그인을 가져오지 않았습니다({providers}): 이 프로필은 기본 프로필의 로그인을 사용합니다. 따로 로그인하려면 `hermes -p {name} auth add <provider>`를 실행하세요"
+    copied_keys: "'{launch}'에서 API 키를 복사했습니다(봇 토큰과 허용 목록 제외)."
+    providers_shared: "모델 제공자와 해당 API 키는 복사하지 않고 기본 프로필에서 실시간으로 읽습니다."
+    auth_shared: "로그인과 구독은 기본 프로필과 공유됩니다."
+    auth_shared_hint: "로그인과 구독은 기본 프로필과 공유됩니다(--isolated-auth를 사용하면 복사합니다)."
+    copied_logins: "'{launch}'에서 로그인을 복사했습니다(일회용 OAuth 로그인은 계속 기본 프로필에서 읽습니다)."
+    model_inherited: "'{launch}'의 모델을 물려받았습니다."
+    no_credentials_with_clone: "오류: --no-credentials는 --clone / --clone-from / --clone-all과 함께 쓸 수 없습니다(복제는 원본의 키를 복사합니다). 복제 없이 생성하세요."

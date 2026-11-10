@@ -1530,6 +1530,7 @@ export interface Translations extends NoticeTranslations, GoalStatusTranslations
       activePill: string
       updateTitle: string
       updateDetail: (next: string, current: string) => string
+      updateSameBuildDetail: (tag: string) => string
       updateAction: string
       updating: string
       upToDateTitle: string

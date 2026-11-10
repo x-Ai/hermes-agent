@@ -4798,3 +4798,12 @@ shared:
     ask: "開啟自動清理？[y = 開啟 / n = 永不清理，不再詢問 / Enter = 稍後提醒]"
     answered_off: "{setting}。不會再詢問你。"
     later: "稍後再說。隨時可用 {command} 決定。"
+  profile_create:
+    subscription_logins_kept: "未沿用訂閱登入（{providers}）：此設定檔使用預設設定檔的登入；如需單獨登入，請執行 `hermes -p {name} auth add <provider>`"
+    copied_keys: "已從 '{launch}' 複製 API 金鑰（不含機器人權杖和允許清單）。"
+    providers_shared: "模型供應商及其 API 金鑰即時讀取預設設定檔，不再複製。"
+    auth_shared: "登入和訂閱與預設設定檔共用。"
+    auth_shared_hint: "登入和訂閱與預設設定檔共用（使用 --isolated-auth 可改為複製）。"
+    copied_logins: "已從 '{launch}' 複製登入資訊（一次性 OAuth 登入仍從預設設定檔讀取）。"
+    model_inherited: "已沿用 '{launch}' 的模型。"
+    no_credentials_with_clone: "錯誤：--no-credentials 不能與 --clone / --clone-from / --clone-all 同時使用（複製設定檔會帶入來源的金鑰），請改為不複製直接建立。"

@@ -5128,3 +5128,12 @@ shared:
     ask: "Activer le nettoyage automatique ? [y = activer / n = ne jamais nettoyer, ne plus demander / Enter = me le rappeler plus tard]"
     answered_off: "{setting}. La question ne vous sera plus posée."
     later: "Plus tard. {command} permet de décider à tout moment."
+  profile_create:
+    subscription_logins_kept: "connexions d'abonnement non reprises ({providers}) : le profil utilise celles du profil par défaut ; exécutez `hermes -p {name} auth add <provider>` pour le connecter séparément"
+    copied_keys: "Clés API copiées depuis '{launch}' (jetons de bot et listes d'autorisation exclus)."
+    providers_shared: "Les fournisseurs de modèles et leurs clés API sont lus en direct depuis le profil par défaut au lieu d'être copiés."
+    auth_shared: "Les connexions et abonnements sont partagés avec le profil par défaut."
+    auth_shared_hint: "Les connexions et abonnements sont partagés avec le profil par défaut (--isolated-auth les copie)."
+    copied_logins: "Connexions copiées depuis '{launch}' (les connexions OAuth à usage unique sont toujours lues depuis le profil par défaut)."
+    model_inherited: "Modèle hérité de '{launch}'."
+    no_credentials_with_clone: "Erreur : --no-credentials ne peut pas être combiné avec --clone / --clone-from / --clone-all (un clone copie les clés de la source) ; créez le profil sans clonage."

@@ -4798,3 +4798,12 @@ shared:
     ask: "自動整理を有効にしますか？ [y = 有効にする / n = 整理しない、今後は確認しない / Enter = 後で通知]"
     answered_off: "{setting}。今後は確認しません。"
     later: "あとで確認します。{command} でいつでも決められます。"
+  profile_create:
+    subscription_logins_kept: "サブスクリプションのログインは引き継がれませんでした（{providers}）：このプロファイルは default プロファイルのログインを使います。個別にサインインするには `hermes -p {name} auth add <provider>` を実行してください"
+    copied_keys: "'{launch}' から API キーをコピーしました（ボットトークンと許可リストは除外）。"
+    providers_shared: "モデルプロバイダーとその API キーはコピーせず、default プロファイルから直接読み取ります。"
+    auth_shared: "ログインとサブスクリプションは default プロファイルと共有されます。"
+    auth_shared_hint: "ログインとサブスクリプションは default プロファイルと共有されます（--isolated-auth でコピーできます）。"
+    copied_logins: "'{launch}' からログインをコピーしました（使い捨ての OAuth ログインは引き続き default プロファイルから読み取ります）。"
+    model_inherited: "'{launch}' からモデルを引き継ぎました。"
+    no_credentials_with_clone: "エラー: --no-credentials は --clone / --clone-from / --clone-all と併用できません（クローンはコピー元のキーをコピーします）。クローンせずに作成してください。"

@@ -90,6 +90,8 @@ export const ruLocalModels: TranslationOverride<Translations['settings']['localM
   updateTitle: 'Доступно обновление движка',
   updateDetail: (next, current) =>
     `Новая сборка llama.cpp (${next}) готова к установке — сейчас у вас ${current}. Модели продолжают работать во время скачивания.`,
+  updateSameBuildDetail: tag =>
+    `Теперь Hermes поставляет llama.cpp ${tag} вместе с файлами, нужными для запуска. При обновлении движок скачается заново; модели продолжают работать во время скачивания.`,
   updateAction: 'Обновить движок',
   updating: 'Обновление движка…',
   upToDateTitle: 'Движок обновлён',

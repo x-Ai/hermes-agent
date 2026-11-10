@@ -11,6 +11,8 @@ import os
 import sys
 from typing import NoReturn, Optional
 
+from agent.i18n import t as _t
+
 
 def _die(msg: str, code: int = 1, *, err: bool = False) -> NoReturn:
     print(msg, file=sys.stderr if err else sys.stdout)
@@ -185,6 +187,21 @@ def _print_channel_clone_notice(name: str, source_label: str, clone_channels: bo
         print(shared_credential_warning(name, shared, source_label))
 
 
+def _print_mirrored(mirrored: dict, launch: str, *, isolate_hint: bool) -> None:
+    """What the new profile took from the launch profile (the bot page's "Share keys & accounts")."""
+    if mirrored.get("env"):
+        print(_t("shared.profile_create.copied_keys", launch=launch))
+    if mirrored.get("providers") == "shared":
+        # The fork's share switch: model-provider keys were left out of the copy and are read live.
+        print(_t("shared.profile_create.providers_shared"))
+    if mirrored.get("auth") == "shared":
+        print(_t("shared.profile_create.auth_shared_hint" if isolate_hint else "shared.profile_create.auth_shared"))
+    elif mirrored.get("auth"):
+        print(_t("shared.profile_create.copied_logins", launch=launch))
+    if mirrored.get("model_inherited"):
+        print(_t("shared.profile_create.model_inherited", launch=launch))
+
+
 def _profile_create(args):
     from hermes_cli.profile_provision import ProfileCreateRequest, provision_profile
     from hermes_cli.profiles import _get_wrapper_dir, _is_wrapper_dir_in_path, get_active_profile_name
@@ -197,12 +214,18 @@ def _profile_create(args):
     sync_imports = getattr(args, "sync_imports", False)
     clone_config = clone or clone_from is not None
     cloned = clone_config or clone_all
-    source_label = clone_from or get_active_profile_name()
+    if cloned and getattr(args, "no_credentials", False):
+        # A clone copies the source's .env/config (and --clone-all its auth.json) by request.
+        _die(_t("shared.profile_create.no_credentials_with_clone"), err=True)
+    launch_label = get_active_profile_name()
+    source_label = clone_from or launch_label
     request = ProfileCreateRequest(
         name=name, clone_from=clone_from, clone_all=clone_all, clone_config=clone_config,
         no_skills=getattr(args, "no_skills", False), description=getattr(args, "description", None),
         clone_channels=clone_channels, sync_imports=sync_imports,
-        alias=not no_alias, quiet=False)
+        alias=not no_alias, quiet=False,
+        mirror_credentials=not getattr(args, "no_credentials", False),
+        share_auth=not getattr(args, "isolated_auth", False))
     try:
         result = provision_profile(request)
     except (ValueError, FileExistsError, FileNotFoundError) as e:
@@ -246,6 +269,8 @@ def _profile_create(args):
                 print(f"\n⚠ {_get_wrapper_dir()} is not in your PATH.")
                 print("  Add to your shell config (~/.bashrc or ~/.zshrc):")
                 print('    export PATH="$HOME/.local/bin:$PATH"')
+    _print_mirrored(result.mirrored, launch_label,
+                    isolate_hint=not getattr(args, "isolated_auth", False) and not getattr(args, "no_credentials", False))
     for warning in result.warnings:
         print(f"⚠ {warning}")
     try:
@@ -265,7 +290,7 @@ def _profile_create(args):
         print("  hermes gateway restart    Serve this profile from the running multiplexed gateway")
     else:
         print(f"  {name} gateway start      Start the messaging gateway")
-    if clone or clone_all:
+    if cloned or result.mirrored.get("env"):
         print(f"\n  Edit {profile_dir_display}/.env for different API keys")
         print(f"  Edit {profile_dir_display}/SOUL.md for different personality")
     else:

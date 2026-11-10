@@ -4800,3 +4800,12 @@ shared:
     ask: "¿Activar la limpieza automática? [y = activar / n = no limpiar nunca, no volver a preguntar / Enter = recordármelo más tarde]"
     answered_off: "{setting}. No se te volverá a preguntar."
     later: "Más tarde. {command} lo decide en cualquier momento."
+  profile_create:
+    subscription_logins_kept: "no se trasladaron los inicios de sesión de suscripción ({providers}): el perfil usa los del perfil predeterminado; ejecuta `hermes -p {name} auth add <provider>` para iniciar sesión en él por separado"
+    copied_keys: "Se copiaron las claves de API de '{launch}' (sin tokens de bots ni listas de permitidos)."
+    providers_shared: "Los proveedores de modelos y sus claves de API se leen en vivo del perfil predeterminado en lugar de copiarse."
+    auth_shared: "Los inicios de sesión y las suscripciones se comparten con el perfil predeterminado."
+    auth_shared_hint: "Los inicios de sesión y las suscripciones se comparten con el perfil predeterminado (--isolated-auth los copia)."
+    copied_logins: "Se copiaron los inicios de sesión de '{launch}' (los inicios de sesión OAuth de un solo uso se siguen leyendo del perfil predeterminado)."
+    model_inherited: "Modelo heredado de '{launch}'."
+    no_credentials_with_clone: "Error: --no-credentials no se puede combinar con --clone / --clone-from / --clone-all (un clon copia las claves del origen); crea el perfil sin clonar."

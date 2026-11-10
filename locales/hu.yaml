@@ -4818,3 +4818,12 @@ shared:
     ask: "Bekapcsolod az automatikus kitakarítást? [y = bekapcsolás / n = soha ne takarítson, ne kérdezzen többet / Enter = emlékeztess később]"
     answered_off: "{setting}. Többé nem kérdezek rá."
     later: "Később. A(z) {command} paranccsal bármikor dönthetsz."
+  profile_create:
+    subscription_logins_kept: "az előfizetéses bejelentkezések nem kerültek át ({providers}): a profil az alapértelmezett profilét használja; külön bejelentkezéshez futtasd: `hermes -p {name} auth add <provider>`"
+    copied_keys: "API-kulcsok átmásolva innen: '{launch}' (bot tokenek és engedélyezési listák nélkül)."
+    providers_shared: "A modellszolgáltatók és API-kulcsaik másolás helyett élőben, az alapértelmezett profilból töltődnek be."
+    auth_shared: "A bejelentkezések és előfizetések közösek az alapértelmezett profillal."
+    auth_shared_hint: "A bejelentkezések és előfizetések közösek az alapértelmezett profillal (a --isolated-auth átmásolja őket)."
+    copied_logins: "Bejelentkezések átmásolva innen: '{launch}' (az egyszer használatos OAuth-bejelentkezések továbbra is az alapértelmezett profilból töltődnek be)."
+    model_inherited: "Modell örökölve innen: '{launch}'."
+    no_credentials_with_clone: "Hiba: a --no-credentials nem kombinálható a --clone / --clone-from / --clone-all kapcsolókkal (a klón a forrás kulcsait másolja); hozd létre a profilt klónozás nélkül."

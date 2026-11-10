@@ -4803,3 +4803,12 @@ shared:
     ask: "开启自动清理？[y = 开启 / n = 永不清理，不再询问 / Enter = 稍后提醒]"
     answered_off: "{setting}，不会再询问你"
     later: "稍后再说，随时可用 {command} 决定"
+  profile_create:
+    subscription_logins_kept: "未沿用订阅登录（{providers}）：此配置档案使用默认配置档案的登录，如需单独登录，请运行 `hermes -p {name} auth add <provider>`"
+    copied_keys: "已从 '{launch}' 复制 API 密钥（不含机器人令牌和允许列表）"
+    providers_shared: "模型提供商及其 API 密钥实时读取默认配置档案，不再复制"
+    auth_shared: "登录和订阅与默认配置档案共享"
+    auth_shared_hint: "登录和订阅与默认配置档案共享（使用 --isolated-auth 可改为复制）"
+    copied_logins: "已从 '{launch}' 复制登录信息（一次性 OAuth 登录仍从默认配置档案读取）"
+    model_inherited: "已沿用 '{launch}' 的模型"
+    no_credentials_with_clone: "错误：--no-credentials 不能与 --clone / --clone-from / --clone-all 同时使用（克隆会复制源配置档案的密钥），请改为不克隆直接创建"

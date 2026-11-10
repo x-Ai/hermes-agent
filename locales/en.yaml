@@ -4931,3 +4931,14 @@ shared:
     ask: "Enable auto-prune? [y = enable / n = never prune, don't ask again / Enter = remind me later]"
     answered_off: "{setting}. You won't be asked again."
     later: "Later. {command} decides it any time."
+  # What a profile create reports: the hermes_cli/profile_provision.py warning (every create surface) and the
+  # `hermes profile create` lines (hermes_cli/profile_cmd.py). Keep the flags, commands, auth.json and OAuth as written.
+  profile_create:
+    subscription_logins_kept: "subscription logins not carried over ({providers}): the profile uses the default profile's; run `hermes -p {name} auth add <provider>` to sign it in separately"
+    copied_keys: "Copied API keys from '{launch}' (bot tokens and allowlists left out)."
+    providers_shared: "Model providers and their API keys are read live from the default profile instead of copied."
+    auth_shared: "Logins and subscriptions are shared with the default profile."
+    auth_shared_hint: "Logins and subscriptions are shared with the default profile (--isolated-auth copies them)."
+    copied_logins: "Copied logins from '{launch}' (single-use OAuth logins are still read from the default profile)."
+    model_inherited: "Model inherited from '{launch}'."
+    no_credentials_with_clone: "Error: --no-credentials cannot be combined with --clone / --clone-from / --clone-all (a clone copies the source's keys); create without cloning instead."

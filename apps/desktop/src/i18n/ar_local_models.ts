@@ -88,6 +88,8 @@ export const arLocalModels: TranslationOverride<Translations['settings']['localM
   updateTitle: 'يتوفر تحديث للمحرك',
   updateDetail: (next, current) =>
     `إصدار أحدث من llama.cpp (${next}) جاهز للتثبيت — إصدارك الحالي ${current}. تواصل النماذج العمل أثناء التنزيل.`,
+  updateSameBuildDetail: tag =>
+    `يوفّر Hermes الآن llama.cpp ${tag} مع الملفات التي يحتاجها للتشغيل. يؤدي التحديث إلى تنزيل المحرك من جديد، وتواصل النماذج العمل أثناء التنزيل.`,
   updateAction: 'تحديث المحرك',
   updating: 'جارٍ تحديث المحرك…',
   upToDateTitle: 'المحرك محدّث',

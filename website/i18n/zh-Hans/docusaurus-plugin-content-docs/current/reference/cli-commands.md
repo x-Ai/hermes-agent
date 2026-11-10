@@ -1181,7 +1181,7 @@ hermes profile <subcommand>
 |------------|-------------|
 | `list` | 列出所有 profile。 |
 | `use <name>` | 设置粘性默认 profile。 |
-| `create <name> [--clone] [--clone-all] [--clone-from <source>] [--no-alias]` | 创建新 profile。`--clone` 从活跃 profile 复制 config、`.env`、`SOUL.md` 和 skills。`--clone-all` 复制所有状态。`--clone-from` 指定源 profile，除非与 `--clone-all` 配合使用，否则会隐含 config 克隆。 |
+| `create <name> [--clone] [--clone-all] [--clone-from <source>] [--no-alias] [--isolated-auth] [--no-credentials]` | 创建新 profile。默认情况下，它会获得活跃 profile 的 API 密钥（不含机器人令牌）和模型，并共享默认 profile 的登录（从具名 profile 创建时，则改为复制该 profile 的登录）。在默认 profile 中创建时，它还会实时读取该 profile 的模型提供方及其密钥（`share_providers`），而不是复制这些密钥。`--isolated-auth` 改为复制登录；`--no-credentials` 这些都不复制。`--clone` 从活跃 profile 复制 config、`.env`、`SOUL.md` 和 skills。`--clone-all` 复制所有状态。`--clone-from` 指定源 profile，除非与 `--clone-all` 配合使用，否则会隐含 config 克隆。 |
 | `delete <name> [-y]` | 删除 profile。 |
 | `show <name>` | 显示 profile 详情（主目录、config 等）。 |
 | `alias <name> [--remove] [--name NAME]` | 管理快速访问 profile 的包装脚本。 |

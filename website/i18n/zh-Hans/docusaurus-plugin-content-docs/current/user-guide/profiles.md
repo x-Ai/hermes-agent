@@ -30,8 +30,7 @@ profile 是一个独立的 Hermes 主目录。每个 profile 拥有自己的目�
 
 ```bash
 hermes profile create coder       # 创建 profile + "coder" 命令别名
-coder setup                       # 配置 API 密钥和模型
-coder chat                        # 开始对话
+coder chat                        # 开始对话（密钥和模型来自当前 profile）
 ```
 
 就这些。`coder` 现在是拥有独立配置、记忆和状态的 Hermes profile。
@@ -44,7 +43,10 @@ coder chat                        # 开始对话
 hermes profile create mybot
 ```
 
-创建一个预置了内置技能的全新 profile。运行 `mybot setup` 配置 API 密钥、模型和 gateway token。
+创建一个预置了内置技能的全新 profile。它会获得当前 profile 的 API 密钥（不含机器人令牌和允许列表）和模型，并共享默认 profile 的登录，与桌面端机器人页面“共享密钥和账户”的默认设置相同。在默认 profile 中创建时，它还会共享默认 profile 的模型提供方（`share_providers`，见下文）：这些提供方的 API 密钥实时读取，而不是复制。运行 `mybot setup` 配置它的 gateway token。
+
+- `--isolated-auth` 会把登录（`auth.json`）复制一份，而不是共享。从具名 profile 创建的 profile 总是获得该 profile 登录的副本；其中的订阅（一次性 OAuth）登录无法复制，因此对这些提供商，新 profile 读取默认 profile 的登录，`profile create` 会提示这一点。
+- `--no-credentials` 不复制任何密钥、登录或模型；之后请运行 `mybot setup`。
 
 如果你计划将此 profile 用作 kanban（看板）工作节点（或希望 kanban 编排器将任务路由到它），在创建时传入 `--description "<角色>"` 以便编排器了解其能力：
 
@@ -71,9 +73,9 @@ hermes profile create backup --clone-all
 复制**所有内容**——配置、API 密钥、人格、记忆、技能、cron 任务、插件。会排除每个 profile 自己的历史数据（会话历史、`state.db`、`backups/`、`state-snapshots/`、`checkpoints/`），这些数据属于源 profile 且可能达到数十 GB。若要包含历史的完整备份，请使用 `hermes profile export` 或 `hermes backup`。
 
 :::note OAuth 登录是共享的，而不是复制的
-Anthropic（Claude Pro/Max）、OpenAI Codex 和 xAI 的 OAuth 登录使用**一次性刷新令牌**——复制一份并不会得到第二个凭证，而是同一个凭证有了两个持有者，第一个刷新它的 profile 会让其他所有副本失效。因此 `--clone-all`（以及仪表盘的凭证镜像）不会把这些 OAuth 条目复制到克隆中。新 profile 继续从根目录的 `~/.hermes/auth.json` 读取登录，任何 profile 中执行的令牌刷新都会写回根目录，所有 profile 都保持登录状态。静态 API 密钥照常复制。若要让某个 profile 拥有自己独立的 OAuth 登录，请在其中运行 `hermes -p <name> auth add <provider>`。该登录保存在这个 profile 自己的 `auth.json` 中（即使根目录还没有该提供商的登录也是如此），此后该 profile 使用它而不是根目录的登录；根目录的 `auth.json` 不会被修改。如果登录无法保存，命令会报错，而不会打印 `Added`。
+Anthropic（Claude Pro/Max）、OpenAI Codex 和 xAI 的 OAuth 登录使用**一次性刷新令牌**——复制一份并不会得到第二个凭证，而是同一个凭证有了两个持有者，第一个刷新它的 profile 会让其他所有副本失效。因此 `--clone-all`（以及 `--isolated-auth` 或从具名 profile 创建时生成的登录副本）不会把这些 OAuth 条目复制到副本中。新 profile 继续从根目录的 `~/.hermes/auth.json` 读取登录，任何 profile 中执行的令牌刷新都会写回根目录，所有 profile 都保持登录状态。静态 API 密钥照常复制。若要让某个 profile 拥有自己独立的 OAuth 登录，请在其中运行 `hermes -p <name> auth add <provider>`。该登录保存在这个 profile 自己的 `auth.json` 中（即使根目录还没有该提供商的登录也是如此），此后该 profile 使用它而不是根目录的登录；根目录的 `auth.json` 不会被修改。如果登录无法保存，命令会报错，而不会打印 `Added`。
 
-`profile.yaml` 中设置了 `share_providers: true` 的 profile（机器人模式的**与主配置档案共享密钥、账户和模型提供方**开关写入的就是它）在模型提供方上更进一步：它实时读取根 profile 的自定义端点以及背后的 API 密钥变量，并以根 profile 为准，覆盖自己的副本，所有解析提供方密钥的路径都如此（profile 自己的密钥作用域和优先读取 `.env` 文件的读取器都一样），网关自己的读取也包括在内：网关自管会话启动时冻结的配置，以及在桌面端或 TUI 中做的模型选择，都以同样的方式看到根 profile 的端点。根 `.env` 中的其他内容不会跨越（频道令牌仍按 profile 隔离），根 profile 从不跟随任何人，打开开关创建的 profile 自己的 `.env` 里也不再保留根 profile 提供方密钥的副本。在设置中，该 profile 的"自定义端点"和"API 密钥"页会把这类条目标记为由主配置档案共享，只能在主配置档案中修改（该 profile 仍可*使用*共享端点）；"账号"页会把从根 profile 借用的登录标记为主配置档案的登录——退出要在主配置档案中进行，而在该 profile 中登录会让它拥有自己的账号，不再跟随根 profile。根 profile 修改一个共享端点时，所有指向它的共享 profile 保存的路由（`model.base_url` / `model.api_mode`）会同步刷新；删除一个仍有共享 profile 在使用的端点会被拒绝，直到该 profile 改变模型指向。关闭开关时，会把该 profile 当前指向的端点复制进它自己的配置一次——复制的是根 profile 的当前定义，而不是旧副本——这样它作为独立 profile 仍能继续工作。
+`profile.yaml` 中设置了 `share_providers: true` 的 profile（机器人模式的**与主配置档案共享密钥、账户和模型提供方**开关写入的就是它）在模型提供方上更进一步：它实时读取根 profile 的自定义端点以及背后的 API 密钥变量，并以根 profile 为准，覆盖自己的副本，所有解析提供方密钥的路径都如此（profile 自己的密钥作用域和优先读取 `.env` 文件的读取器都一样），网关自己的读取也包括在内：网关自管会话启动时冻结的配置，以及在桌面端或 TUI 中做的模型选择，都以同样的方式看到根 profile 的端点。根 `.env` 中的其他内容不会跨越（频道令牌仍按 profile 隔离），根 profile 从不跟随任何人，打开开关创建的 profile 自己的 `.env` 里也不再保留根 profile 提供方密钥的副本。`hermes profile create` 和仪表盘的创建在默认 profile 中运行时默认也这样做（`--isolated-auth` 或取消勾选开关则保留副本）；从具名 profile 创建的 profile 会复制该 profile 的密钥和登录，不共享。在设置中，该 profile 的"自定义端点"和"API 密钥"页会把这类条目标记为由主配置档案共享，只能在主配置档案中修改（该 profile 仍可*使用*共享端点）；"账号"页会把从根 profile 借用的登录标记为主配置档案的登录——退出要在主配置档案中进行，而在该 profile 中登录会让它拥有自己的账号，不再跟随根 profile。根 profile 修改一个共享端点时，所有指向它的共享 profile 保存的路由（`model.base_url` / `model.api_mode`）会同步刷新；删除一个仍有共享 profile 在使用的端点会被拒绝，直到该 profile 改变模型指向。关闭开关时，会把该 profile 当前指向的端点复制进它自己的配置一次——复制的是根 profile 的当前定义，而不是旧副本——这样它作为独立 profile 仍能继续工作。
 :::
 
 ### 从指定 profile 克隆

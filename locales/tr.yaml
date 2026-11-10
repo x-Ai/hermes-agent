@@ -4799,3 +4799,12 @@ shared:
     ask: "Otomatik temizleme açılsın mı? [y = aç / n = asla temizleme, bir daha sorma / Enter = sonra hatırlat]"
     answered_off: "{setting}. Bir daha sorulmayacak."
     later: "Sonra. {command} ile istediğiniz zaman karar verebilirsiniz."
+  profile_create:
+    subscription_logins_kept: "abonelik oturumları aktarılmadı ({providers}): profil varsayılan profilinkileri kullanıyor; ayrıca oturum açmak için `hermes -p {name} auth add <provider>` komutunu çalıştırın"
+    copied_keys: "API anahtarları '{launch}' profilinden kopyalandı (bot belirteçleri ve izin listeleri hariç)."
+    providers_shared: "Model sağlayıcıları ve API anahtarları kopyalanmak yerine varsayılan profilden canlı olarak okunur."
+    auth_shared: "Oturumlar ve abonelikler varsayılan profille paylaşılır."
+    auth_shared_hint: "Oturumlar ve abonelikler varsayılan profille paylaşılır (--isolated-auth bunları kopyalar)."
+    copied_logins: "Oturumlar '{launch}' profilinden kopyalandı (tek kullanımlık OAuth oturumları hâlâ varsayılan profilden okunur)."
+    model_inherited: "Model '{launch}' profilinden devralındı."
+    no_credentials_with_clone: "Hata: --no-credentials, --clone / --clone-from / --clone-all ile birlikte kullanılamaz (klon kaynağın anahtarlarını kopyalar); profili klonlamadan oluşturun."

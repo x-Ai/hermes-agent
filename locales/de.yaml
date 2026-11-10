@@ -4800,3 +4800,12 @@ shared:
     ask: "Automatisches Aufräumen einschalten? [y = einschalten / n = nie aufräumen, nicht mehr fragen / Enter = später erinnern]"
     answered_off: "{setting}. Sie werden nicht erneut gefragt."
     later: "Später. {command} entscheidet es jederzeit."
+  profile_create:
+    subscription_logins_kept: "Abo-Anmeldungen nicht übernommen ({providers}): Das Profil verwendet die des Standardprofils; führen Sie `hermes -p {name} auth add <provider>` aus, um es separat anzumelden"
+    copied_keys: "API-Schlüssel aus '{launch}' kopiert (Bot-Tokens und Zulassungslisten ausgenommen)."
+    providers_shared: "Modellanbieter und ihre API-Schlüssel werden live aus dem Standardprofil gelesen statt kopiert."
+    auth_shared: "Anmeldungen und Abos werden mit dem Standardprofil geteilt."
+    auth_shared_hint: "Anmeldungen und Abos werden mit dem Standardprofil geteilt (--isolated-auth kopiert sie)."
+    copied_logins: "Anmeldungen aus '{launch}' kopiert (einmalig nutzbare OAuth-Anmeldungen werden weiterhin aus dem Standardprofil gelesen)."
+    model_inherited: "Modell von '{launch}' übernommen."
+    no_credentials_with_clone: "Fehler: --no-credentials kann nicht mit --clone / --clone-from / --clone-all kombiniert werden (ein Klon kopiert die Schlüssel der Quelle); erstellen Sie das Profil ohne Klonen."

@@ -4800,3 +4800,12 @@ shared:
     ask: "Skakel outomatiese opruiming aan? [y = skakel aan / n = ruim nooit op nie, moenie weer vra nie / Enter = herinner my later]"
     answered_off: "{setting}. Jy sal nie weer gevra word nie."
     later: "Later. {command} besluit dit enige tyd."
+  profile_create:
+    subscription_logins_kept: "intekenaanmeldings nie oorgedra nie ({providers}): die profiel gebruik dié van die verstekprofiel; voer `hermes -p {name} auth add <provider>` uit om dit afsonderlik aan te meld"
+    copied_keys: "API-sleutels van '{launch}' gekopieer (bot-tokens en toelaatlyste uitgelaat)."
+    providers_shared: "Modelverskaffers en hul API-sleutels word regstreeks uit die verstekprofiel gelees in plaas daarvan om gekopieer te word."
+    auth_shared: "Aanmeldings en intekeninge word met die verstekprofiel gedeel."
+    auth_shared_hint: "Aanmeldings en intekeninge word met die verstekprofiel gedeel (--isolated-auth kopieer hulle)."
+    copied_logins: "Aanmeldings van '{launch}' gekopieer (eenmalige OAuth-aanmeldings word steeds uit die verstekprofiel gelees)."
+    model_inherited: "Model van '{launch}' oorgeërf."
+    no_credentials_with_clone: "Fout: --no-credentials kan nie saam met --clone / --clone-from / --clone-all gebruik word nie ('n kloon kopieer die bron se sleutels); skep die profiel sonder om te kloon."

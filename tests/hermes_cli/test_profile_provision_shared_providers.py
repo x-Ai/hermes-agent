@@ -66,7 +66,8 @@ def test_the_profile_shares_before_its_model_pick_is_written(launch, monkeypatch
 
 
 def test_an_island_profile_keeps_its_own_copies_and_no_share_flag(launch):
-    result = provision_profile(ProfileCreateRequest(name="lone", mirror_credentials=True))
+    # Sharing is the default on every create surface now, so an island opts out (--isolated-auth).
+    result = provision_profile(ProfileCreateRequest(name="lone", mirror_credentials=True, share_auth=False))
 
     assert "providers" not in result.mirrored
     assert "share_providers" not in _profile_yaml(result.path)
@@ -74,3 +75,37 @@ def test_an_island_profile_keeps_its_own_copies_and_no_share_flag(launch):
         "ACME_TOKEN": "root-acme-secret", "BRAVE_API_KEY": "root-brave-key"}
     config = yaml.safe_load((result.path / "config.yaml").read_text(encoding="utf-8")) or {}
     assert config["providers"]["acme"]["api_key"] == "${ACME_TOKEN}"
+
+
+def test_the_default_create_shares_like_the_bot_page(launch):
+    """Every surface takes the bot page's defaults, and in this fork its switch shares providers."""
+    result = provision_profile(ProfileCreateRequest(name="plain"))
+
+    assert result.mirrored["providers"] == "shared"
+    assert profile_shares_providers(result.path) is True
+    assert load_env_file(result.path / ".env") == {"BRAVE_API_KEY": "root-brave-key"}
+
+
+def test_no_credentials_does_not_share_providers(launch):
+    result = provision_profile(ProfileCreateRequest(name="bare", mirror_credentials=False))
+
+    assert "providers" not in result.mirrored
+    assert "share_providers" not in _profile_yaml(result.path)
+
+
+def test_a_named_launch_profile_keeps_its_own_providers_instead_of_sharing_the_roots(launch, monkeypatch):
+    """Sharing reads the root's providers; from launch profile ``b`` that would pair b's model pick with
+    the root's endpoints and strip keys only b holds, so the child keeps b's copies, like its logins."""
+    b = launch / "profiles" / "b"
+    b.mkdir(parents=True)
+    (b / "config.yaml").write_text("model:\n  provider: openrouter\n  default: m-b\n", encoding="utf-8")
+    (b / ".env").write_text("OPENAI_API_KEY=sk-openai-b\n", encoding="utf-8")
+    monkeypatch.setenv("HERMES_HOME", str(b))
+
+    result = provision_profile(ProfileCreateRequest(name="child"))
+
+    assert result.path == launch / "profiles" / "child"
+    assert "providers" not in result.mirrored
+    assert "share_providers" not in _profile_yaml(result.path)
+    # A registry provider key a sharing profile would have stripped stays: the child owns its copy.
+    assert load_env_file(result.path / ".env") == {"OPENAI_API_KEY": "sk-openai-b"}

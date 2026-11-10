@@ -42,7 +42,8 @@ def _flag(profile: Path):
 def test_create_with_the_share_switch_marks_the_profile_as_sharing(homes):
     root = homes
     shared = _ok("profiles.create", {"name": "scout", "no_alias": True, "no_skills": True, "share_auth": True})
-    island = _ok("profiles.create", {"name": "lone", "no_alias": True, "no_skills": True})
+    # share_auth defaults on (the bot page's default), so the island unticks it.
+    island = _ok("profiles.create", {"name": "lone", "no_alias": True, "no_skills": True, "share_auth": False})
     assert shared["mirrored"]["providers"] == "shared" and "providers" not in island["mirrored"]
     assert _flag(root / "profiles" / "scout") is True
     assert _flag(root / "profiles" / "lone") is None
@@ -100,7 +101,7 @@ def test_create_with_the_share_switch_leaves_no_provider_key_copies_in_the_profi
         encoding="utf-8")
 
     _ok("profiles.create", {"name": "scout", "no_alias": True, "no_skills": True, "share_auth": True})
-    _ok("profiles.create", {"name": "lone", "no_alias": True, "no_skills": True})
+    _ok("profiles.create", {"name": "lone", "no_alias": True, "no_skills": True, "share_auth": False})
 
     assert load_env_file(root / "profiles" / "scout" / ".env") == {"BRAVE_API_KEY": "root-brave-key"}
     assert load_env_file(root / "profiles" / "lone" / ".env") == {
