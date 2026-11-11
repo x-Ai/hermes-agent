@@ -14,8 +14,8 @@ from dataclasses import dataclass, field
 from typing import Any, NamedTuple, Optional
 
 from hermes_cli.providers import (
-    LLAMACPP_ALIASES, ProviderDef, custom_endpoint_label, custom_provider_aliases, determine_api_mode,
-    get_label, host_mandated_api_mode, is_aggregator, normalize_provider, resolve_provider_full)
+    LLAMACPP_ALIASES, ProviderDef, custom_provider_aliases, determine_api_mode, get_label,
+    host_mandated_api_mode, is_aggregator, normalize_provider, resolve_provider_full)
 from hermes_cli.model_normalize import normalize_model_for_provider
 from agent.models_dev import (
     ModelCapabilities, ModelInfo, get_model_capabilities, get_model_info, list_provider_models)
@@ -91,7 +91,7 @@ def _bare_custom_provider_def(current_base_url: str) -> Optional[ProviderDef]:
     if not base_url:
         return None
     return ProviderDef(
-        id="custom", name=custom_endpoint_label(), transport="openai_chat", api_key_env_vars=(),
+        id="custom", name=get_label("custom"), transport="openai_chat", api_key_env_vars=(),
         base_url=base_url, is_aggregator=False, auth_type="api_key", source="model-config")
 
 
@@ -1457,7 +1457,7 @@ def _route_from_model_input(st: _Switch) -> Optional[ModelSwitchResult]:
 def _switch_provider_label(st: _Switch) -> str:
     label = get_label(st.target_provider)
     if st.target_provider == "custom" and st.current_base_url:
-        label = custom_endpoint_label()
+        label = get_label("custom")
     if st.target_provider.startswith("custom:"):
         custom_pdef = resolve_provider_full(st.target_provider, st.user_providers, st.custom_providers)
         if custom_pdef is not None:
