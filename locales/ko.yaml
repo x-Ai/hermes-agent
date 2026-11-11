@@ -4836,3 +4836,45 @@ shared:
     unit_disabled: "이 유닛은 비활성화되어 부팅 시 시작되지 않습니다."
     readonly_flags: "--backends는 읽기 전용 보고서이므로 --yes 또는 --multiplex와 함께 사용할 수 없습니다."
     json_needs_backends: "--json은 --backends와 함께만 사용할 수 있습니다."
+
+# tools: tool-layer copy the model and the user both read. hosted: a hosted scope's refusals
+# (tools/hosted_tool_policy.py and its callers). {what} is a tool name or a subject.* phrase, {tools}
+# the allowed tool names, {feature} a feature.* label. Keep tool names, MCP and stdio as written.
+tools:
+  hosted:
+    refused: "{what}은(는) 호스팅된 에이전트에서 사용할 수 없습니다: {why}. 호스팅된 에이전트의 도구는 {tools}이며, 모두 에이전트 자신의 샌드박스에서 실행됩니다."
+    reason_sandbox_only: "에이전트의 샌드박스를 통해서만 동작하는 도구만 활성화되어 있습니다"
+    reason_host_feature: "이 호스트의 {feature}을(를) 사용합니다"
+    memory_unavailable: "호스팅된 에이전트에서는 메모리를 사용할 수 없습니다."
+    image_unavailable: "호스팅된 에이전트에서는 이미지 처리를 사용할 수 없습니다."
+    video_unavailable: "호스팅된 에이전트에서는 동영상 처리를 사용할 수 없습니다."
+    subject:
+      shell_hook: "셸 훅"
+      inline_skill_shell: "스킬 인라인 셸"
+      context_references: "@ 참조"
+      cron_script: "cron 스크립트"
+      transcription: "음성 전사"
+      checkpoint_restore: "체크포인트 복원"
+      mcp_stdio: "MCP 서버 '{name}'(stdio)"
+    feature:
+      context_files: "컨텍스트 파일"
+      subdirectory_hints: "하위 디렉터리 힌트"
+      context_references: "컨텍스트 참조"
+      workspace_snapshot: "작업 공간 스냅샷"
+      backend_probe: "백엔드 프로브"
+      builtin_memory: "내장 메모리"
+      session_recall: "세션 회상"
+      background_review: "백그라운드 검토"
+      trajectory_export: "궤적 내보내기"
+      file_mutation_bookkeeping: "파일 변경 기록"
+      checkpoints: "체크포인트"
+      media_processing: "미디어 처리"
+      skills: "스킬"
+      skill_inline_shell: "스킬 인라인 셸"
+      cron_scripts: "cron 스크립트"
+      shell_hooks: "셸 훅"
+      tool_host_artifacts: "도구 보관 파일"
+      mcp_stdio: "MCP stdio 서버"
+      media_delivery: "미디어 전달"
+      transcription: "음성 전사"
+      delegation: "위임"

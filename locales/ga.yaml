@@ -4838,3 +4838,45 @@ shared:
     unit_disabled: "Tá an t-aonad díchumasaithe: ní thosaíonn sé ag am tosaithe."
     readonly_flags: "Is tuairisc inléite amháin é --backends; ní féidir é a úsáid in éineacht le --yes ná --multiplex."
     json_needs_backends: "Ní thacaítear le --json ach in éineacht le --backends."
+
+# tools: tool-layer copy the model and the user both read. hosted: a hosted scope's refusals
+# (tools/hosted_tool_policy.py and its callers). {what} is a tool name or a subject.* phrase, {tools}
+# the allowed tool names, {feature} a feature.* label. Keep tool names, MCP and stdio as written.
+tools:
+  hosted:
+    refused: "Níl {what} ar fáil do ghníomhaire óstáilte: {why}. Is iad {tools} uirlisí gníomhaire óstáilte, agus ritheann siad go léir ina bhosca gainimh féin."
+    reason_sandbox_only: "níl cumasaithe ach na huirlisí a fheidhmíonn trí bhosca gainimh an ghníomhaire amháin"
+    reason_host_feature: "úsáideann sé an méid seo ón óstríomhaire: {feature}"
+    memory_unavailable: "Níl cuimhne ar fáil do ghníomhaire óstáilte."
+    image_unavailable: "Níl próiseáil íomhánna ar fáil do ghníomhaire óstáilte."
+    video_unavailable: "Níl próiseáil físeán ar fáil do ghníomhaire óstáilte."
+    subject:
+      shell_hook: "crúca blaoisce"
+      inline_skill_shell: "blaosc inlíne na scileanna"
+      context_references: "tagairtí @"
+      cron_script: "script cron"
+      transcription: "tras-scríobh"
+      checkpoint_restore: "athchóiriú seicphointe"
+      mcp_stdio: "freastalaí MCP '{name}' (stdio)"
+    feature:
+      context_files: "comhaid chomhthéacs"
+      subdirectory_hints: "leideanna fochomhadlainne"
+      context_references: "tagairtí comhthéacs"
+      workspace_snapshot: "léargas ar an spás oibre"
+      backend_probe: "tóireadh an chúlchórais"
+      builtin_memory: "cuimhne ionsuite"
+      session_recall: "athghairm seisiún"
+      background_review: "athbhreithniú cúlra"
+      trajectory_export: "easpórtáil conairí"
+      file_mutation_bookkeeping: "taifead ar athruithe comhad"
+      checkpoints: "seicphointí"
+      media_processing: "próiseáil meán"
+      skills: "scileanna"
+      skill_inline_shell: "blaosc inlíne na scileanna"
+      cron_scripts: "scripteanna cron"
+      shell_hooks: "crúcaí blaoisce"
+      tool_host_artifacts: "déantúsáin uirlisí"
+      mcp_stdio: "freastalaithe MCP stdio"
+      media_delivery: "seachadadh meán"
+      transcription: "tras-scríobh"
+      delegation: "tarmligean"

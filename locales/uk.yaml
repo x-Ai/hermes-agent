@@ -4838,3 +4838,45 @@ shared:
     unit_disabled: "Юніт вимкнено: він не запускається під час завантаження."
     readonly_flags: "--backends — це звіт лише для читання; його не можна поєднувати з --yes або --multiplex."
     json_needs_backends: "--json підтримується лише разом із --backends."
+
+# tools: tool-layer copy the model and the user both read. hosted: a hosted scope's refusals
+# (tools/hosted_tool_policy.py and its callers). {what} is a tool name or a subject.* phrase, {tools}
+# the allowed tool names, {feature} a feature.* label. Keep tool names, MCP and stdio as written.
+tools:
+  hosted:
+    refused: "Для розміщеного агента недоступно: {what}. Причина: {why}. Інструменти розміщеного агента: {tools}; усі вони виконуються в його власній пісочниці."
+    reason_sandbox_only: "увімкнено лише інструменти, які діють виключно через пісочницю агента"
+    reason_host_feature: "це використовує {feature} цього хоста"
+    memory_unavailable: "Пам'ять недоступна розміщеному агенту."
+    image_unavailable: "Обробка зображень недоступна розміщеному агенту."
+    video_unavailable: "Обробка відео недоступна розміщеному агенту."
+    subject:
+      shell_hook: "shell-хук"
+      inline_skill_shell: "вбудована оболонка навичок"
+      context_references: "@-посилання"
+      cron_script: "cron-скрипт"
+      transcription: "транскрипція"
+      checkpoint_restore: "відновлення контрольної точки"
+      mcp_stdio: "MCP-сервер '{name}' (stdio)"
+    feature:
+      context_files: "файли контексту"
+      subdirectory_hints: "підказки підкаталогів"
+      context_references: "посилання на контекст"
+      workspace_snapshot: "знімок робочої області"
+      backend_probe: "перевірку бекенду"
+      builtin_memory: "вбудовану пам'ять"
+      session_recall: "пошук у сесіях"
+      background_review: "фонову перевірку"
+      trajectory_export: "експорт траєкторій"
+      file_mutation_bookkeeping: "облік змін файлів"
+      checkpoints: "контрольні точки"
+      media_processing: "обробку медіа"
+      skills: "навички"
+      skill_inline_shell: "вбудовану оболонку навичок"
+      cron_scripts: "cron-скрипти"
+      shell_hooks: "shell-хуки"
+      tool_host_artifacts: "артефакти інструментів"
+      mcp_stdio: "stdio-сервери MCP"
+      media_delivery: "доставку медіа"
+      transcription: "транскрипцію"
+      delegation: "делегування"

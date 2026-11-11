@@ -4837,3 +4837,45 @@ shared:
     unit_disabled: "الوحدة معطّلة: لا تبدأ عند الإقلاع."
     readonly_flags: "الخيار --backends تقرير للقراءة فقط؛ لا يمكن استخدامه مع --yes أو --multiplex."
     json_needs_backends: "الخيار --json مدعوم فقط مع --backends."
+
+# tools: tool-layer copy the model and the user both read. hosted: a hosted scope's refusals
+# (tools/hosted_tool_policy.py and its callers). {what} is a tool name or a subject.* phrase, {tools}
+# the allowed tool names, {feature} a feature.* label. Keep tool names, MCP and stdio as written.
+tools:
+  hosted:
+    refused: "{what} غير متاح لوكيل مستضاف: {why}. أدوات الوكيل المستضاف هي {tools}، وجميعها تعمل في صندوق الرمل الخاص به."
+    reason_sandbox_only: "لا تُفعَّل إلا الأدوات التي تعمل حصريًا عبر صندوق رمل الوكيل"
+    reason_host_feature: "فهو يستخدم {feature} على هذا المضيف"
+    memory_unavailable: "الذاكرة غير متاحة لوكيل مستضاف."
+    image_unavailable: "معالجة الصور غير متاحة لوكيل مستضاف."
+    video_unavailable: "معالجة الفيديو غير متاحة لوكيل مستضاف."
+    subject:
+      shell_hook: "خطاف shell"
+      inline_skill_shell: "shell المضمّن في المهارات"
+      context_references: "توسيع مراجع @"
+      cron_script: "سكربت cron"
+      transcription: "النسخ الصوتي"
+      checkpoint_restore: "استعادة نقطة التحقق"
+      mcp_stdio: "خادم MCP '{name}' (stdio)"
+    feature:
+      context_files: "ملفات السياق"
+      subdirectory_hints: "تلميحات الأدلة الفرعية"
+      context_references: "مراجع السياق"
+      workspace_snapshot: "لقطة مساحة العمل"
+      backend_probe: "فحص الواجهة الخلفية"
+      builtin_memory: "الذاكرة المدمجة"
+      session_recall: "استرجاع الجلسات"
+      background_review: "المراجعة في الخلفية"
+      trajectory_export: "تصدير المسارات"
+      file_mutation_bookkeeping: "سجل تعديلات الملفات"
+      checkpoints: "نقاط التحقق"
+      media_processing: "معالجة الوسائط"
+      skills: "المهارات"
+      skill_inline_shell: "shell المضمّن في المهارات"
+      cron_scripts: "سكربتات cron"
+      shell_hooks: "خطافات shell"
+      tool_host_artifacts: "الملفات المحفوظة للأدوات"
+      mcp_stdio: "خوادم MCP عبر stdio"
+      media_delivery: "تسليم الوسائط"
+      transcription: "النسخ الصوتي"
+      delegation: "التفويض"

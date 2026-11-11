@@ -4837,3 +4837,45 @@ shared:
     unit_disabled: "Birim devre dışı: önyüklemede başlamaz."
     readonly_flags: "--backends salt okunur bir rapordur; --yes veya --multiplex ile birlikte kullanılamaz."
     json_needs_backends: "--json yalnızca --backends ile birlikte desteklenir."
+
+# tools: tool-layer copy the model and the user both read. hosted: a hosted scope's refusals
+# (tools/hosted_tool_policy.py and its callers). {what} is a tool name or a subject.* phrase, {tools}
+# the allowed tool names, {feature} a feature.* label. Keep tool names, MCP and stdio as written.
+tools:
+  hosted:
+    refused: "{what}, barındırılan bir ajan için kullanılamaz: {why}. Barındırılan bir ajanın araçları şunlardır: {tools}; hepsi ajanın kendi sanal alanında çalışır."
+    reason_sandbox_only: "yalnızca tamamen ajanın sanal alanı üzerinden çalışan araçlar etkindir"
+    reason_host_feature: "{feature} için bu ana makineyi kullanır"
+    memory_unavailable: "Bellek, barındırılan bir ajan için kullanılamaz."
+    image_unavailable: "Görüntü işleme, barındırılan bir ajan için kullanılamaz."
+    video_unavailable: "Video işleme, barındırılan bir ajan için kullanılamaz."
+    subject:
+      shell_hook: "Bir shell hook'u"
+      inline_skill_shell: "Skill'lerin satır içi kabuğu"
+      context_references: "@ referansları"
+      cron_script: "Bir cron betiği"
+      transcription: "Yazıya dökme"
+      checkpoint_restore: "Kontrol noktası geri yükleme"
+      mcp_stdio: "MCP sunucusu '{name}' (stdio)"
+    feature:
+      context_files: "bağlam dosyaları"
+      subdirectory_hints: "alt dizin ipuçları"
+      context_references: "bağlam referansları"
+      workspace_snapshot: "çalışma alanı anlık görüntüsü"
+      backend_probe: "arka uç yoklaması"
+      builtin_memory: "yerleşik bellek"
+      session_recall: "oturum hatırlama"
+      background_review: "arka plan incelemesi"
+      trajectory_export: "yörünge dışa aktarımı"
+      file_mutation_bookkeeping: "dosya değişikliği kaydı"
+      checkpoints: "kontrol noktaları"
+      media_processing: "medya işleme"
+      skills: "skill'ler"
+      skill_inline_shell: "skill'lerin satır içi kabuğu"
+      cron_scripts: "cron betikleri"
+      shell_hooks: "shell hook'ları"
+      tool_host_artifacts: "araç yapıtları"
+      mcp_stdio: "MCP stdio sunucuları"
+      media_delivery: "medya teslimi"
+      transcription: "yazıya dökme"
+      delegation: "delegasyon"

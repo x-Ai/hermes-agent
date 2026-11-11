@@ -4836,3 +4836,45 @@ shared:
     unit_disabled: "このユニットは無効です。起動時には開始されません。"
     readonly_flags: "--backends は読み取り専用のレポートです。--yes や --multiplex とは併用できません。"
     json_needs_backends: "--json は --backends と併用する場合のみ使用できます。"
+
+# tools: tool-layer copy the model and the user both read. hosted: a hosted scope's refusals
+# (tools/hosted_tool_policy.py and its callers). {what} is a tool name or a subject.* phrase, {tools}
+# the allowed tool names, {feature} a feature.* label. Keep tool names, MCP and stdio as written.
+tools:
+  hosted:
+    refused: "{what} はホストされたエージェントでは利用できません: {why}。ホストされたエージェントのツールは {tools} で、すべてエージェント自身のサンドボックスで実行されます"
+    reason_sandbox_only: "有効なのは、エージェントのサンドボックスだけを通じて動作するツールのみです"
+    reason_host_feature: "このホストの{feature}を使用します"
+    memory_unavailable: "ホストされたエージェントではメモリを利用できません"
+    image_unavailable: "ホストされたエージェントでは画像処理を利用できません"
+    video_unavailable: "ホストされたエージェントでは動画処理を利用できません"
+    subject:
+      shell_hook: "シェルフック"
+      inline_skill_shell: "スキルのインラインシェル"
+      context_references: "@ 参照"
+      cron_script: "cron スクリプト"
+      transcription: "文字起こし"
+      checkpoint_restore: "チェックポイントの復元"
+      mcp_stdio: "MCP サーバー '{name}' (stdio)"
+    feature:
+      context_files: "コンテキストファイル"
+      subdirectory_hints: "サブディレクトリのヒント"
+      context_references: "コンテキスト参照"
+      workspace_snapshot: "ワークスペースのスナップショット"
+      backend_probe: "バックエンドのプローブ"
+      builtin_memory: "組み込みメモリ"
+      session_recall: "セッションの想起"
+      background_review: "バックグラウンドレビュー"
+      trajectory_export: "軌跡のエクスポート"
+      file_mutation_bookkeeping: "ファイル変更の記録"
+      checkpoints: "チェックポイント"
+      media_processing: "メディア処理"
+      skills: "スキル"
+      skill_inline_shell: "スキルのインラインシェル"
+      cron_scripts: "cron スクリプト"
+      shell_hooks: "シェルフック"
+      tool_host_artifacts: "ツールの保存ファイル"
+      mcp_stdio: "MCP stdio サーバー"
+      media_delivery: "メディア配信"
+      transcription: "文字起こし"
+      delegation: "委任"

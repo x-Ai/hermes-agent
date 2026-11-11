@@ -4856,3 +4856,45 @@ shared:
     unit_disabled: "A unit le van tiltva: rendszerindításkor nem indul el."
     readonly_flags: "A --backends csak olvasható jelentés; nem kombinálható a --yes vagy a --multiplex kapcsolóval."
     json_needs_backends: "A --json csak a --backends kapcsolóval együtt támogatott."
+
+# tools: tool-layer copy the model and the user both read. hosted: a hosted scope's refusals
+# (tools/hosted_tool_policy.py and its callers). {what} is a tool name or a subject.* phrase, {tools}
+# the allowed tool names, {feature} a feature.* label. Keep tool names, MCP and stdio as written.
+tools:
+  hosted:
+    refused: "{what} nem érhető el hosztolt ügynök számára: {why}. A hosztolt ügynök eszközei: {tools}; mind az ügynök saját homokozójában futnak."
+    reason_sandbox_only: "csak azok az eszközök engedélyezettek, amelyek kizárólag az ügynök homokozóján keresztül működnek"
+    reason_host_feature: "ehhez a gazdagép alábbi funkcióját használja: {feature}"
+    memory_unavailable: "A memória nem érhető el hosztolt ügynök számára."
+    image_unavailable: "A képfeldolgozás nem érhető el hosztolt ügynök számára."
+    video_unavailable: "A videófeldolgozás nem érhető el hosztolt ügynök számára."
+    subject:
+      shell_hook: "Egy shell-hook"
+      inline_skill_shell: "A készségek beágyazott shellje"
+      context_references: "A @-hivatkozások feloldása"
+      cron_script: "Egy cron-szkript"
+      transcription: "Az átírás"
+      checkpoint_restore: "Az ellenőrzőpont-visszaállítás"
+      mcp_stdio: "A(z) '{name}' MCP-szerver (stdio)"
+    feature:
+      context_files: "kontextusfájlok"
+      subdirectory_hints: "alkönyvtár-tippek"
+      context_references: "kontextushivatkozások"
+      workspace_snapshot: "munkaterület-pillanatkép"
+      backend_probe: "háttérrendszer-próba"
+      builtin_memory: "beépített memória"
+      session_recall: "munkamenet-visszakeresés"
+      background_review: "háttérben futó áttekintés"
+      trajectory_export: "trajektória-exportálás"
+      file_mutation_bookkeeping: "fájlmódosítások nyilvántartása"
+      checkpoints: "ellenőrzőpontok"
+      media_processing: "médiafeldolgozás"
+      skills: "készségek"
+      skill_inline_shell: "a készségek beágyazott shellje"
+      cron_scripts: "cron-szkriptek"
+      shell_hooks: "shell-hookok"
+      tool_host_artifacts: "eszközök által tárolt fájlok"
+      mcp_stdio: "MCP stdio-szerverek"
+      media_delivery: "médiakézbesítés"
+      transcription: "átírás"
+      delegation: "delegálás"

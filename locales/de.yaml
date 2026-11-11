@@ -4838,3 +4838,45 @@ shared:
     unit_disabled: "Die Unit ist deaktiviert: Sie startet nicht beim Booten."
     readonly_flags: "--backends ist ein schreibgeschützter Bericht und kann nicht mit --yes oder --multiplex kombiniert werden."
     json_needs_backends: "--json wird nur zusammen mit --backends unterstützt."
+
+# tools: tool-layer copy the model and the user both read. hosted: a hosted scope's refusals
+# (tools/hosted_tool_policy.py and its callers). {what} is a tool name or a subject.* phrase, {tools}
+# the allowed tool names, {feature} a feature.* label. Keep tool names, MCP and stdio as written.
+tools:
+  hosted:
+    refused: "{what} ist für einen gehosteten Agenten nicht verfügbar: {why}. Die Tools eines gehosteten Agenten sind {tools}; alle laufen in seiner eigenen Sandbox."
+    reason_sandbox_only: "aktiviert sind nur Tools, die ausschließlich über die Sandbox des Agenten arbeiten"
+    reason_host_feature: "dabei würde auf {feature} dieses Hosts zugegriffen"
+    memory_unavailable: "Das Gedächtnis ist für einen gehosteten Agenten nicht verfügbar."
+    image_unavailable: "Bildverarbeitung ist für einen gehosteten Agenten nicht verfügbar."
+    video_unavailable: "Videoverarbeitung ist für einen gehosteten Agenten nicht verfügbar."
+    subject:
+      shell_hook: "Ein Shell-Hook"
+      inline_skill_shell: "Die Inline-Shell von Skills"
+      context_references: "Die Auflösung von @-Referenzen"
+      cron_script: "Ein Cron-Skript"
+      transcription: "Transkription"
+      checkpoint_restore: "Die Checkpoint-Wiederherstellung"
+      mcp_stdio: "Der MCP-Server '{name}' (stdio)"
+    feature:
+      context_files: "die Kontextdateien"
+      subdirectory_hints: "die Unterverzeichnis-Hinweise"
+      context_references: "die Kontextreferenzen"
+      workspace_snapshot: "den Workspace-Snapshot"
+      backend_probe: "die Backend-Prüfung"
+      builtin_memory: "das integrierte Gedächtnis"
+      session_recall: "den Sitzungsabruf"
+      background_review: "die Hintergrundprüfung"
+      trajectory_export: "den Trajektorien-Export"
+      file_mutation_bookkeeping: "die Buchführung über Dateiänderungen"
+      checkpoints: "die Checkpoints"
+      media_processing: "die Medienverarbeitung"
+      skills: "die Skills"
+      skill_inline_shell: "die Inline-Shell von Skills"
+      cron_scripts: "die Cron-Skripte"
+      shell_hooks: "die Shell-Hooks"
+      tool_host_artifacts: "die Tool-Artefakte"
+      mcp_stdio: "die MCP-stdio-Server"
+      media_delivery: "die Medienzustellung"
+      transcription: "die Transkription"
+      delegation: "die Delegation"

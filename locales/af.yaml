@@ -4838,3 +4838,45 @@ shared:
     unit_disabled: "Die unit is gedeaktiveer: dit begin nie by selflaai nie."
     readonly_flags: "--backends is 'n leesalleen-verslag; dit kan nie saam met --yes of --multiplex gebruik word nie."
     json_needs_backends: "--json word slegs saam met --backends ondersteun."
+
+# tools: tool-layer copy the model and the user both read. hosted: a hosted scope's refusals
+# (tools/hosted_tool_policy.py and its callers). {what} is a tool name or a subject.* phrase, {tools}
+# the allowed tool names, {feature} a feature.* label. Keep tool names, MCP and stdio as written.
+tools:
+  hosted:
+    refused: "{what} is nie beskikbaar vir 'n gehuisveste agent nie: {why}. 'n Gehuisveste agent se gereedskap is {tools}, en alles loop in sy eie sandput."
+    reason_sandbox_only: "slegs gereedskap wat uitsluitlik deur die agent se sandput werk, is geaktiveer"
+    reason_host_feature: "dit gebruik hierdie gasheer se {feature}"
+    memory_unavailable: "Geheue is nie beskikbaar vir 'n gehuisveste agent nie."
+    image_unavailable: "Beeldverwerking is nie beskikbaar vir 'n gehuisveste agent nie."
+    video_unavailable: "Videoverwerking is nie beskikbaar vir 'n gehuisveste agent nie."
+    subject:
+      shell_hook: "'n Shell-hook"
+      inline_skill_shell: "Vaardighede se inlyn-shell"
+      context_references: "@-verwysings"
+      cron_script: "'n Cron-skrip"
+      transcription: "Transkripsie"
+      checkpoint_restore: "Kontrolepunt-herstel"
+      mcp_stdio: "MCP-bediener '{name}' (stdio)"
+    feature:
+      context_files: "kontekslêers"
+      subdirectory_hints: "subgids-wenke"
+      context_references: "konteksverwysings"
+      workspace_snapshot: "werkruimte-momentopname"
+      backend_probe: "agterkant-toets"
+      builtin_memory: "ingeboude geheue"
+      session_recall: "sessie-herroeping"
+      background_review: "agtergrondhersiening"
+      trajectory_export: "trajekuitvoer"
+      file_mutation_bookkeeping: "lêerwysiging-boekhouding"
+      checkpoints: "kontrolepunte"
+      media_processing: "mediaverwerking"
+      skills: "vaardighede"
+      skill_inline_shell: "vaardighede se inlyn-shell"
+      cron_scripts: "cron-skripte"
+      shell_hooks: "shell-hooks"
+      tool_host_artifacts: "gereedskap-artefakte"
+      mcp_stdio: "MCP-stdio-bedieners"
+      media_delivery: "media-aflewering"
+      transcription: "transkripsie"
+      delegation: "delegasie"

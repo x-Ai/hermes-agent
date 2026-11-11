@@ -4975,3 +4975,45 @@ shared:
     unit_disabled: "The unit is disabled: it does not start at boot."
     readonly_flags: "--backends is a read-only report; it cannot be combined with --yes or --multiplex."
     json_needs_backends: "--json is only supported with --backends."
+
+# tools: tool-layer copy the model and the user both read. hosted: a hosted scope's refusals
+# (tools/hosted_tool_policy.py and its callers). {what} is a tool name or a subject.* phrase, {tools}
+# the allowed tool names, {feature} a feature.* label. Keep tool names, MCP and stdio as written.
+tools:
+  hosted:
+    refused: "{what} is not available to a hosted agent: {why}. A hosted agent's tools are {tools}, all run in its own sandbox."
+    reason_sandbox_only: "only tools that act solely through the agent's sandbox are enabled"
+    reason_host_feature: "it uses this host's {feature}"
+    memory_unavailable: "Memory is not available to a hosted agent."
+    image_unavailable: "Image processing is not available to a hosted agent."
+    video_unavailable: "Video processing is not available to a hosted agent."
+    subject:
+      shell_hook: "A shell hook"
+      inline_skill_shell: "Inline skill shell"
+      context_references: "@-references"
+      cron_script: "A cron script"
+      transcription: "Transcription"
+      checkpoint_restore: "Checkpoint restore"
+      mcp_stdio: "MCP server '{name}' (stdio)"
+    feature:
+      context_files: "context files"
+      subdirectory_hints: "subdirectory hints"
+      context_references: "context references"
+      workspace_snapshot: "workspace snapshot"
+      backend_probe: "backend probe"
+      builtin_memory: "builtin memory"
+      session_recall: "session recall"
+      background_review: "background review"
+      trajectory_export: "trajectory export"
+      file_mutation_bookkeeping: "file mutation bookkeeping"
+      checkpoints: "checkpoints"
+      media_processing: "media processing"
+      skills: "skills"
+      skill_inline_shell: "skill inline shell"
+      cron_scripts: "cron scripts"
+      shell_hooks: "shell hooks"
+      tool_host_artifacts: "tool host artifacts"
+      mcp_stdio: "mcp stdio"
+      media_delivery: "media delivery"
+      transcription: "transcription"
+      delegation: "delegation"

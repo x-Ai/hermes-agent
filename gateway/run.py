@@ -2286,8 +2286,7 @@ def _resolve_runtime_agent_kwargs() -> dict:
         # The entry's model is the one this agent must send (#112600). Carry the fallback notice so the
         # gateway can surface a user-visible provider switch (#74349); the caller must pop
         # ``_fallback_notice`` before forwarding kwargs to AIAgent.
-        return {**_runtime_agent_kwargs(runtime),
-                "model": fallback_entry["model"],
+        return {**_runtime_agent_kwargs(runtime), "model": fallback_entry["model"],
                 "_fallback_notice": pre_agent_fallback_notice(
                     _primary_provider, _primary_model,
                     runtime.get("provider") or fallback_entry.get("provider") or "unknown",
@@ -2298,10 +2297,7 @@ def _resolve_runtime_agent_kwargs() -> dict:
         {k: v for k, v in capabilities.items() if isinstance(k, str) and isinstance(v, bool)}
         if isinstance(capabilities, dict) else {})
 
-    return {
-        **_runtime_agent_kwargs(runtime),
-        "capabilities": capabilities,
-    }
+    return {**_runtime_agent_kwargs(runtime), "capabilities": capabilities}
 
 
 def _runtime_agent_kwargs(runtime: dict) -> dict:
@@ -3021,6 +3017,7 @@ def _format_gateway_process_notification(evt: dict) -> str | None:
 def _drain_gateway_watch_events(completion_queue) -> list[dict]:
     """Drain gateway-owned watch events without spinning on requeued events.
     Foreign events requeued inside ``while not queue.empty()`` never terminate: detach, then requeue."""
+    from tools.environments.sandbox_scope import event_visible
     watch_events: list[dict] = []
     requeue: list[dict] = []
     while not completion_queue.empty():
@@ -3029,7 +3026,9 @@ def _drain_gateway_watch_events(completion_queue) -> list[dict]:
         except Exception:
             break
         evt_type = evt.get("type", "completion")
-        if evt_type in {
+        if not event_visible(evt):
+            requeue.append(evt)  # a hosted agent's: only its own scope may deliver it
+        elif evt_type in {
             "watch_match", "watch_disabled", "watch_overflow_tripped", "watch_overflow_released",
             "heartbeat"}:
             watch_events.append(evt)

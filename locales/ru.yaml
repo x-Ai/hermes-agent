@@ -4838,3 +4838,45 @@ shared:
     unit_disabled: "Юнит отключён: он не запускается при загрузке."
     readonly_flags: "--backends — это отчёт только для чтения; его нельзя сочетать с --yes или --multiplex."
     json_needs_backends: "--json поддерживается только вместе с --backends."
+
+# tools: tool-layer copy the model and the user both read. hosted: a hosted scope's refusals
+# (tools/hosted_tool_policy.py and its callers). {what} is a tool name or a subject.* phrase, {tools}
+# the allowed tool names, {feature} a feature.* label. Keep tool names, MCP and stdio as written.
+tools:
+  hosted:
+    refused: "Для размещённого агента недоступно: {what}. Причина: {why}. Инструменты размещённого агента: {tools}; все они выполняются в его собственной песочнице."
+    reason_sandbox_only: "включены только инструменты, которые действуют исключительно через песочницу агента"
+    reason_host_feature: "это использует {feature} этого хоста"
+    memory_unavailable: "Память недоступна размещённому агенту."
+    image_unavailable: "Обработка изображений недоступна размещённому агенту."
+    video_unavailable: "Обработка видео недоступна размещённому агенту."
+    subject:
+      shell_hook: "shell-хук"
+      inline_skill_shell: "встроенная оболочка навыков"
+      context_references: "@-ссылки"
+      cron_script: "cron-скрипт"
+      transcription: "расшифровка речи"
+      checkpoint_restore: "восстановление контрольной точки"
+      mcp_stdio: "MCP-сервер '{name}' (stdio)"
+    feature:
+      context_files: "файлы контекста"
+      subdirectory_hints: "подсказки подкаталогов"
+      context_references: "ссылки на контекст"
+      workspace_snapshot: "снимок рабочей области"
+      backend_probe: "проверку бэкенда"
+      builtin_memory: "встроенную память"
+      session_recall: "поиск по сессиям"
+      background_review: "фоновую проверку"
+      trajectory_export: "экспорт траекторий"
+      file_mutation_bookkeeping: "учёт изменений файлов"
+      checkpoints: "контрольные точки"
+      media_processing: "обработку медиа"
+      skills: "навыки"
+      skill_inline_shell: "встроенную оболочку навыков"
+      cron_scripts: "cron-скрипты"
+      shell_hooks: "shell-хуки"
+      tool_host_artifacts: "артефакты инструментов"
+      mcp_stdio: "stdio-серверы MCP"
+      media_delivery: "доставку медиа"
+      transcription: "расшифровку речи"
+      delegation: "делегирование"
