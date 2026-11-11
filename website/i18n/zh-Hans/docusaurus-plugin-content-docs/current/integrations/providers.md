@@ -386,29 +386,66 @@ model:
 
 ### NVIDIA NIM
 
-通过 [build.nvidia.com](https://build.nvidia.com)（免费 API key）或本地 NIM 端点使用 Nemotron 及其他开源模型。
+使用 NVIDIA NIM 提供商，可以通过 NVIDIA 的托管服务或本地 NIM 端点访问 Nemotron 及其他开源模型。托管端点的模型标识符和本地部署说明见 [build.nvidia.com/models](https://build.nvidia.com/models)。
+
+:::note Nemotron 3.5 Super VL
+下面的示例使用 Nemotron 3.5 Super VL，它支持文本和图像输入、推理以及工具调用。
+:::
+
+#### 云端（build.nvidia.com）
+
+在 [build.nvidia.com/settings/api-keys](https://build.nvidia.com/settings/api-keys) 创建账户和免费 API key，并将其添加到 `~/.hermes/.env`：
 
 ```bash
-# 云端（build.nvidia.com）
-hermes chat --provider nvidia --model nvidia/nemotron-3-super-120b-a12b
-# 需要：~/.hermes/.env 中的 NVIDIA_API_KEY
-
-# 本地 NIM 端点——覆盖基础 URL
-NVIDIA_BASE_URL=http://localhost:8000/v1 hermes chat --provider nvidia --model nvidia/nemotron-3-super-120b-a12b
+NVIDIA_API_KEY=nvapi-...
 ```
 
-或在 `config.yaml` 中永久设置：
+然后开始聊天：
+
+```bash
+hermes chat --provider nvidia --model nvidia/nemotron-3.5-super-vl-120b-a12b
+```
+
+:::info 计费
+Hermes 会在发往 `build.nvidia.com` 的请求中自动附加 NIM 计费来源请求头，确保用量在 NVIDIA 计费仪表板中归属到正确的来源。无需任何额外配置。
+:::
+
+#### 本地 NIM
+
+对于本地或私有化部署（例如 DGX Spark、DGX Station 或本地 GPU），在 `~/.hermes/.env` 中把 `NVIDIA_BASE_URL` 设置为你的 NIM 端点：
+
+```bash
+NVIDIA_API_KEY=local-no-auth
+NVIDIA_BASE_URL=http://localhost:8000/v1
+```
+
+如果你的端点不需要认证，用 `local-no-auth` 作为占位符；否则请提供该端点的 API key。
+
+然后使用端点提供的模型开始聊天：
+
+```bash
+hermes chat --provider nvidia --model nvidia/nemotron-3.5-super-vl-120b-a12b
+```
+
+本地 NIM 端点暴露与 NVIDIA 托管服务相同的 OpenAI 兼容 chat completions API。要切换端点，更新 `NVIDIA_BASE_URL`，并按需调整 API key 和模型名称。
+
+:::info 视觉
+如果你的本地 NIM 模型不在 models.dev 目录中但支持视觉，设置 `model.supports_vision: true` 即可获得原生图像支持——参见[自定义提供商模型的原生视觉](#named-custom-providers)。
+:::
+
+#### 设置默认模型
+
+无论采用哪种部署方式，都可以把提供商和模型标识符保存到 `config.yaml`，免得每次调用都要指定：
+
 ```yaml
 model:
   provider: "nvidia"
-  default: "nvidia/nemotron-3-super-120b-a12b"
+  default: "nvidia/nemotron-3.5-super-vl-120b-a12b"
 ```
 
-:::tip 本地 NIM
-对于本地部署（DGX Spark、本地 GPU），设置 `NVIDIA_BASE_URL=http://localhost:8000/v1`。NIM 暴露与 build.nvidia.com 相同的 OpenAI 兼容 chat completions API，因此在云端和本地之间切换只需修改一行环境变量。
+:::info 联系方式
+如遇 Nemotron 模型本身的问题，请前往 [NVIDIA Nemotron 开发者论坛](https://forums.developer.nvidia.com/c/ai-data-science/nvidia-nemotron/669)。
 :::
-
-Hermes 会在每次向 `build.nvidia.com` 发送请求时自动附加 NIM 计费来源请求头——无需任何配置。这会在 NVIDIA 计费仪表板中将消耗路由到正确的来源。
 
 ### GMI Cloud
 
@@ -1089,7 +1126,7 @@ custom_providers:
 
 ---
 
-### 命名自定义提供商
+### 命名自定义提供商 {#named-custom-providers}
 
 如果你使用多个自定义端点（例如本地开发服务器和远程 GPU 服务器），可以在 `config.yaml` 中将它们定义为命名自定义提供商：
 
@@ -1153,6 +1190,18 @@ extra_body:
 ```
 
 `hermes model` → 自定义端点向导现在会显式提示 `api_mode` 并将你的答案持久化到 `config.yaml`。当字段留空时，基于 URL 的自动检测（例如 `/anthropic` 路径 → `anthropic_messages`）仍作为回退。
+
+**自定义提供商模型的原生视觉。** 如果你的自定义端点提供的视觉模型不在 models.dev 中，设置 `model.supports_vision: true`，Hermes 就会以原生方式（作为 `image_url` 部分）发送附加的图像，而不是先交给 `vision_analyze` 预处理。只需这一个开关——无需再设置 `agent.image_input_mode: native`。
+
+```yaml
+model:
+  provider: custom
+  base_url: http://localhost:8080/v1
+  default: qwen3.6-35b-a3b
+  supports_vision: true   # 以原生方式发送图像；否则由 vision_analyze 预先描述图像
+```
+
+同一个键也适用于命名提供商下的各个模型（`providers.<name>.models.<id>.supports_vision`），并接受标准 YAML 布尔值（`true/false/yes/no/on/off/1/0`）。
 
 使用三段式语法在会话中途切换：
 
