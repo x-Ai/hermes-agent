@@ -1043,6 +1043,7 @@ export const arSettings = {
       catalogInstalling: 'جارٍ التثبيت...',
       catalogInstallStarted: name => `جارٍ تثبيت ${name}... يسري على الجلسات الجديدة عند الانتهاء.`,
       catalogInstallFailed: name => `تعذّر تثبيت ${name}`,
+      catalogInstallTimeout: name => `توقف Hermes عن انتظار اكتمال تثبيت ${name}، لكن قد يكون التثبيت ما زال جاريًا.`,
       catalogEnvPrompt: name => `يتطلب ${name} بيانات اعتماد`,
       catalogEnvRequired: 'املأ القيم المطلوبة قبل التثبيت.',
       capabilitySummary: (tools, prompts, resources) =>

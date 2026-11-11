@@ -1956,6 +1956,8 @@ export const ruOverrides = {
       test: 'Проверить соединение',
       catalogLoading: 'Загрузка каталога MCP...',
       catalogInstallFailed: name => `Не удалось установить ${name}`,
+      catalogInstallTimeout: name =>
+        `Hermes перестал ждать завершения установки ${name}, но она, возможно, ещё продолжается.`,
       catalogEnvRequired: 'Заполните обязательные значения перед установкой.',
       capabilitySummary: (tools, prompts, resources) =>
         [

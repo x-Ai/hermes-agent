@@ -1946,6 +1946,8 @@ export const deOverrides = {
       test: 'Verbindung testen',
       catalogLoading: 'MCP-Katalog wird geladen…',
       catalogInstallFailed: name => `${name} konnte nicht installiert werden`,
+      catalogInstallTimeout: name =>
+        `Hermes wartet nicht mehr auf die Installation von ${name}, aber sie läuft möglicherweise noch.`,
       catalogEnvRequired: 'Füllen Sie die erforderlichen Werte aus, bevor Sie installieren.',
       capabilitySummary: (tools, prompts, resources) =>
         `${[`${tools} Tools`, ...(prompts ? [`${prompts} Prompts`] : []), ...(resources ? [`${resources} Ressourcen`] : [])].join(', ')} aktiviert`,

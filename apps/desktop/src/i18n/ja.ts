@@ -1809,6 +1809,8 @@ export const jaOverrides = {
       catalogInstalling: 'インストール中...',
       catalogInstallStarted: name => `Installing ${name}...完了すると新しいセッションに適用されます。`,
       catalogInstallFailed: name => `インストールに失敗しました${name}`,
+      catalogInstallTimeout: name =>
+        `Hermes は ${name} のインストール完了を待つのをやめましたが、インストールはまだ進行中の可能性があります。`,
       catalogEnvPrompt: name => `${name}認証情報が必要`,
       catalogEnvRequired: 'インストールする前に必要な値を入力します。',
       capabilitySummary: (tools, prompts, resources) =>

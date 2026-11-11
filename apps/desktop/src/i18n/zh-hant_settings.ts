@@ -1236,6 +1236,7 @@ export const zhHantSettings = {
       catalogInstalling: '正在安裝...',
       catalogInstallStarted: name => `正在安裝 ${name}…完成後會套用到新的工作階段。`,
       catalogInstallFailed: name => `無法安裝 ${name}`,
+      catalogInstallTimeout: name => `Hermes 已停止等待 ${name} 安裝完成，但安裝可能仍在進行中。`,
       catalogEnvPrompt: name => `${name} 需要憑證`,
       catalogEnvRequired: '安裝前請先填寫必要的值。',
       capabilitySummary: (tools, prompts, resources) =>

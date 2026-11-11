@@ -1952,6 +1952,8 @@ export const frOverrides = {
       test: 'Tester la connexion',
       catalogLoading: 'Chargement du catalogue MCP...',
       catalogInstallFailed: name => `Échec de l'installation de ${name}`,
+      catalogInstallTimeout: name =>
+        `Hermes n'attend plus la fin de l'installation de ${name}, mais elle est peut-être encore en cours.`,
       catalogEnvRequired: "Remplissez les valeurs requises avant d'installer.",
       capabilitySummary: (tools, prompts, resources) =>
         `${[`${tools} outils`, ...(prompts ? [`${prompts} invites`] : []), ...(resources ? [`${resources} ressources`] : [])].join(', ')} activés`,

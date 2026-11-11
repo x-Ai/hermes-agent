@@ -1939,6 +1939,8 @@ export const esOverrides = {
       test: 'Probar conexión',
       catalogLoading: 'Cargando catálogo MCP...',
       catalogInstallFailed: name => `No se pudo instalar ${name}`,
+      catalogInstallTimeout: name =>
+        `Hermes dejó de esperar a que terminara la instalación de ${name}, pero es posible que siga en curso.`,
       catalogEnvRequired: 'Completa los valores obligatorios antes de instalar.',
       capabilitySummary: (tools, prompts, resources) =>
         `Habilitado: ${[`${tools} herramientas`, ...(prompts ? [`${prompts} prompts`] : []), ...(resources ? [`${resources} recursos`] : [])].join(', ')}`,

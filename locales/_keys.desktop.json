@@ -4773,6 +4773,7 @@
     "settings.mcp.catalogInstall",
     "settings.mcp.catalogInstallFailed",
     "settings.mcp.catalogInstallStarted",
+    "settings.mcp.catalogInstallTimeout",
     "settings.mcp.catalogInstalled",
     "settings.mcp.catalogInstalling",
     "settings.mcp.catalogLoadFailed",
