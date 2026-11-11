@@ -33,7 +33,9 @@ const REVIEWED = {
     'skills.plugins',
     'assistant.mcpSetup',
     'settings.mcp',
-    'promptNotices.sessionCommands'
+    'promptNotices.sessionCommands',
+    'settings.plugins',
+    'skills.hub'
   ],
   ja: [
     'fileMenu',
@@ -69,6 +71,10 @@ const NOT_TAIWAN_USAGE = /您|端口|網關|會話|加載|調試|日志|默認|�
 // Three English words in a row outside a code span: a sentence the overlay kept in
 // English ("now run through your Nous subscription", "405 Method Not Allowed").
 const ENGLISH_RUN = /\b[A-Za-z]{2,}(?: +[A-Za-z]{2,}){2,}\b/
+
+// A button the copy quotes as the user sees it, on a page the app embeds but never
+// localizes: the docs site's skills hub picker (website/src/pages/skills/index.tsx).
+const UNLOCALIZED_LABEL = /「\+ Add to this Agent」/g
 
 type Leaf = { path: string; value: unknown }
 
@@ -128,7 +134,7 @@ describe.each(['zh-hant', 'ja'] as const)('the reviewed %s copy', locale => {
 
   it('keeps no English sentence outside code', () => {
     const faults = reviewedCopy(locale)
-      .filter(({ text }) => ENGLISH_RUN.test(text.replace(/`[^`]*`/g, '')))
+      .filter(({ text }) => ENGLISH_RUN.test(text.replace(/`[^`]*`/g, '').replace(UNLOCALIZED_LABEL, '')))
       .map(({ path, text }) => `${path}: ${text}`)
 
     expect(faults).toEqual([])
