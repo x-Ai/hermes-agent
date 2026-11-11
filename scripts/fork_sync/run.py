@@ -4,8 +4,8 @@
 Copy this directory out of the checkout BEFORE merging. Run that copy, never
 candidate-controlled Python, in jobs that receive an AI key or a write token.
 Its sibling modules are imported before the coding agent runs, so the agent's
-shell cannot swap the step planning, the dropped-test guard, the desktop test
-check or the test selection. reconcile.py lands a validated candidate on a main
+shell cannot swap the step planning, the dropped-test guard, the scripts/check
+and desktop test checks or the test selection. reconcile.py lands a validated candidate on a main
 that moved during the run.
 """
 from __future__ import annotations
@@ -34,6 +34,7 @@ import dropped_tests
 import pi_session
 import reconcile
 import releases
+import repo_checks
 import select_tests
 import steps
 
@@ -450,8 +451,8 @@ def agent_pass(context: dict, settings: dict, prompt: str, deadline: float, guar
 
 
 def merge_problems(before: str, commit: str, common: str, conflicts: list[str]) -> list[str]:
-    """What a pass left unfinished: conflict markers, test cases the merge lost, and failing desktop
-    UI tests beside what the step changed."""
+    """What a pass left unfinished: conflict markers, test cases the merge lost, scripts/check's
+    findings and failing desktop UI tests beside what the step changed."""
     # Writing a resolved file does not clear Git's unmerged index until it is staged.
     paths = set(output("diff", "--name-only", "--no-renames", before).splitlines()) | set(conflicts)
     paths.update(output("ls-files", "--others", "--exclude-standard").splitlines())
@@ -459,8 +460,9 @@ def merge_problems(before: str, commit: str, common: str, conflicts: list[str]) 
     paths.update(output("diff", "--name-only", "--no-renames", common, commit).splitlines())
     lost = dropped_tests.dropped(sorted(paths), read_version, before, commit, common, WORKTREE)
     problems = markers + [f"dropped test cases in {path}: {'; '.join(names)}" for path, names in lost.items()]
-    # Tests cannot judge a tree that still holds conflict markers.
+    # Checks and tests cannot judge a tree that still holds conflict markers.
     if not markers:
+        problems += repo_checks.problems(before)
         problems += desktop_tests.problems(before)
     return problems
 
