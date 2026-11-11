@@ -29,7 +29,11 @@ const REVIEWED = {
     'commandCenter.maintenance',
     'assistant.thread',
     'sendDiagnostics',
-    'errors'
+    'errors',
+    'skills.plugins',
+    'assistant.mcpSetup',
+    'settings.mcp',
+    'promptNotices.sessionCommands'
   ],
   ja: [
     'fileMenu',
