@@ -133,11 +133,48 @@ def test_share_auth_mirrors_keys_but_not_auth_json(launch):
 
 
 def test_clone_skips_bundled_skills_unless_asked(launch):
+    """``seed_skills`` is gone: nothing asks a clone for bundled skills any more; a fresh create
+    (no source profile) is the one way a profile gets them."""
     cloned = provision_profile(ProfileCreateRequest(name="a", clone_from="default", clone_config=True))
     assert cloned.skills_seeded is None
-    asked = provision_profile(ProfileCreateRequest(name="b", clone_from="default", clone_config=True,
-                                                   seed_skills=True))
-    assert asked.skills_seeded == {"copied": ["s"]}
+    fresh = provision_profile(ProfileCreateRequest(name="b"))
+    assert fresh.skills_seeded == {"copied": ["s"]}
+
+
+def test_only_a_fresh_profile_gets_bundled_skills(launch):
+    cloned = provision_profile(ProfileCreateRequest(name="a", clone_from="default", clone_config=True))
+    full = provision_profile(ProfileCreateRequest(name="b", clone_all=True))
+    assert (cloned.skills_seeded, full.skills_seeded) == (None, None)
+
+
+def test_a_rejected_model_pick_is_reported_and_the_create_still_succeeds(launch, monkeypatch):
+    from hermes_cli.model_switch import ModelSwitchResult
+    monkeypatch.setattr("hermes_cli.model_switch.switch_model",
+                        lambda **_kw: ModelSwitchResult(success=False, error_message="Unknown provider 'nope'."))
+    result = provision_profile(ProfileCreateRequest(name="work", provider="nope", model="m"))
+    assert (result.model_set, result.model_error, result.warnings) == (False, "Unknown provider 'nope'.", [])
+    assert result.path.is_dir()
+
+
+def test_a_pick_of_a_builtin_named_custom_endpoint_validates_as_its_custom_slug(launch, monkeypatch):
+    """Provisioning normalizes through ``hermes_cli.model_assignment``: a ``providers.xai`` row that
+    points at its own host is a custom endpoint, so the pick validates as ``custom:xai`` and never
+    reaches the built-in xAI provider."""
+    from hermes_cli.model_switch import ModelSwitchResult
+    (launch / "config.yaml").write_text(
+        "model:\n  default: m\n  provider: openrouter\n"
+        "providers:\n  xai:\n    name: Private xAI-compatible endpoint\n"
+        "    base_url: https://gateway.example.test/v1\n    key_env: HERMES_CUSTOM_XAI_API_KEY\n")
+    asked: list[str] = []
+
+    def switch(**kw):
+        asked.append(kw["explicit_provider"])
+        return ModelSwitchResult(success=False, error_message="stop")
+
+    monkeypatch.setattr("hermes_cli.model_switch.switch_model", switch)
+    result = provision_profile(ProfileCreateRequest(name="work", provider="xai", model="grok-custom",
+                                                    model_validate_in=launch))
+    assert (asked, result.model_set, result.model_error) == (["custom:xai"], False, "stop")
 
 
 def test_alias_collision_is_reported_not_written(launch, monkeypatch):
@@ -271,3 +308,21 @@ def test_the_cli_does_not_say_no_keys_when_it_copied_them(launch, capsys):
     assert "cannot be combined" in capsys.readouterr().err
     assert not (launch / "profiles" / "cn").exists()
 
+
+
+def test_validating_in_another_home_runs_under_multiplex_semantics(launch, monkeypatch):
+    from agent.secret_scope import is_multiplex_active
+    from hermes_cli.model_switch import ModelSwitchResult
+    other = launch / "profiles" / "other"
+    other.mkdir(parents=True)
+    (other / "config.yaml").write_text("{}\n", encoding="utf-8")
+    seen: list[bool] = []
+
+    def switch(**_kw):
+        seen.append(is_multiplex_active())
+        return ModelSwitchResult(success=False, error_message="no")
+
+    monkeypatch.setattr("hermes_cli.model_switch.switch_model", switch)
+    provision_profile(ProfileCreateRequest(name="a", provider="p", model="m", model_validate_in=launch))
+    provision_profile(ProfileCreateRequest(name="b", provider="p", model="m", model_validate_in=other))
+    assert (seen, is_multiplex_active()) == ([False, True], False)
