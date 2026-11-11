@@ -1,4 +1,5 @@
-"""The sync keeps running on its own: it chains while upstream moves and backs off after failures."""
+"""The sync keeps running on its own: it chains while upstream moves, a timer run checks upstream between
+runs, and it backs off after failures."""
 from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
@@ -88,7 +89,7 @@ def test_a_scheduled_run_after_failures_stops_before_merging_and_a_manual_run_ne
     controller.prepare("owner/repo", artifacts)
     outputs = dict(line.split("=", 1) for line in out.read_text(encoding="utf-8").splitlines())
     assert outputs["needed"] == "false" and outputs["changed"] == "false" and outputs["remaining"] == "false"
-    assert asked == ["repos/owner/repo/actions/workflows/fork-upstream-sync.yml/runs?per_page=30"]
+    assert asked == ["repos/owner/repo/actions/workflows/fork-upstream-sync.yml/runs?per_page=100"]
     assert not json.loads((artifacts / "manifest.json").read_text(encoding="utf-8"))["needed"]
     monkeypatch.setenv("GITHUB_EVENT_NAME", "workflow_dispatch")
     assert controller.backing_off("owner/repo") is None and len(asked) == 1
@@ -150,6 +151,69 @@ def test_publish_starts_the_next_run_when_upstream_moved_past_what_landed(
     controller.publish(tmp_path, "owner/repo")
     assert git(repo, "ls-remote", str(origin), "refs/heads/main").split()[0] == candidate
     assert out.read_text(encoding="utf-8").strip() == f"continue={str(upstream_moved).lower()}"
+
+
+def github_api(created_minutes_ago, runs):
+    """GitHub as a timer run's gate reads it: when this run was created, and this workflow's runs."""
+    def gh_json(path, missing_ok=False):
+        if path == "repos/owner/repo/actions/runs/42":
+            created = NOW - timedelta(minutes=created_minutes_ago)
+            return {"created_at": created.isoformat().replace("+00:00", "Z")}
+        assert path == "repos/owner/repo/actions/workflows/fork-upstream-sync.yml/runs?per_page=100", path
+        return {"workflow_runs": runs}
+    return gh_json
+
+
+@pytest.fixture
+def timer_run(controller, tmp_path, monkeypatch):
+    """A timer run at NOW whose gate writes its decision to GITHUB_OUTPUT; returns that decision."""
+    monkeypatch.setattr(controller, "datetime", type("Clock", (datetime,), {"now": staticmethod(lambda tz=None: NOW)}))
+    monkeypatch.setenv("GITHUB_RUN_ID", "42")
+    out = tmp_path / "github-output"
+    monkeypatch.setenv("GITHUB_OUTPUT", str(out))
+
+    def decide():
+        out.unlink(missing_ok=True)
+        controller.gate("owner/repo", tmp_path / "artifacts")
+        return out.read_text(encoding="utf-8").strip()
+    return decide
+
+
+@pytest.mark.parametrize("upstream_state, starts_sync", [
+    ("merged", False), ("new commit", True), ("new release", True)])
+def test_a_timer_run_starts_a_sync_run_only_when_upstream_has_something_new(
+        controller, repo, tmp_path, monkeypatch, timer_run, upstream_state, starts_sync):
+    upstream_repo = tmp_path / "upstream.git"
+    git(tmp_path, "init", "-q", "--bare", str(upstream_repo))
+    if upstream_state == "new commit":
+        git(repo, "switch", "-q", "-c", "upstream")
+        commit(repo, "upstream.txt", "landed after the last sync\n", "upstream lands a commit")
+    git(repo, "push", "-q", str(upstream_repo), "HEAD:refs/heads/main")
+    git(repo, "switch", "-q", "main")
+    monkeypatch.setattr(controller, "UPSTREAM", str(upstream_repo))
+    release = {"tag_name": "v0.24.0"}
+    monkeypatch.setattr(controller.releases, "discover",
+                        lambda repository, since: [release] if upstream_state == "new release" else [])
+    monkeypatch.setattr(controller.releases, "gh_json", github_api(30, []))
+    assert timer_run() == f"go={str(starts_sync).lower()}"
+
+
+def test_the_gate_holds_a_merge_back_after_failures_and_otherwise_lets_the_sync_run_decide(
+        controller, repo, tmp_path, monkeypatch, timer_run):
+    # Upstream cannot be reached: a gate that fetched it would fail open and start a sync run.
+    monkeypatch.setattr(controller, "UPSTREAM", str(tmp_path / "unreachable-upstream.git"))
+    monkeypatch.setattr(controller.releases, "gh_json", github_api(30, [run(41, "failure", 10)]))
+    assert timer_run() == "go=false"
+    monkeypatch.setattr(controller.releases, "gh_json", github_api(30, []))
+    assert timer_run() == "go=true"
+
+
+def test_a_timer_run_the_environment_did_not_hold_stops_the_chain(controller, repo, tmp_path, monkeypatch, timer_run):
+    # Created 12 seconds ago: the environment has no wait timer, so the next timer run would start at once.
+    monkeypatch.setattr(controller.releases, "gh_json", github_api(0.2, []))
+    with pytest.raises(RuntimeError, match="fork-sync-timer environment held this timer run for only 12 s"):
+        timer_run()
+    assert not (tmp_path / "github-output").exists()
 
 
 def test_publish_keeps_only_this_workflow_enabled_on_the_fork(controller, monkeypatch):

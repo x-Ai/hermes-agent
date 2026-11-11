@@ -1,30 +1,41 @@
 name: Fork upstream sync
+run-name: ${{ inputs.timer && 'Fork upstream sync timer' || 'Fork upstream sync' }}
 
 on:
-  # A run that publishes and finds upstream ahead of what it landed starts the next one at once
-  # (publish's `continue`). Otherwise the schedule starts the next run: a run that found nothing to
-  # merge, or failed, starts nothing, and no job ever waits on a runner. GitHub fires only part of a
-  # fork's scheduled slots (the hourly '7 * * * *' made 7 runs in 37 hours on 2026-11-08/09), so an
-  # idle or failing sync may wait a few hours. A scheduled run after failed runs backs off
-  # (scripts/fork_sync/run.py backoff_until). This is the only workflow enabled on the fork: publish
-  # disables any other (scripts/fork_sync/run.py quiet_others).
+  # Every sync run starts the next one (the `next` job): at once when publish found upstream ahead of
+  # what it landed, otherwise a timer run. GitHub holds a timer run's only job for the fork-sync-timer
+  # environment's 30-minute wait timer, which keeps no runner and is not billed. The job then checks
+  # upstream without the toolchain (scripts/fork_sync/run.py gate) and starts a sync run when there is
+  # anything to merge or publish, or else the next timer run. After failed runs the gate holds the next
+  # merge back (scripts/fork_sync/run.py backoff_until). The schedule only restarts a chain that broke:
+  # GitHub fires few of a fork's scheduled slots (5 of about 100 for this cron on 2026-11-09/11), and
+  # waiting on it left the sync idle for hours. Cancelling the timer run stops the chain until a
+  # scheduled run starts it again; SYNC_PAUSED stops everything. This is the only workflow enabled on
+  # the fork: publish disables any other (scripts/fork_sync/run.py quiet_others).
   schedule:
     - cron: '23,53 * * * *'
   workflow_dispatch:
+    inputs:
+      timer:
+        description: 'Timer run (the sync dispatches these itself): wait out the fork-sync-timer environment, then start a sync run if upstream has anything new'
+        type: boolean
+        default: false
 
 permissions:
   contents: read
 
 # One sync at a time; a newer pending run replaces an older one. This workflow also
 # publishes the fork's stable releases (scripts/fork_sync/releases.py), so no other
-# workflow moves its tags.
+# workflow moves its tags. Timer runs queue apart, so a waiting one never holds up a sync run.
 concurrency:
-  group: fork-upstream-sync
+  group: ${{ inputs.timer && 'fork-upstream-sync-timer' || 'fork-upstream-sync' }}
   cancel-in-progress: false
 
 jobs:
   prepare:
-    if: github.repository != 'NousResearch/hermes-agent' && github.ref == 'refs/heads/main' && vars.SYNC_PAUSED != 'true'
+    if: >-
+      !inputs.timer && github.repository != 'NousResearch/hermes-agent' && github.ref == 'refs/heads/main'
+      && vars.SYNC_PAUSED != 'true'
     runs-on: ubuntu-latest
     # config.json agent.budget_seconds (100 min) for the merge steps, plus setup, the last step's
     # desktop UI test check (up to 45 min past the budget, scripts/fork_sync/desktop_tests.py) and upload.
@@ -323,8 +334,11 @@ jobs:
     timeout-minutes: 20
     permissions:
       contents: write
-      # Start the next run, and keep every other workflow disabled.
+      # Keep every other workflow disabled.
       actions: write
+    outputs:
+      # true when upstream has more than this run landed: `next` starts the next run at once.
+      continue: ${{ steps.publish.outputs.continue }}
     steps:
       # Only trusted source from the triggering fork main is executed here.
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
@@ -360,10 +374,72 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: python scripts/fork_sync/run.py quiet --artifacts "$RUNNER_TEMP/fork-sync-artifacts"
-      # Upstream lands commits all hour, so a run that published is usually behind again: start the
-      # next one now.
-      - name: Continue with the rest of upstream
-        if: steps.publish.outputs.continue == 'true'
+
+  # Every sync run starts the next one, failed runs too. Upstream lands commits all hour, so a run that
+  # published is usually behind again: then the next run starts at once. Otherwise a timer run checks
+  # again in 30 minutes, and its gate holds a merge back while the failure backoff lasts.
+  next:
+    needs: [prepare, validate, test, reconcile, publish]
+    if: >-
+      !cancelled() && !inputs.timer && github.repository != 'NousResearch/hermes-agent'
+      && github.ref == 'refs/heads/main' && vars.SYNC_PAUSED != 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      actions: write
+    steps:
+      - name: Start the next run, or a timer run for it
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh workflow run fork-upstream-sync.yml --repo "$GITHUB_REPOSITORY" --ref main
+          CONTINUE: ${{ needs.publish.outputs.continue }}
+        run: |
+          if [ "$CONTINUE" = true ]; then
+            gh workflow run fork-upstream-sync.yml --repo "$GITHUB_REPOSITORY" --ref main
+          else
+            gh workflow run fork-upstream-sync.yml --repo "$GITHUB_REPOSITORY" --ref main -f timer=true
+          fi
+
+  # A timer run's only job. GitHub holds it for the fork-sync-timer environment's wait timer (30 minutes,
+  # Settings > Environments) without a runner or billing, and `deployment: false` keeps those waits out
+  # of the deployment history. The gate then checks upstream on a sparse checkout, and the job starts a
+  # sync run, or the next timer run when there is nothing to do yet.
+  timer:
+    if: >-
+      inputs.timer && github.repository != 'NousResearch/hermes-agent' && github.ref == 'refs/heads/main'
+      && vars.SYNC_PAUSED != 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: fork-sync-timer
+      deployment: false
+    permissions:
+      contents: read
+      # This workflow's runs (the failure backoff, when this run started), and the next run's dispatch.
+      actions: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.sha }}
+          # The whole history for the ancestry checks, but no file contents beyond the controller.
+          fetch-depth: 0
+          sparse-checkout: scripts/fork_sync
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: '3.12'
+      - name: Check whether upstream has anything to merge or publish
+        id: gate
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SYNC_RELEASES_SINCE: ${{ vars.SYNC_RELEASES_SINCE }}
+        run: python scripts/fork_sync/run.py gate --artifacts "$RUNNER_TEMP/fork-sync-gate"
+      - name: Start a sync run, or the next timer run
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GO: ${{ steps.gate.outputs.go }}
+        run: |
+          if [ "$GO" = true ]; then
+            gh workflow run fork-upstream-sync.yml --repo "$GITHUB_REPOSITORY" --ref main
+          else
+            gh workflow run fork-upstream-sync.yml --repo "$GITHUB_REPOSITORY" --ref main -f timer=true
+          fi

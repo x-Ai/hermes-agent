@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Trusted controller for the fork's prepare → validate → reconcile → publish workflow.
+"""Trusted controller for the fork's prepare → validate → reconcile → publish workflow, and for the
+gate of its timer runs (whether the next sync run has anything to do).
 
 Copy this directory out of the checkout BEFORE merging. Run that copy, never
 candidate-controlled Python, in jobs that receive an AI key or a write token.
@@ -54,10 +55,15 @@ REASON_SHOWN = 600
 FLAKY_REPORT = "⚠ FLAKY:"
 WORKFLOW_FILE = "fork-upstream-sync.yml"
 BOT = "hermes-upstream-sync[bot]"
-# After failed runs a scheduled run waits 30 minutes, then 1 and 2 hours, at most 4, from the last
-# failure before it merges again, so a failure that repeats does not spend a model budget every slot.
+# After failed runs the sync waits 30 minutes, then 1 and 2 hours, at most 4, from the last failure
+# before it merges again (a scheduled run, or a timer run's gate), so a failure that repeats does not
+# spend a model budget every half hour.
 BACKOFF_SECONDS = (1800, 4 * 3600)
 FAILED = ("failure", "timed_out", "startup_failure")
+# GitHub holds a timer run's only job for this environment's wait timer (30 minutes) before the gate.
+TIMER_ENVIRONMENT = "fork-sync-timer"
+# A timer run that got past the environment sooner than this had no wait timer to wait out.
+SHORTEST_WAIT = timedelta(minutes=5)
 
 
 def git(*args: str, check: bool = True) -> subprocess.CompletedProcess:
@@ -150,7 +156,9 @@ def recent_runs(repository: str) -> tuple[list[dict], datetime] | None:
     """This workflow's latest runs and the last publish (the newest sync-bot commit on fork main now);
     None if unreadable."""
     try:
-        runs = releases.gh_json(f"repos/{repository}/actions/workflows/{WORKFLOW_FILE}/runs?per_page=30")
+        # While upstream is quiet, timer runs make up most of the list: 100 still reach back past a
+        # failure streak at its longest backoff.
+        runs = releases.gh_json(f"repos/{repository}/actions/workflows/{WORKFLOW_FILE}/runs?per_page=100")
     except RuntimeError:
         warn("Could not read this workflow's earlier runs; going on without a backoff")
         return None
@@ -158,12 +166,75 @@ def recent_runs(repository: str) -> tuple[list[dict], datetime] | None:
     return runs.get("workflow_runs", []), datetime.fromisoformat(stamp) if stamp else datetime.min.replace(tzinfo=UTC)
 
 
-def backing_off(repository: str) -> datetime | None:
-    """The time a scheduled run waits for after failed runs; None for other events or when it may run."""
-    if os.environ.get("GITHUB_EVENT_NAME") != "schedule" or (found := recent_runs(repository)) is None:
+def failure_wait(repository: str) -> datetime | None:
+    """The time the sync waits for after failed runs since the last publish; None when it may merge now."""
+    if (found := recent_runs(repository)) is None:
         return None
     until = backoff_until(*found, int(os.environ.get("GITHUB_RUN_ID") or 0))
     return until if until is not None and until > datetime.now(UTC) else None
+
+
+def backing_off(repository: str) -> datetime | None:
+    """The time a scheduled run waits for after failed runs; None for other events or when it may run."""
+    return failure_wait(repository) if os.environ.get("GITHUB_EVENT_NAME") == "schedule" else None
+
+
+def ensure_waited(repository: str) -> None:
+    """Stop the chain when the wait environment did not hold this timer run.
+
+    Without a wait timer (a deleted environment comes back without one) each timer run would start the
+    next at once: back-to-back runs like those that got Actions disabled on the fork on 2026-11-10.
+    """
+    try:
+        created = releases.gh_json(f"repos/{repository}/actions/runs/{os.environ['GITHUB_RUN_ID']}")["created_at"]
+    except RuntimeError:
+        warn("Could not read when this timer run was created; going on")
+        return
+    held = datetime.now(UTC) - datetime.fromisoformat(created)
+    if held < SHORTEST_WAIT:
+        raise RuntimeError(
+            f"The {TIMER_ENVIRONMENT} environment held this timer run for only {held.total_seconds():.0f} s."
+            " Give it a 30-minute wait timer (Settings > Environments), then dispatch the workflow."
+            " The chain stops here, so no run starts the next one back to back")
+
+
+def pending_work(repository: str) -> str | None:
+    """What a sync run would merge or publish now, or None when the fork has all of upstream."""
+    main = fetch_main()
+    tip = output("ls-remote", "--exit-code", UPSTREAM, "refs/heads/main").split()[0]
+    # Look for upstream's tip in fork main's history, which walks commits only. In the timer run's
+    # blobless checkout, fetching upstream scans every tree it holds (a minute), and merge-base would
+    # fetch a missing tip's commits one at a time.
+    if tip not in output("rev-list", main).splitlines():
+        return f"Upstream main {tip[:12]} has commits fork main {main[:12]} does not"
+    pending = releases.discover(repository, os.environ.get("SYNC_RELEASES_SINCE") or config()["releases_since"])
+    return f"Upstream release {pending[0]['tag_name']} is not on the fork yet" if pending else None
+
+
+def gate(repository: str, artifacts: Path) -> None:
+    """Whether a timer run starts a sync run (output ``go``), decided without the toolchain.
+
+    Runs on a sparse, blobless checkout, so the half-hourly check while upstream is quiet costs seconds
+    instead of prepare's setup. A check that fails leaves the decision to a sync run, whose prepare
+    does the same work in full.
+    """
+    ensure_waited(repository)
+    try:
+        until = failure_wait(repository)
+        reason = None if until is not None else pending_work(repository)
+    except (RuntimeError, ValueError, subprocess.SubprocessError) as error:
+        warn(f"Could not check upstream ({error}); starting a sync run, which checks again")
+        go = True
+    else:
+        if until is not None:
+            print(f"Earlier runs failed: the next merge starts after {until:%Y-%m-%d %H:%M} UTC", flush=True)
+        else:
+            print(reason or "Fork main has upstream main and every upstream release: nothing to merge", flush=True)
+        go = reason is not None
+    destination = os.environ.get("GITHUB_OUTPUT")
+    if destination:
+        with open(destination, "a", encoding="utf-8") as handle:
+            handle.write(f"go={str(go).lower()}\n")
 
 
 def quiet_others(repository: str, artifacts: Path) -> None:
@@ -814,7 +885,7 @@ def main() -> None:
     logging.basicConfig(level=logging.INFO, format="%(message)s")
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("phase", choices=("prepare", "materialize", "validate", "test", "reconcile", "recheck",
-                                          "publish", "quiet"))
+                                          "publish", "quiet", "gate"))
     parser.add_argument("--artifacts", type=Path, required=True)
     parser.add_argument("--shard", type=int, default=0, help="test phase: 1-based shard number")
     parser.add_argument("--lane", help="validate phase: one of validation_lanes()")
@@ -830,7 +901,7 @@ def main() -> None:
     phases = dict(prepare=prepare, materialize=checkout_candidate, validate=partial(validate, lane=args.lane),
                   test=partial(run_shard, shard=args.shard), reconcile=partial(reconcile_main, reconciled=reconciled),
                   recheck=partial(recheck, reconciled=reconciled), publish=partial(publish, reconciled=reconciled),
-                  quiet=quiet_others)
+                  quiet=quiet_others, gate=gate)
     phases[args.phase](repository=args.repository, artifacts=artifacts)
 
 

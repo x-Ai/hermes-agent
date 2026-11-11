@@ -9,9 +9,12 @@ release run.
 The YAML is the source of truth. If this file and a workflow disagree, the
 workflow wins. Fix this file in the same PR.
 
-Fork-specific automation: [`fork-upstream-sync.yml`](fork-upstream-sync.yml) polls upstream
-main and published releases at minutes 23 and 53 UTC, and starts the next run right after a publish while upstream has
-more; nothing ever waits on a runner. It is the only workflow enabled on this fork: GitHub disabled the fork's Actions on
+Fork-specific automation: [`fork-upstream-sync.yml`](fork-upstream-sync.yml) syncs upstream
+main and published releases. Every run starts the next one: at once after a publish while upstream has more, otherwise
+a timer run, whose only job GitHub holds for the `fork-sync-timer` environment's 30-minute wait timer (no runner, not
+billed). That job checks upstream without the toolchain and starts a sync run when there is anything to merge or
+publish. The schedule (minutes 23 and 53 UTC) only restarts a broken chain, since GitHub fires few of a fork's scheduled
+slots, and nothing ever waits on a runner. It is the only workflow enabled on this fork: GitHub disabled the fork's Actions on
 2026-11-10 after every sync push queued dozens of upstream workflows that need runners only upstream has, so every other
 workflow is disabled and publish disables any that merges bring back. It merges upstream in bounded steps with Pi, using a configured
 Anthropic-compatible endpoint, and validates the exact candidate without secrets (parallel validate lanes with the desktop UI
