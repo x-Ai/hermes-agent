@@ -67,7 +67,7 @@ export const zhHantSettingsPlugins = {
     agentFailed: '代理插件安裝失敗',
     desktopFailed: '桌面插件安裝失敗',
     missingEnv: (name, vars) =>
-      `${name} is installed but needs a key before it can work: ${vars}。現在添加它，否則插件的工具將失敗。`,
+      `${name} 已安裝，但需要先設定金鑰才能使用：${vars}。請立即新增，否則這個插件的工具將無法運作。`,
     profileLabel: '安裝設定檔',
     installUncertain:
       'Hermes 已停止等待安裝結果，但插件可能仍在安裝中。請關閉此對話方塊，並在「插件」中執行「重新掃描」後再嘗試安裝',

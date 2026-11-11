@@ -481,7 +481,7 @@ export const zhHantAssistant = {
       enabled: server => `已啟用${server}`,
       authorized: server => `授權的${server}`,
       failed: server => `設定失敗於${server}`,
-      toolCount: count => (count === 1 ? '1 個工具' : `${count} tools`),
+      toolCount: count => `${count} 個工具`,
       launchCommand: target => `將執行：${target}`,
       launchRemote: target => `將連線：${target}`,
       launchEnv: keys => `環境變數：${keys}`,

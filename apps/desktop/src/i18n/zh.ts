@@ -592,8 +592,8 @@ export const zhOverrides = {
       signIn: '登录',
       view: '查看',
       disable: '禁用',
-      disabledMessage: name => `${name}MCP 已禁用，可以随时在 功能 → MCP 中重新启用`,
-      disableFailed: name => `无法禁用${name}MCP.`
+      disabledMessage: name => `${name} MCP 已禁用，可以随时在“功能 → MCP”中重新启用`,
+      disableFailed: name => `无法禁用 ${name} MCP`
     },
     errors: {
       agentInitUnknownProvider: provider =>
@@ -633,7 +633,7 @@ export const zhOverrides = {
       methodNotAllowed: 'Hermes 后台服务与应用程序不同步，可能是在更新后出现，重启它以解决此问题',
       microphonePermission: '麦克风权限已被拒绝',
       openaiRejectedApiKey: 'OpenAI 未接受您的 API 密钥，在 设置 → 密钥 中更新后再试一次',
-      openaiRejectedApiKeyWithStatus: status => `OpenAI 拒绝了该 API key (${status} invalid_api_key)`,
+      openaiRejectedApiKeyWithStatus: status => `OpenAI 拒绝了该 API 密钥（${status} invalid_api_key）`,
       openaiTtsNeedsKey: '语音需要一个 OpenAI 密钥，请在设置 → 密钥中添加一个',
       restoreTargetMissing: '目标消息已不在此会话历史中，请刷新会话后重试',
       restoreTargetUnsafe: '无法安全恢复此检查点，请刷新会话后重试',
@@ -715,7 +715,7 @@ export const zhOverrides = {
     buy: '购买',
     processingSettlement: '处理中…正在确认结算',
     creditsAdded: amount => `已添加 ${amount}，正在刷新余额`,
-    creditsAddedShort: amount => `${amount} added`,
+    creditsAddedShort: amount => `已添加 ${amount}`,
     creditsAddedTitle: '学分已添加',
     usageFallback: label => `${label}用量`,
     invoices: '账单记录',
@@ -813,7 +813,7 @@ export const zhOverrides = {
     chargeNeedsVerification: '您的卡片需要验证，完成后，请再试一次',
     cardExpired: '您的卡已过期，请在门户网站上更新，然后再试一次',
     cardDeclined: '您的卡被拒绝了，请在门户上尝试使用另一张卡',
-    chargeFailedReason: reason => `The charge failed (${reason}). Try again or use another card on the portal`,
+    chargeFailedReason: reason => `扣款失败（${reason}），请重试，或在门户中改用其他银行卡`,
     verificationNotApprovedTitle: '验证未通过',
     verificationNotApprovedBody: '卡片验证未被批准，请重试或使用另一张卡',
     verificationCompleteTitle: '验证完成',
@@ -2007,7 +2007,7 @@ export const zhOverrides = {
       receipt: (id: string, outcome: string) => `回执 ${id} · ${outcome}`,
       receiptVersions: (pre: string, post: string) => `${pre} → ${post}`,
       scopesRestored: (profiles: string) => `已恢复的 profile：${profiles}`,
-      scopeNotRestored: (profile: string, error: string) => `Profile"${profile}"未恢复：${error}`
+      scopeNotRestored: (profile: string, error: string) => `配置档案“${profile}”未恢复：${error}`
     },
     gateway: {
       loading: '正在加载网关设置...',
@@ -2703,7 +2703,7 @@ export const zhOverrides = {
       disconnectInTerminal: '断开连接（在终端中运行移除命令）',
       removeConfirm: provider => `移除 ${provider}？`,
       removeExternalGeneric: provider => `${provider} 由其自身的 CLI 管理 — 请在那里移除`,
-      removeKeyManaged: provider => `${provider} 由 API 密钥配置，请从 API Keys 中移除`,
+      removeKeyManaged: provider => `${provider} 通过 API 密钥配置，请在 API 密钥中移除`,
       removeTerminalConfirm: (provider, command) => `断开 ${provider}？这将在终端中运行 "${command}" 以清除凭据`,
       removeTerminalRunning: provider => `正在终端中断开 ${provider}…`,
       removedTitle: '账号已移除',
@@ -3347,7 +3347,7 @@ export const zhOverrides = {
       kindBoth: '智能体 + 桌面',
       installAgentHere: '在此安装',
       installAgentHereTip: (profile: string) =>
-        `桌面部分已加载到本应用，但 agent 部分尚未安装到 ${profile}，在那里安装它`,
+        `桌面部分已加载到本应用，但智能体部分尚未安装到 ${profile}，请到那里安装`,
       installAgentHereNoOrigin:
         '此配置未安装 agent 部分，且该包是手动复制的（无目录条目或 git 远程），无法从此处安装，请将其文件夹复制到该配置或从 Git 重新安装',
       desktopHalfPending: '复制中…',
@@ -3357,9 +3357,9 @@ export const zhOverrides = {
       emptyHint: '在下方目录中浏览，一键安装经过审核的插件',
       loadFailed: '无法加载 agent 插件',
       toggleFailed: (name: string) => `无法切换 ${name}`,
-      toolsetOn: (name: string, profile: string) => `已为 ${profile} 启用 ${name} agent 工具`,
-      toolsetOff: (name: string, profile: string) => `已为 ${profile} 禁用 ${name} agent 工具`,
-      toolsetToggleFailed: (name: string) => `无法切换 ${name} agent 工具，桌面端面板保持不变`,
+      toolsetOn: (name: string, profile: string) => `已为 ${profile} 启用 ${name} 智能体工具`,
+      toolsetOff: (name: string, profile: string) => `已为 ${profile} 禁用 ${name} 智能体工具`,
+      toolsetToggleFailed: (name: string) => `无法切换 ${name} 智能体工具，桌面端面板保持不变`,
       legacyBackend: '此后端版本较旧，不支持按键名切换插件 — 请更新 Hermes 后再在此管理',
       portableBadge: '便携',
       serverStates: {
@@ -3399,11 +3399,11 @@ export const zhOverrides = {
       uninstalled: (name: string) => `${name}已卸载，重新启动网关以卸载它`,
       uninstallDesktopTip: (name: string) => `卸载${name}从此应用程序`,
       uninstallDesktopConfirmBody: (name: string) =>
-        `这将删除${name}位于此计算机的桌面插件文件夹中的内容，并立即卸载它，您可以随时从 Git 重新安装或将文件夹放回`,
+        `这会从此电脑的 desktop-plugins 文件夹中删除 ${name}，并立即卸载。你可以随时从 Git 重新安装，或把文件夹放回原处`,
       uninstalledDesktop: (name: string) => `${name}已卸载`,
       deepLinkErrorTitle: '插件安装链接被拒绝',
       deepLinkCatalogInvalidName: '链接的目录名称缺失或无效',
-      deepLinkCatalogUnknown: (name: string) => `“${name}” is not in the Hermes plugin catalog. Nothing was installed`,
+      deepLinkCatalogUnknown: (name: string) => `“${name}” 不在 Hermes 插件目录中，未安装任何内容`,
       deepLinkCatalogUnavailable: '无法加载 Hermes 插件目录，请检查您的连接并重新打开链接',
       settingsToggle: (name: string) => `设置：${name}`,
       settingsForm: {
@@ -3412,8 +3412,8 @@ export const zhOverrides = {
         saveFailed: (name: string) => `无法保存${name}设置`,
         required: '必填',
         optional: '（可选）',
-        secretSet: '(套数)',
-        secretStoredAs: (env: string) => `Stored in the profile's .env as ${env}，绝不在 config.yaml，留空以保留当前值`
+        secretSet: '••••••••（已设置）',
+        secretStoredAs: (env: string) => `以 ${env} 保存在配置档案的 .env 中，不会写入 config.yaml，留空则保留当前值`
       },
       folderAccess: {
         title: '文件夹访问',
@@ -3497,7 +3497,7 @@ export const zhOverrides = {
       searchFailed: '技能中心搜索失败',
       installBlockedTitle: name => `无法安装${name}`,
       installBlockedMessage: (findings, unverified) =>
-        `The security scan flagged ${findings > 0 ? `${findings} item${findings === 1 ? '' : 's'}` : '风险模式'} to review${unverified ? ' and the skill comes from an unverified source' : ''}，在决定是否信任作者之前读取扫描`,
+        `安全扫描标记了${findings > 0 ? ` ${findings} 项内容` : '风险模式'}待审查${unverified ? '，且该技能来自未经验证的来源' : ''}，请先阅读扫描结果，再决定是否信任作者`,
       viewScan: '查看扫描',
       openLog: '打开日志'
     },
@@ -5104,7 +5104,7 @@ export const zhOverrides = {
     running: '运行中',
     stop: '停止',
     dismiss: '关闭',
-    exit: code => `Exit code ${code}`,
+    exit: code => `退出码 ${code}`,
     control: {
       goalActiveTurns: (turn, maxTurns) => `第 ${turn}/${maxTurns} 轮`,
       goalDoneTurns: turns => `共 ${turns} 轮`,
@@ -5189,7 +5189,7 @@ export const zhOverrides = {
       copyFailure: '复制条件到剪贴板失败',
       continuationFailed: '提交目标后续内容失败',
       continuationQueued: '目标已恢复 — 后续内容已排队，将在当前回合结束后发送',
-      continuationBusy: '目标已恢复 — 会话正忙，请先停止当前回复（Stop 按钮或 Esc）以继续',
+      continuationBusy: '目标已恢复 — 会话正忙，请先停止当前回复（点击停止按钮或按 Esc）以继续',
       controlUnavailable: msg => `会话控制不可用: ${msg}`,
       dismissError: '关闭错误',
       add: '添加'
@@ -5609,7 +5609,7 @@ export const zhOverrides = {
       connectionCloud: host => `云端: ${host}`,
       connectionCloudTooltip: host => `Hermes Cloud · ${host}`,
       connectionSshTooltip: host => `SSH · ${host}`,
-      connectionRemoteTooltip: host => `Remote · ${host}`,
+      connectionRemoteTooltip: host => `远程 · ${host}`,
       backendLabel: version => `后端 v${version}`,
       commit: sha => `提交 ${sha}`,
       branch: branch => `分支 ${branch}`,

@@ -513,7 +513,7 @@ export const zhHantBoot = {
     readyCaption: '免費 · 包含連接器',
     begin: '開始',
     signInInstead: '使用 Nous 帳號登入',
-    otherProviders: '其他提供者',
+    otherProviders: '其他供應商',
     stripTitle: '免費的 Nous 推理和連接器現已推出。',
     stripBody: '開啟模型選擇器進行嘗試，或使用 Nous 帳號登入。',
     openModelPicker: '開啟模型選擇器',
@@ -552,22 +552,20 @@ export const zhHantBoot = {
       notNow: '暫不'
     },
     busyHeading: '快到了',
-    busyBody: wait =>
-      `Hermes couldn't finish signing you in because the Nous service is busy. Try again in ${wait}。與此同時，您的會話仍然在這裡。`,
-    unreachableBody: 'Hermes 無法存取 Nous 服務來完成您的登入。請檢查您的網路連接，然後重試。您的會議還在這裡。',
+    busyBody: wait => `Nous 服務忙碌中，Hermes 無法完成登入。請在${wait}後再試一次。在此期間，你的工作階段會一直保留。`,
+    unreachableBody: 'Hermes 無法連線到 Nous 服務來完成登入。請檢查網路連線後再試一次。你的工作階段仍會保留。',
     setupFailed: {
-      gateClosed: '如果沒有 Nous 帳戶，此版本的 Hermes 無法啟動。登入或創建一個，它是免費的，只需一分鐘。',
-      paused: '在未登入的情況下使用 Hermes 會暫停片刻。 Hermes會繼續檢查。登入是免費的，您可以立即開始。',
-      rateLimited: wait =>
-        `Lots of people are getting started right now, so Hermes will try again in ${wait}。登入是免費的，無需等待。`,
-      unreachable: 'Hermes 無法存取 Nous 服務。檢查您的網路連接，然後點擊重試。或暫時連接其他提供者。',
-      serverError: 'Nous 服務出現問題。點擊稍後重試，或暫時連接其他提供者。',
-      powRequired: 'Nous 伺服器要求提供工作證明，但這尚未在您的代理中實現。登入或建立免費的 Nous 帳戶以繼續。',
-      locked: '如果不登錄，此會話無法繼續。請登入或建立免費的 Nous 帳戶以繼續。',
-      generic: 'Hermes 無法在未登入的情況下設定免費存取。登入是免費的，或連接其他提供者。',
-      signInBelow: '登入是免費的。選擇下面的 Nous。',
+      gateClosed: '這個版本的 Hermes 需要 Nous 帳戶才能啟動。請登入或建立一個帳戶，免費且只需一分鐘。',
+      paused: '暫時無法在未登入的情況下使用 Hermes，Hermes 會持續檢查。登入免費，馬上就能開始使用。',
+      rateLimited: wait => `現在開始使用的人很多，Hermes 將在${wait}後重試。登入免費，而且不必等待。`,
+      unreachable: 'Hermes 無法連線到 Nous 服務。請檢查網路連線，然後點選「再試一次」。也可以先連接其他供應商。',
+      serverError: 'Nous 服務暫時出了點問題。請稍後點選「再試一次」，或先連接其他供應商。',
+      powRequired: 'Nous 伺服器要求工作量證明，但目前版本的 Hermes 尚不支援。請登入或建立免費的 Nous 帳戶以繼續。',
+      locked: '這個工作階段需要登入才能繼續。請登入或建立免費的 Nous 帳戶以繼續使用。',
+      generic: 'Hermes 無法在未登入的情況下設定免費存取。登入是免費的，你也可以連接其他供應商。',
+      signInBelow: '登入免費，請在下方選擇 Nous。',
       tryAgain: '再試一次',
-      retrying: '再試一次…'
+      retrying: '正在重試…'
     },
     wait: {
       fewSeconds: '幾秒鐘',

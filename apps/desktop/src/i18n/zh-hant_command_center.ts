@@ -290,7 +290,7 @@ export const zhHantCommandCenter = {
     failedSave: name => `儲存 ${name} 失敗`,
     failedClear: key => `清除 ${key} 失敗`,
     pendingRequests: count => `待處理的請求（${count})`,
-    pendingAria: count => `${count} pending pairing ${count === 1 ? '要求' : '要求'}`,
+    pendingAria: count => `${count} 個待處理的配對請求`,
     approvedUsers: count => `批准的用戶（${count})`,
     approve: '批准',
     approving: '正在批准...',

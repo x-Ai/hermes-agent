@@ -69,20 +69,20 @@ export const zhHantCapabilities = {
     tabPlugins: '外掛',
     plugins: {
       ...zhHantPluginUpdateAll,
-      agentTitle: '代理商插件',
+      agentTitle: '代理插件',
       agentBlurb: '擴充所選設定檔的代理 - 工具、掛鉤、提供者。網關重啟後生效。',
       pageBlurb: '每個插件一行。插件可以擴展此應用程式、代理或兩者——每一部分都有自己的開關。',
       halfDesktop: '桌面',
-      halfDesktopHint: '這個應用程序，每個配置文件都相同',
-      halfAgent: '代理商',
-      halfAgentIn: (profile: string) => `代理人進入${profile}`,
+      halfDesktopHint: '這個應用程式，所有設定檔都相同',
+      halfAgent: '代理',
+      halfAgentIn: (profile: string) => `${profile} 中的代理`,
       defaultProfile: 'Hermes（預設）',
-      kindAgent: '代理商',
+      kindAgent: '代理',
       kindDesktop: '桌面',
       kindBoth: '代理+桌面',
       installAgentHere: '安裝在這裡',
       installAgentHereTip: (profile: string) =>
-        `The desktop half is loaded in this app, but the agent half is not installed in ${profile}。將其安裝在那裡。`,
+        `桌面部分已在這個應用程式中載入，但代理部分尚未安裝到 ${profile}。請到那裡安裝。`,
       installAgentHereNoOrigin:
         '代理程式一半未安裝在此設定檔中，且該套件是手動複製的（沒有目錄條目或 git 遠端），因此無法從此處安裝。將其資料夾複製到設定檔中或從 Git 重新安裝。',
       desktopHalfPending: '複製…',
@@ -129,8 +129,8 @@ export const zhHantCapabilities = {
         entrypoint: '入口'
       },
       alreadyInstalled: (name: string) => `${name}已經安裝在此配置檔中。`,
-      catalogProvenance: (sha: string) => `從 Hermes 目錄安裝${sha ? ` at pin ${sha}` : ''}.`,
-      pinnedProvenance: (sha: string) => `Pinned to commit ${sha}。在使用新 pin 重新安裝之前，更新將被拒絕。`,
+      catalogProvenance: (sha: string) => `從 Hermes 目錄安裝${sha ? `，固定於提交 ${sha}` : ''}。`,
+      pinnedProvenance: (sha: string) => `已固定於提交 ${sha}。以新的固定提交重新安裝之前，將拒絕所有更新。`,
       pinnedBadge: (sha: string) => `已固定 @${sha}`,
       ...zhHantPluginUpdate,
       desktopHalfRemote: '不可用（遠端後端）',
@@ -145,7 +145,7 @@ export const zhHantCapabilities = {
       uninstalled: (name: string) => `${name}已卸載。重新啟動閘道以卸載它。`,
       uninstallDesktopTip: (name: string) => `卸載${name}來自這個應用程式`,
       uninstallDesktopConfirmBody: (name: string) =>
-        `這會刪除${name}從這台電腦的 desktop-plugins 資料夾中卸載它。隨時可以從 Git 重新安裝或將資料夾放回。`,
+        `這會從這台電腦的 desktop-plugins 資料夾中刪除 ${name}，並立即卸載。你隨時可以從 Git 重新安裝，或把資料夾放回原處。`,
       uninstalledDesktop: (name: string) => `${name}已卸載。`,
       deepLinkErrorTitle: '插件安裝連結被拒絕',
       deepLinkCatalogInvalidName: '連結的目錄名稱遺失或無效。',
@@ -158,9 +158,9 @@ export const zhHantCapabilities = {
         saveFailed: (name: string) => `無法儲存${name}設定`,
         required: '必填',
         optional: '（選填）',
-        secretSet: '••••••••（套）',
+        secretSet: '••••••••（已設定）',
         secretStoredAs: (env: string) =>
-          `Stored in the profile's .env as ${env}，絕不在 config.yaml 中；留空以保留目前值。`
+          `以 ${env} 儲存在設定檔的 .env 中，絕不會寫入 config.yaml；留空即可保留目前的值。`
       },
       folderAccess: {
         title: '資料夾存取',
@@ -200,7 +200,7 @@ export const zhHantCapabilities = {
       featured: '特色技能',
       landingHint: '搜尋中心，從官方索引、GitHub 和社群資源中瀏覽可安裝的技能。',
       noResults: '在中心找不到匹配的技能。',
-      resultCount: (count, ms) => `${count} result${count === 1 ? '' : 's'}${ms !== null ? ` in ${ms}女士` : ''}`,
+      resultCount: (count, ms) => `${count} 個結果${ms !== null ? `（${ms}ms）` : ''}`,
       timedOut: sources => `逾時：${sources}`,
       installed: '已安裝',
       install: '安裝',
@@ -226,7 +226,7 @@ export const zhHantCapabilities = {
       policyAllow: '允許安裝',
       policyAsk: '安裝前檢查',
       policyBlock: '安裝被政策阻止',
-      findings: count => `${count} finding${count === 1 ? '' : 's'}`,
+      findings: count => `${count} 項發現`,
       noFindings: '沒有安全發現。',
       installStarted: name => `安裝中${name}...`,
       uninstallStarted: name => `正在卸載${name}...`,
@@ -244,7 +244,7 @@ export const zhHantCapabilities = {
       searchFailed: '中心搜尋失敗',
       installBlockedTitle: name => `無法安裝${name}`,
       installBlockedMessage: (findings, unverified) =>
-        `The security scan flagged ${findings > 0 ? `${findings} item${findings === 1 ? '' : 's'}` : '危險模式'} to review${unverified ? ' and the skill comes from an unverified source' : ''}。在決定是否信任作者之前，請先閱讀掃描結果。`,
+        `安全掃描標記了${findings > 0 ? ` ${findings} 項內容` : '危險模式'}待審查${unverified ? '，且這個技能來自未經驗證的來源' : ''}。請先閱讀掃描結果，再決定是否信任作者。`,
       viewScan: '查看掃描',
       openLog: '打開日誌'
     },
@@ -373,9 +373,9 @@ export const zhHantCapabilities = {
     copy: '複製地圖程式碼',
     copied: '已複製！',
     importMap: '導入地圖',
-    importBtn: '負載',
-    importEmpty: '貼上地圖程式碼以加載它。',
-    importSuccess: nodes => `Loaded a map with ${nodes} ${nodes === 1 ? '節點' : '節點'}.`,
+    importBtn: '載入',
+    importEmpty: '貼上地圖程式碼即可載入。',
+    importSuccess: nodes => `已載入包含 ${nodes} 個節點的地圖。`,
     importedBadge: '導入地圖',
     resetToMine: '返回我的地圖'
   },

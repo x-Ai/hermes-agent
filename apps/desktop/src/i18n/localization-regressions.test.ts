@@ -39,6 +39,63 @@ function collectCopy(node: unknown, path = '', out: [string, string][] = []): [s
   return out
 }
 
+type Template = (...args: unknown[]) => unknown
+
+// Every template function under a catalog node as [path, template].
+function collectTemplates(node: unknown, path = '', out: [string, Template][] = []): [string, Template][] {
+  if (typeof node === 'function') {
+    out.push([path, node as Template])
+  } else if (node && typeof node === 'object' && !Array.isArray(node)) {
+    for (const [key, value] of Object.entries(node)) {
+      collectTemplates(value, path ? `${path}.${key}` : key, out)
+    }
+  }
+
+  return out
+}
+
+// Numbers only, so no Latin word comes from an argument; 0 and 1 reach both sides of
+// a count or flag branch.
+function renderTemplate(template: Template): string[] {
+  return [
+    [1, 1, 1, 1],
+    [2, 2, 2, 2],
+    [0, 0, 0, 0]
+  ].flatMap(args => {
+    try {
+      const text = template(...args)
+
+      return typeof text === 'string' ? [text] : []
+    } catch {
+      return [] // A template that needs structured arguments; nothing to inspect.
+    }
+  })
+}
+
+const latinWords = (text: string) => (text.match(/[A-Za-z][A-Za-z']{2,}/g) ?? []).map(word => word.toLowerCase())
+
+// Names Chinese copy keeps in Latin script, spelled as the catalogs spell them: products,
+// units and keys, terms of art (shell, sudo, Cookie), the `main` branch and the clarify
+// tool's `questions` / `question` parameters.
+const LATIN_NAMES =
+  /\b(?:Team Gateway|Tailscale Serve|Hermes Desktop|Hermes Cloud|Hermes|Nous|OpenAI|ElevenLabs|Stripe|Telegram|Cloudflare|Git|JavaScript|WebSocket|OAuth|MoA|Webapp|Portal|Tokens?|Mtok|MiB|Ctrl|Cmd|shell|sudo|Cookie|main|questions?)\b/g
+
+// The Latin words a Chinese rendering keeps once names, acronyms, code spans, URLs,
+// slash commands with their arguments, `hermes …` invocations, identifiers
+// (`execute_code`, `cron.model`, `.env`, `desktop-plugins`) and argument values are set aside.
+function untranslatedWords(text: string): string[] {
+  const prose = text
+    .replace(/`[^`]*`/g, ' ')
+    .replace(/https?:\/\/\S+/g, ' ')
+    .replace(LATIN_NAMES, ' ')
+    .replace(/\bhermes(?: [a-z][\w-]*)+/g, ' ')
+    .replace(/(?<![\w.])\/[a-z][\w-]*(?: (?:<[^>]+>|[a-z][\w-]*))*/g, ' ')
+    .replace(/\w+(?:[._:/=[\]-]+\w+)+|\w*_\w*|(?<!\w)\.[A-Za-z]\w*/g, ' ')
+    .replace(/(?<![A-Za-z])[A-Z]{2,}(?![a-z])|\b(?:undefined|null|true|false|NaN)\b/g, ' ')
+
+  return latinWords(prose)
+}
+
 // Contracts between the Chinese catalogs and English: protocol names stay
 // identical, user-facing copy must differ from English and be written in
 // Chinese. No literal wording is frozen here — re-polishing a string must
@@ -173,6 +230,35 @@ describe('Chinese localization regressions', () => {
       for (const key of ['typeStdio', 'typeHttp', 'url', 'authOauth', 'authBearer'] as const) {
         expect(page.add[key], key).toBe(en.connectorsPage.add[key])
       }
+    }
+  })
+
+  // Machine translation that could not parse a template kept the English words around
+  // its arguments and translated at most the tail ("1 tool call failed", "Exit code 1",
+  // "Connected — 3 tools available"). A word a Chinese template shares with its English
+  // template has to be a name.
+  it('translates every template around its arguments, keeping only names in Latin script', () => {
+    for (const [name, locale] of [
+      ['zh', zh],
+      ['zh-hant', zhHant]
+    ] as const) {
+      const faults = collectTemplates(locale).flatMap(([path, template]) => {
+        const english = path
+          .split('.')
+          .reduce<unknown>((node, key) => (node as Record<string, unknown> | undefined)?.[key], en)
+
+        if (typeof english !== 'function') {
+          return []
+        }
+
+        const englishWords = new Set(renderTemplate(english as Template).flatMap(latinWords))
+        const kept = new Set(renderTemplate(template).flatMap(untranslatedWords))
+        const shared = [...kept].filter(word => englishWords.has(word))
+
+        return shared.length ? [`${path}: ${shared.join(', ')}`] : []
+      })
+
+      expect(faults, name).toEqual([])
     }
   })
 })

@@ -171,7 +171,7 @@ export const zhHantArtifacts = {
       annotateNeedPage: '首先在應用程式內瀏覽器中開啟一個頁面。',
       annotateFailed: '無法啟動註解模式',
       commenting: '評論',
-      addComments: count => (count === 1 ? '新增 1 則評論' : `Add ${count} comments`),
+      addComments: count => `新增 ${count} 則評論`,
       commentPlaceholder: '新增評論...',
       commentTitle: n => `評論${n}`,
       saveComment: '儲存',

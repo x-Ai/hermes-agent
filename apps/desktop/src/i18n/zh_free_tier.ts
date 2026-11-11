@@ -47,22 +47,20 @@ export const zhFreeTier: TranslationOverrides['freeTier'] = {
     notNow: '暂不'
   },
   busyHeading: '马上就到了',
-  busyBody: wait =>
-    `Hermes couldn't finish signing you in because the Nous service is busy. Try again in ${wait}你的会议还在这期间`,
-  unreachableBody: 'Hermes无法到达Nous服务完成签约，检查一下你的网络连接 再试一次 你的会议还在',
+  busyBody: wait => `Nous 服务繁忙，Hermes 未能完成登录，请在${wait}后重试。在此期间，你的会话会一直保留`,
+  unreachableBody: 'Hermes 无法连接 Nous 服务以完成登录，请检查网络连接后重试。你的会话仍会保留',
   setupFailed: {
-    gateClosed: '这个版本的Hermes无法在没有Nous账户的情况下启动，签名或创建一个,它是免费的,只需要一分钟',
-    paused: '使用Hermes而不签名则暂停片刻. Hermes会继续检查 签字是免费的,让你现在去',
-    rateLimited: wait =>
-      `Lots of people are getting started right now, so Hermes will try again in ${wait}，签名是免费的,并跳过等待`,
-    unreachable: 'Hermes无法到达Nous服务，检查你的互联网连接,然后再试一次，或者联系另一个供应商',
-    serverError: 'Nous服务打嗝，立即再试一次, 或者连接另一个提供者',
-    powRequired: 'Nous服务器要求工作证明,但这尚未在您的代理中执行，签名或创建一个 Nous 账户继续 .',
-    locked: '这个会话没有签名就无法继续，签名或创建免费的 Nous 账户继续运行 .',
-    generic: 'Hermes未签约无法设置免费接入，签名是免费的, 或者连接另一个提供者 .',
-    signInBelow: '签名是免费的，在下面选Nous.',
-    tryAgain: '再试一次',
-    retrying: '再次尝试..'
+    gateClosed: '此版本的 Hermes 需要 Nous 账户才能启动。请登录或创建一个账户，免费且只需一分钟',
+    paused: '暂时无法免登录使用 Hermes，Hermes 会持续检查。登录免费，马上就能开始使用',
+    rateLimited: wait => `现在开始使用的人很多，Hermes 将在${wait}后重试。登录免费，而且无需等待`,
+    unreachable: 'Hermes 无法连接 Nous 服务，请检查网络连接，然后点击“重试”，也可以先连接其他提供方',
+    serverError: 'Nous 服务出了点问题，请稍后点击“重试”，或先连接其他提供方',
+    powRequired: 'Nous 服务器要求工作量证明，但当前版本的 Hermes 尚不支持。请登录或创建免费的 Nous 账户以继续',
+    locked: '此会话需要登录才能继续。请登录或创建免费的 Nous 账户以继续使用',
+    generic: 'Hermes 无法在未登录的情况下设置免费访问。登录是免费的，你也可以连接其他提供方',
+    signInBelow: '登录免费，请在下方选择 Nous',
+    tryAgain: '重试',
+    retrying: '正在重试…'
   },
   wait: {
     fewSeconds: '几秒钟',
