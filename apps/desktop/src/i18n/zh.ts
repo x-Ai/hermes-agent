@@ -6550,21 +6550,21 @@ export const zhOverrides = {
           pendingAction: '正在编辑'
         }
       },
-      failedCalls: (count: number) => `${count} tool call${count === 1 ? '' : 's'} failed`,
+      failedCalls: (count: number) => `${count} 次工具调用失败`,
       skillActivity: {
-        loading: '加载技能',
+        loading: '正在加载技能',
         loaded: '已加载技能',
         loadFailed: '加载技能失败',
-        readingResource: '阅读技能资源',
-        readResource: '阅读技能资源',
+        readingResource: '正在读取技能资源',
+        readResource: '已读取技能资源',
         resourceFailed: '读取技能资源失败',
-        listing: '列出技能',
-        listed: '列出的技能',
+        listing: '正在列出技能',
+        listed: '已列出技能',
         listFailed: '未能列出技能',
         unavailable: '技能结果不可用'
       },
       resultUnavailable: '结果不可用',
-      resultInterrupted: '中断'
+      resultInterrupted: '已中断'
     }
   },
   prompts: {
