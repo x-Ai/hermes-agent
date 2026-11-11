@@ -380,7 +380,7 @@ Hermes 首先从您当前的 shell 解析每个列出的变量，然后回退到
 
 ### 以宿主用户身份运行容器
 
-默认情况下，Docker 容器以 `root`（UID 0）身份运行。在 `/workspace` 或其他绑定挂载中创建的文件在宿主上归 root 所有，因此会话结束后您必须 `sudo chown` 才能从宿主编辑器编辑它们。在 Linux 上，Hermes 停止并删除一个 root 容器时，会先把它自己的沙箱绑定挂载（`TERMINAL_SANDBOX_DIR` 下的 `/root` 与 `/workspace`）里的文件交还给您的用户（rootless Docker 与 userns-remap 下跳过）。本分支还覆盖挂载进容器的宿主项目目录（`docker_mount_cwd_to_workspace`、`docker_workspace_per_session`）：会话释放容器时，容器以 root 在该目录下新建的条目会交还给您，长期运行、不会被删除的容器也包括在内；容器启动前就归 root 的内容不动，之后也不会再翻回 root，`docker_volumes` 不受影响。`terminal.docker_run_as_host_user` 标志则从一开始就避免产生 root 文件，对所有挂载都生效：
+默认情况下，Docker 容器以 `root`（UID 0）身份运行。在 `/workspace` 或其他绑定挂载中创建的文件在宿主上归 root 所有，因此会话结束后您必须 `sudo chown` 才能从宿主编辑器编辑它们。在 Linux 上，Hermes 停止并删除一个 root 容器时，会先把它自己的沙箱绑定挂载（`TERMINAL_SANDBOX_DIR` 下的 `/root` 与 `/workspace`）里的文件交还给您的用户（rootless Docker 与 userns-remap 下跳过）。这些沙箱挂载中的文件若由 agent 通过 `MEDIA:` 发送、而 gateway 无法读取（运行中容器里归 root 所有、权限为 `chmod 600` 的交付文件），会在投递前单独经由该容器交还给您的用户，无需等到容器清理即可送达；其权限模式保持 agent 设置的不变。本分支还覆盖挂载进容器的宿主项目目录（`docker_mount_cwd_to_workspace`、`docker_workspace_per_session`）：会话释放容器时，容器以 root 在该目录下新建的条目会交还给您，长期运行、不会被删除的容器也包括在内；容器启动前就归 root 的内容不动，之后也不会再翻回 root，`docker_volumes` 不受影响。`terminal.docker_run_as_host_user` 标志则从一开始就避免产生 root 文件，对所有挂载都生效：
 
 ```yaml
 terminal:
@@ -1455,7 +1455,7 @@ streaming:
 **新的最终消息（Telegram）：** Telegram 的 `editMessageText` 保留原始消息时间戳，因此长时间运行的流式回复即使在完成后也会保留第一个 token 的时间戳。设置 `fresh_final_after_seconds > 0` 可选择将旧预览作为全新的最终消息传递，并尽力删除旧预览。默认值为 `0`，始终就地最终化流式回复，避免某些客户端短暂显示重复消息再删除其中一条。
 
 :::note
-主开关 `streaming.enabled` 默认为 `false`——在你启用之前不会有任何流式传输。启用后，是否流式传输按**平台**决定：Telegram 默认带有 `display.platforms.telegram.streaming: true`（流式传输），Discord 为 `display.platforms.discord.streaming: false`（不流式传输）。因此启用流式传输后，Telegram 开箱即用地流式传输，Discord 在你修改其开关之前仍使用整条消息回复。你可以在仪表盘的 **Channels** 开关中或直接在 `~/.hermes/config.yaml` 中调整这些按平台的开关。
+主开关 `streaming.enabled` 默认为 `false`——在你启用之前不会有任何流式传输。启用后，是否流式传输按**平台**决定：Telegram 默认带有 `display.platforms.telegram.streaming: true`（流式传输），Discord 为 `display.platforms.discord.streaming: false`（不流式传输）。因此启用流式传输后，Telegram 开箱即用地流式传输，Discord 在你修改其开关之前仍使用整条消息回复。你可以在仪表盘的 **Channels** 开关中或直接在 `~/.hermes/config.yaml` 中调整这些按平台的开关；这些按平台的开关会在每条消息时重新读取，因此无需重启即可生效。而 `streaming:` 配置段本身（`enabled`、`transport`、`edit_interval`、`buffer_threshold`、`cursor`、`fresh_final_after_seconds`）只在网关启动时读取一次：修改其中任何键后，需要重启网关才能生效。注意按平台的开关只能在主开关范围内收窄，不能独自启用流式传输。
 :::
 
 ## 群聊会话隔离
