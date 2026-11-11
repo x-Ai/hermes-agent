@@ -14,8 +14,8 @@ from dataclasses import dataclass, field
 from typing import Any, NamedTuple, Optional
 
 from hermes_cli.providers import (
-    LLAMACPP_ALIASES, ProviderDef, custom_provider_aliases, determine_api_mode, get_label,
-    host_mandated_api_mode, is_aggregator, normalize_provider, resolve_provider_full)
+    LLAMACPP_ALIASES, ProviderDef, custom_endpoint_label, custom_provider_aliases, determine_api_mode,
+    get_label, host_mandated_api_mode, is_aggregator, normalize_provider, resolve_provider_full)
 from hermes_cli.model_normalize import normalize_model_for_provider
 from agent.models_dev import (
     ModelCapabilities, ModelInfo, get_model_capabilities, get_model_info, list_provider_models)
@@ -90,7 +90,6 @@ def _bare_custom_provider_def(current_base_url: str) -> Optional[ProviderDef]:
     base_url = _clean(current_base_url)
     if not base_url:
         return None
-    from hermes_cli.providers import custom_endpoint_label
     return ProviderDef(
         id="custom", name=custom_endpoint_label(), transport="openai_chat", api_key_env_vars=(),
         base_url=base_url, is_aggregator=False, auth_type="api_key", source="model-config")
@@ -1379,10 +1378,15 @@ def _route_configured_provider(st: _Switch) -> Optional[ModelSwitchResult] | boo
     st.target_provider = match_slugs[0]
     st.new_model = cfg_matches[st.target_provider]
     logger.debug("Configured-provider detection routed '%s' to %s", st.new_model, st.target_provider)
-    # providers.<slug> endpoints resolve in the credential block via resolve_user_provider(),
-    # which is gated on explicit_provider; custom:* slugs resolve at runtime directly.
+    # A built-in-named entry with its own base_url is the user's endpoint (custom:<key>, #151775);
+    # a tuning-only one (no base_url) keeps the built-in. One predicate decides both.
     if isinstance(st.user_providers, dict) and st.target_provider in st.user_providers:
-        st.explicit_provider = st.target_provider
+        from hermes_cli.runtime_provider_custom import persisted_provider_id
+        persisted = persisted_provider_id(st.target_provider, st.user_providers)
+        if persisted != st.target_provider:
+            st.target_provider = persisted
+        else:
+            st.explicit_provider = st.target_provider
     return True
 
 
@@ -1453,7 +1457,6 @@ def _route_from_model_input(st: _Switch) -> Optional[ModelSwitchResult]:
 def _switch_provider_label(st: _Switch) -> str:
     label = get_label(st.target_provider)
     if st.target_provider == "custom" and st.current_base_url:
-        from hermes_cli.providers import custom_endpoint_label
         label = custom_endpoint_label()
     if st.target_provider.startswith("custom:"):
         custom_pdef = resolve_provider_full(st.target_provider, st.user_providers, st.custom_providers)
@@ -1638,10 +1641,9 @@ def _resolve_switch_credentials(st: _Switch) -> Optional[ModelSwitchResult]:
     # would otherwise 400 on tools+reasoning). ``codex_app_server`` is the resolver's
     # ``model.openai_runtime`` opt-in, not a wire protocol the host can mandate: keep it.
     from hermes_cli.providers import is_actual_route
+    from hermes_cli.model_switch_custom_endpoint import keeps_selected_api_mode
     mandated_mode = "chat_completions" if is_actual_route(st.target_provider, st.base_url) else host_mandated_api_mode(st.base_url)
-    target_provider_norm = st.target_provider.strip().lower()
-    is_named_custom = target_provider_norm == "custom" or target_provider_norm.startswith("custom:")
-    if mandated_mode is not None and st.api_mode != "codex_app_server" and not (is_named_custom and st.api_mode):
+    if mandated_mode is not None and st.api_mode != "codex_app_server" and not keeps_selected_api_mode(st.target_provider, st.api_mode):
         st.api_mode = mandated_mode
     st.api_mode = st.api_mode or determine_api_mode(st.target_provider, st.base_url)
     return None
@@ -1749,6 +1751,8 @@ def model_derived_api_mode(provider: str, model: str, api_key: str = "") -> Opti
 
 def _build_switch_result(st: _Switch) -> ModelSwitchResult:
     """COMMON PATH part 3: final api_mode / base_url shaping, metadata, warnings."""
+    from hermes_cli.runtime_provider_custom import persisted_provider_id
+    st.target_provider = persisted_provider_id(st.target_provider, st.user_providers)
     derived = model_derived_api_mode(st.target_provider, st.new_model, st.api_key)
     if derived is not None:
         st.api_mode = derived

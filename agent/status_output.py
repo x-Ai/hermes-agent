@@ -129,7 +129,8 @@ class StatusOutputMixin:
     def _emit_diagnostic_status(self, message: str) -> None:
         """A diagnostic on the lifecycle rail, without changing legacy formatting."""
         from gateway.warning_notifications import DiagnosticText
-        wrapped = DiagnosticText(message)
+        # A finer producer class (TerminalFailureText) stays: the gateway filter reads it.
+        wrapped = message if isinstance(message, DiagnosticText) else DiagnosticText(message)
         if (display := _display_text(message)) is not None:
             wrapped.display = display
         self._emit_status(wrapped)

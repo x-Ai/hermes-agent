@@ -64,6 +64,34 @@ def test_plain_status_prints_as_written():
     assert agent.wire == [("lifecycle", "✓ plain line")]
 
 
+def test_wire_status_on_the_diagnostic_rail_is_a_diagnostic_carrying_its_display():
+    from gateway.warning_notifications import DiagnosticText, TerminalFailureText
+
+    agent = _Agent()
+
+    agent._emit_diagnostic_status(WireStatus(COMPACTION_STATUS, "🗜️ 正在压缩上下文"))
+
+    [(_kind, forwarded)] = agent.wire
+    assert isinstance(forwarded, DiagnosticText) and not isinstance(forwarded, TerminalFailureText)
+    assert forwarded == COMPACTION_STATUS and forwarded.display == "🗜️ 正在压缩上下文"
+
+
+def test_terminal_failure_keeps_its_class_on_the_diagnostic_rail():
+    """A producer's finer DiagnosticText reaches ``status_callback`` as itself, so the gateway filter
+    still drops the copy the failed turn's final reply repeats; the CLI print is unchanged."""
+    from gateway.run_status_filter import is_terminal_failure_status
+    from gateway.warning_notifications import TerminalFailureText
+
+    agent = _Agent()
+    status = TerminalFailureText("❌ API failed after 3 retries — boom")
+
+    agent._emit_diagnostic_status(status)
+
+    assert agent.printed == ["❌ API failed after 3 retries — boom"]
+    [(kind, forwarded)] = agent.wire
+    assert kind == "lifecycle" and forwarded is status and is_terminal_failure_status(forwarded)
+
+
 @pytest.mark.parametrize("platform", ["cli", "tui", "desktop", "api_server", "cron", "telegram"])
 def test_ladder_notice_display_matches_the_wire_in_english(platform):
     token = i18n.bind_client_language("en")

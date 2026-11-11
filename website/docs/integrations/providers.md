@@ -1328,6 +1328,8 @@ providers:
 
 Each entry accepts: `api` (the endpoint base URL — `base_url`/`url` are accepted aliases), `name` (optional display name; defaults to the dict key), `key_env` or inline `api_key` or `key_cmd` (see below), `transport` (`chat_completions` / `anthropic_messages` / `codex_responses`), `default_model`, `models`, `context_length`, `discover_models`, `extra_body`, `extra_headers`, `session_affinity_header` (name of a header that carries the conversation id, for session-aware proxies; off unless set), `ssl_ca_cert` / `ssl_verify`, `catalog_provider` (see below), and `enabled: false` to hide an entry without deleting it.
 
+An entry keyed like a built-in provider (`openrouter:`, `Anthropic:`, `deepseek:`, in any case) that sets its own `api`/`base_url` **is** what that name means: `--provider openrouter`, `/model`, `hermes model` and the dashboard save it as `custom:openrouter` and every turn goes to your endpoint. When the entry declares a key (`api_key` or `key_env`), that key is used and the built-in's env key is never sent; an entry with no key falls back to the built-in's env key, the same as `custom:<name>`. A same-named block without an endpoint (for example `providers.openrouter: {request_timeout_seconds: 300}`) only tunes the built-in. `hermes doctor` warns when `model.provider` names a built-in that such an entry takes over.
+
 This fork adds endpoint-level fields so a relay never needs a model-name special case in code:
 
 ```yaml
@@ -1353,8 +1355,9 @@ row > the entry's provider-wide value > a `models[model]` row Hermes discovered 
 (an advertised ceiling never outranks your own budget). `auth_scheme`, `max_tokens_field` and
 the budgets are all editable in the Desktop **Custom endpoints** panel, whose **Test** button
 probes with exactly the headers the runtime will send (stored key, `extra_headers`, User-Agent,
-auth header). An endpoint id may not reuse a built-in provider id (`openai`, `xai`, ...):
-`providers.<builtin>` is that provider's own settings block.
+auth header). The panel refuses a new endpoint id that reuses a built-in provider id (`openai`,
+`xai`, ...), so saving a relay there never takes over that built-in the way a hand-written
+same-named entry does (see above); pick a distinct id such as `openai-relay`.
 
 #### Command-minted credentials (`key_cmd`)
 

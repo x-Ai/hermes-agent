@@ -1108,6 +1108,8 @@ custom_providers:
     api_mode: anthropic_messages  # 用于 Anthropic 兼容代理
 ```
 
+`providers:` 下以内置提供商名称为键（`openrouter:`、`Anthropic:`、`deepseek:`，不区分大小写）并设置了自己的 `api`/`base_url` 的条目，**就是**该名称所指的提供商：`--provider openrouter`、`/model`、`hermes model` 和仪表板会把它保存为 `custom:openrouter`，之后每一轮都发往你的端点。条目声明了密钥（`api_key` 或 `key_env`）时使用该密钥，绝不会发送内置提供商的环境变量密钥；未声明密钥的条目则回退到内置提供商的环境变量密钥，与 `custom:<name>` 相同。没有端点的同名配置块（例如 `providers.openrouter: {request_timeout_seconds: 300}`）只用于调整内置提供商。当 `model.provider` 指向的内置提供商被这样的条目接管时，`hermes doctor` 会发出警告。
+
 本 fork 为端点增加了几个字段，让中继站无需在代码里按模型名特判：
 
 ```yaml
@@ -1128,7 +1130,7 @@ providers:
     extra_body: {chat_template_kwargs: {enable_thinking: false}}
 ```
 
-三个预算的优先级：`model_token_limits[model]` > 手写的 `models[model]` 行 > 提供方级值 > Hermes 从 `/models` 发现的 `models[model]` 行（端点声明的上限不会盖过你自己的预算）。`auth_scheme`、`max_tokens_field` 和各预算都可以在桌面端**自定义端点**面板里编辑；面板的**测试**按钮会用运行时完全一致的请求头探测（已保存的密钥、`extra_headers`、User-Agent、认证头）。端点 id 不能与内置提供方 id（`openai`、`xai` 等）相同：`providers.<内置 id>` 是该提供方自己的设置块。
+三个预算的优先级：`model_token_limits[model]` > 手写的 `models[model]` 行 > 提供方级值 > Hermes 从 `/models` 发现的 `models[model]` 行（端点声明的上限不会盖过你自己的预算）。`auth_scheme`、`max_tokens_field` 和各预算都可以在桌面端**自定义端点**面板里编辑；面板的**测试**按钮会用运行时完全一致的请求头探测（已保存的密钥、`extra_headers`、User-Agent、认证头）。面板会拒绝与内置提供方 id（`openai`、`xai` 等）相同的新端点 id，因此在面板里保存中继站不会像手写的同名条目那样接管该内置提供方（见上文）；请另选一个 id，例如 `openai-relay`。
 
 某些 OpenAI 兼容端点需要特定于提供商的请求体字段。在对应的自定义提供商中添加 `extra_body` 映射，Hermes 会将其合并到该端点的每个 chat-completions 请求中：
 
