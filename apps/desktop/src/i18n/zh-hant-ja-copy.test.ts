@@ -52,7 +52,8 @@ const REVIEWED = {
     'freeTier',
     'desktop',
     'billingPage',
-    'settings.billing'
+    'settings.billing',
+    'settings.mcp'
   ]
 } as const
 
@@ -159,6 +160,24 @@ describe('the reviewed zh-hant copy', () => {
   it('uses Taiwan terms and addresses the user as 你', () => {
     const faults = reviewedCopy('zh-hant')
       .filter(({ text }) => NOT_TAIWAN_USAGE.test(text))
+      .map(({ path, text }) => `${path}: ${text}`)
+
+    expect(faults).toEqual([])
+  })
+})
+
+// The ja MCP copy takes server names and counts, which ja copy sets apart with a space
+// ("${name} のインストールに失敗しました"). Machine translation glued them to the sentence
+// ("インストールに失敗しました${name}"). Other reviewed ja blocks attach a localized duration
+// to its particle on purpose ("${time}後にリセット"), so this reads only the blocks listed here.
+const JA_SPACED_ARGUMENTS = ['settings.mcp'] as const
+
+const GLUED_ARGUMENT = /[\p{sc=Hira}\p{sc=Kana}\p{sc=Han}]⟦\d+⟧|⟦\d+⟧[\p{sc=Hira}\p{sc=Kana}\p{sc=Han}]/u
+
+describe('the reviewed ja copy', () => {
+  it('sets each server name and count apart from the sentence around it', () => {
+    const faults = copy(JA_SPACED_ARGUMENTS.flatMap(block => leaves(at(jaOverrides, block), block)))
+      .filter(({ text }) => GLUED_ARGUMENT.test(text))
       .map(({ path, text }) => `${path}: ${text}`)
 
     expect(faults).toEqual([])
