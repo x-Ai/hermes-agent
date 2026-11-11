@@ -259,6 +259,8 @@ gateway:
 
 **向后兼容：** 如果某个范围未设置 `allow_admin_from`，则该范围的层级划分被禁用，所有允许的用户拥有完全访问权限。现有安装无需任何更改即可继续工作——需要区分时再选择启用。
 
+**回应提示等同于运行命令。** 回应危险命令审批就是 `/approve` 或 `/deny`，回应斜杠命令确认（`/reset`、`/reload-mcp`……）就是运行该命令。因此在受控范围内，非管理员也无法通过其他方式回应它们：输入单独的 `yes` / `always`、输入确认回复，或点击原生按钮（Telegram、Discord、Slack、Matrix、飞书、Teams、WhatsApp Cloud、QQ Bot、中继），都会收到同样的 *⛔ /approve 在此处仅限管理员使用* 提示（英文界面为 *⛔ /approve is admin-only here*），提示保持待处理状态等待管理员处理。将 `approve`（或 `deny`，或被确认的命令）加入 `user_allowed_commands` 后，成员即可回应，与允许他们输入该命令完全一样。澄清问题不是命令，不受影响。收窄后的 [`approvals.approvers`](../security.md#who-can-answer-an-approval-in-a-shared-chat-approvalsapprovers) 优先于此规则：此时由请求者、列出的 ID 和管理员回应。
+
 #### 查看你的权限
 
 在任意平台使用 `/whoami` 查看当前范围、你的层级（管理员 / 普通用户 / 无限制）以及你可以运行的斜杠命令。平台特定示例请参阅 [Telegram](./telegram.md#slash-command-access-control) 和 [Discord](./discord.md#slash-command-access-control) 页面。
