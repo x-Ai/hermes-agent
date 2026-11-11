@@ -70,12 +70,12 @@ export const jaLocalModels: TranslationOverride<Translations['settings']['localM
   installDoneToast: 'ローカルランタイムのインストールが完了しました。',
   quickstartTitle: 'このマシンでモデルを実行する',
   quickstartDetail: (model, size) =>
-    `ワンクリックで全てを設定します：ローカルエンジン、${model} (${size}ダウンロード）、および新しいチャットのデフォルト設定。何もこのコンピュータを離れません。`,
+    `ワンクリックですべてを設定します：ローカルエンジン、${model}（${size} のダウンロード）、新しいチャットのデフォルト設定。データがこのコンピューターの外に出ることはありません。`,
   quickstartDetailReady: model =>
-    `ワンクリックで作る${model}新しいチャットのデフォルトです。すべてはこのマシンで動作します。`,
-  quickstartAction: '私のためにセットアップしてください',
+    `ワンクリックで ${model} を新しいチャットのデフォルトに設定します。すべてこのマシン上で実行されます。`,
+  quickstartAction: '自動でセットアップする',
   quickstartConfigure: '自分で選ぶ',
-  quickstartDoneToast: model => `${model}設定されています — 新しいチャットはこのマシンで実行されます。`,
+  quickstartDoneToast: model => `${model} のセットアップが完了しました — 新しいチャットはこのマシンで実行されます。`,
   quickstartFailed: 'ローカルモデルのセットアップに失敗しました',
   quickstartStageEngine: 'エンジン',
   quickstartStageModel: 'モデル',

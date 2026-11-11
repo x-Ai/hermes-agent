@@ -8,7 +8,7 @@ export const zhHantModelSettings: TranslationOverride<ModelSettingsTranslations>
   setUpProvider: name => `設定 ${name}`,
   staleAuxBefore: (count, names) => `${count} 個輔助任務（${names}）仍由 `,
   staleAuxAfter: ' 執行，而非主要模型。',
-  staleAuxOtherProviders: '其他提供方',
+  staleAuxOtherProviders: '其他供應商',
   moaEnabled: '啟用',
   moaSetDefault: '設為預設',
   moaNewPresetPlaceholder: '新預設',
@@ -41,7 +41,7 @@ export const zhHantModelSettings: TranslationOverride<ModelSettingsTranslations>
   auxiliaryTitle: '輔助模型',
   resetAllToMain: '全部重設為主要模型',
   staleAuxDismiss: '不再顯示',
-  auxiliaryDesc: '輔助任務預設使用主要模型。您可以為任何任務指定專用模型。',
+  auxiliaryDesc: '輔助任務預設使用主要模型。你可以為任何任務指定專用模型。',
   setToMain: '設為主要模型',
   change: '變更',
   autoUseMain: '自動 · 使用主要模型',
@@ -50,8 +50,8 @@ export const zhHantModelSettings: TranslationOverride<ModelSettingsTranslations>
   followTask: task => `跟隨 ${task}`,
   providerDefault: '(提供方預設)',
   fallbackAdd: '新增後備',
-  fallbackEmpty: '無後備模型－除非失敗，否則將使用預設模型。',
-  notInCatalog: '不在該提供者的型號清單中 — 通話可能會退回到備份。',
+  fallbackEmpty: '無後備模型——除非失敗，否則將使用預設模型。',
+  notInCatalog: '不在此供應商的模型清單中 — 呼叫可能會改用後備模型。',
   staleAuxPrefix: (count, names) => `${count} 個輔助任務（${names}）仍執行於 `,
   staleAuxSuffix: ' 上，而非你的主要模型。',
   pasteKeyPlaceholder: keyEnv => `貼上 ${keyEnv}`,
@@ -60,10 +60,10 @@ export const zhHantModelSettings: TranslationOverride<ModelSettingsTranslations>
   needsApiKeyHint: name => `${name} 需要 API 金鑰 — 完成設定後才能選擇模型。`,
   oauthHint: name => `${name} 透過瀏覽器登入 — Hermes 會為你完成整個流程。`,
   moa: {
-    title: '混合智慧體 (MOA)',
+    title: '混合代理 (MoA)',
     shortTitle: 'MoA',
     presetsTitle: 'MoA 預設組',
-    description: '設定以模型形式出現在「混合智慧體」提供方下的命名預設組。聚合模型是實際應答的模型。',
+    description: '設定以模型形式出現在「混合代理」供應商下的命名預設組。聚合模型是實際應答的模型。',
     presetPlaceholder: '預設組',
     enabled: '啟用',
     setDefault: '設為預設',
@@ -104,23 +104,23 @@ export const zhHantModelSettings: TranslationOverride<ModelSettingsTranslations>
       label: '策展器',
       hint: '技能使用審查'
     },
-    triage_specifier: { label: '分診規格', hint: '看板規格細化' },
+    triage_specifier: { label: '分類指定', hint: '看板任務規格補全' },
     kanban_decomposer: {
-      label: '看板分解器',
-      hint: '任務分解'
+      label: '看板分解',
+      hint: '任務拆解'
     },
     profile_describer: {
-      label: '個人檔案描述器',
-      hint: '自動個人資料描述'
+      label: '設定檔描述',
+      hint: '自動生成設定檔描述'
     }
   },
-  moaTitle: '混合劑',
+  moaTitle: '混合代理（Mixture of Agents）',
   moaPreset: '預設',
   moaDescription:
-    '配置命名預設，這些預設將作為模型出現在多代理提供者下。聚合器是運行模型——它在工具循環的每一步運行，且幾乎所有運行成本都記入其提供者。參考資料默認情況下每個用戶回合僅提供一次建議。',
-  moaAggregator: '聚合器',
-  moaAggregatorBilled: '表演模特 · 按場次計費',
-  moaReferenceHint: '默認情況下，每回合建議一次',
+    '設定以「混合代理」供應商下的模型形式出現的命名預設。聚合模型是執行模型——它執行工具迴圈的每一步，整次執行幾乎全部費用都計入其供應商。參考模型預設每輪使用者訊息僅提供一次建議。',
+  moaAggregator: '聚合模型',
+  moaAggregatorBilled: '執行模型 · 整次執行由此計費',
+  moaReferenceHint: '預設每輪僅建議一次',
   subagents: {
     inherit: '繼承主代理設定',
     modelOnly: '自訂模型（沿用主代理憑證）',

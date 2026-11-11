@@ -117,7 +117,7 @@ describe('buildToolView error text follows the UI language', () => {
 
     expect(buildToolView(part({ isError: true, result: {} }), '').detail).toContain('工具返回了错误')
     expect(buildToolView(part({ result: { success: false } }), '').detail).toContain('工具返回 success=false')
-    expect(buildToolView(part({ result: { status: 'failed' } }), '').detail).toContain('工具返回了"failed"状态')
+    expect(buildToolView(part({ result: { status: 'failed' } }), '').detail).toContain('工具返回了“failed”状态')
   })
 
   it('keeps the English sentences under the default locale', () => {

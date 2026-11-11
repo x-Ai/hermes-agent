@@ -29,7 +29,7 @@ export const zhHantToolsetTagCopy: ToolsetsCopy['tagCopy'] = {
   '30 prebuilt voices, controllable via prompts': '30 種預置語音，可透過提示詞控制',
   'Anti-detection browser (Firefox/Camoufox)': '反偵測瀏覽器 (Firefox/Camoufox)',
   'Background computer-use via cua-driver — does NOT steal your cursor or focus. Works with any model.':
-    '透過 cua-driver 背景控制電腦——不會搶佔您的游標或焦點。適用於任何模型。',
+    '透過 cua-driver 背景控制電腦——不會搶佔你的游標或焦點。適用於任何模型。',
   'Browser login at accounts.x.ai — no API key required': '在 accounts.x.ai 瀏覽器登入——無需 API 金鑰',
   'Chatterbox, Qwen3-TTS, … — live catalog from api.deepinfra.com':
     'Chatterbox、Qwen3-TTS 等——來自 api.deepinfra.com 的即時目錄',
@@ -41,19 +41,19 @@ export const zhHantToolsetTagCopy: ToolsetsCopy['tagCopy'] = {
   'Hosted Langfuse (cloud.langfuse.com)': '託管版 Langfuse (cloud.langfuse.com)',
   'Lightweight local ONNX TTS (~25MB), no API key': '輕量本機 ONNX TTS（約 25MB），無需 API 金鑰',
   'Local neural TTS, 44 languages (voices ~20-90MB)': '本機神經網路 TTS，支援 44 種語言（語音包約 20-90MB）',
-  'Managed Browser Use billed to your subscription': '託管 Browser Use，計入您的訂閱',
-  'Managed FAL image generation billed to your subscription': '託管 FAL 圖像生成，計入您的訂閱',
+  'Managed Browser Use billed to your subscription': '託管 Browser Use，計入你的訂閱',
+  'Managed FAL image generation billed to your subscription': '託管 FAL 圖像生成，計入你的訂閱',
   'Managed image generation (FAL, Krea 2, Nous Portal models) billed to your subscription':
-    '託管圖像生成（FAL、Krea 2、Nous Portal 模型），費用計入您的訂閱',
-  'Managed FAL video generation billed to your subscription': '託管 FAL 影片生成，計入您的訂閱',
-  'Managed Firecrawl billed to your subscription': '託管 Firecrawl，計入您的訂閱',
-  'Managed web search and extract billed to your subscription': '託管網頁搜尋與內容擷取，費用計入您的訂閱',
-  'Managed OpenAI TTS billed to your subscription': '託管 OpenAI TTS，計入您的訂閱',
+    '託管圖像生成（FAL、Krea 2、Nous Portal 模型），費用計入你的訂閱',
+  'Managed FAL video generation billed to your subscription': '託管 FAL 影片生成，計入你的訂閱',
+  'Managed Firecrawl billed to your subscription': '託管 Firecrawl，計入你的訂閱',
+  'Managed web search and extract billed to your subscription': '託管網頁搜尋與內容擷取，費用計入你的訂閱',
+  'Managed OpenAI TTS billed to your subscription': '託管 OpenAI TTS，計入你的訂閱',
   'Most natural voices': '最自然的語音',
   'Multilingual, native Opus': '多語言，原生 Opus',
   'PKCE OAuth — opens the setup wizard': 'PKCE OAuth——將開啟設定精靈',
   'REST API integration': 'REST API 整合',
-  'Run your own Firecrawl instance (Docker)': '執行您自己的 Firecrawl 執行個體 (Docker)',
+  'Run your own Firecrawl instance (Docker)': '執行你自己的 Firecrawl 執行個體 (Docker)',
   'Self-hosted Langfuse instance': '自架 Langfuse 執行個體',
   "Agentic web search via Grok's web_search tool — uses xAI Grok OAuth or XAI_API_KEY.":
     '透過 Grok 的 web_search 工具進行代理式網頁搜尋——使用 xAI Grok OAuth 或 XAI_API_KEY。',
@@ -61,7 +61,7 @@ export const zhHantToolsetTagCopy: ToolsetsCopy['tagCopy'] = {
   'Cloud browser with stealth and proxies': '帶隱身與代理的雲端瀏覽器',
   'FLUX, Qwen-Image, … — live catalog from api.deepinfra.com': 'FLUX、Qwen-Image 等——來自 api.deepinfra.com 的即時目錄',
   'Free, privacy-respecting metasearch. Point SEARXNG_URL at your instance.':
-    '免費、尊重隱私的元搜尋。把 SEARXNG_URL 指向您的執行個體。',
+    '免費、尊重隱私的元搜尋。把 SEARXNG_URL 指向你的執行個體。',
   'Free-tier API key — 2k queries/mo, search only.': '免費方案 API 金鑰——每月 2000 次查詢，僅搜尋。',
   'Full search + extract; supports direct API and Nous tool-gateway routing.':
     '完整的搜尋 + 擷取；支援直連 API 和 Nous 工具閘道路由。',
@@ -128,7 +128,7 @@ export const zhHantToolsetTagCopy: ToolsetsCopy['tagCopy'] = {
   'Independent web index for AI apps. Keyed access with higher limits and guaranteed service.':
     '面向 AI 應用的獨立網頁索引。金鑰存取具有更高限額和服務保障。',
   'faster-whisper on-device, no API key': '本機 faster-whisper 轉寫，無需 API 金鑰',
-  'Managed OpenAI transcription billed to your subscription': '託管 OpenAI 轉寫，計入您的訂閱',
+  'Managed OpenAI transcription billed to your subscription': '託管 OpenAI 轉寫，計入你的訂閱',
   'voice transcription (gateway voice messages voice mode)': '語音轉寫（閘道語音訊息與語音模式）',
   'whisper-1, gpt-4o-transcribe, gpt-transcribe': 'whisper-1、gpt-4o-transcribe、gpt-transcribe',
   'whisper-large-v3-turbo, whisper-large-v3 — very fast': 'whisper-large-v3-turbo、whisper-large-v3——速度極快',

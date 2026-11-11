@@ -36,12 +36,12 @@ export const jaBoot = {
         'バックグラウンドで再試行しています。読み取りや下書きは続けられます。問題が続く場合はゲートウェイ設定を開いてください。',
       gatewaySignInRequired: 'ゲートウェイへのサインインが必要です',
       ipcBridgeUnavailable: 'デスクトップ IPC ブリッジが利用できません。',
-      restartHermes: '再起動 Hermes',
+      restartHermes: 'Hermes を再起動',
       openLogs: 'ログを開く',
-      reconnectNow: '今すぐ再接続してください',
+      reconnectNow: '今すぐ再接続',
       connectionSettings: '接続設定',
       gatewaySignInRequiredDetail: '再接続するには、もう一度サインインしてください。チャットと設定は安全です。',
-      signInAgain: '再度サインインしてください'
+      signInAgain: 'もう一度サインイン'
     },
     failure: {
       title: 'Hermes を起動できませんでした',
@@ -85,7 +85,7 @@ export const jaBoot = {
       exitedEarly: 'Hermes のバックグラウンド サービスが起動直後に停止しました。',
       timedOut: 'Hermes のバックグラウンド サービスが時間内に応答しませんでした。',
       permission: 'Hermes はデータ フォルダーに書き込むことができませんでした (権限の問題)。',
-      diskFull: 'ディスクがいっぱいであるため、Hermes を開始できませんでした。',
+      diskFull: 'ディスクがいっぱいのため、Hermes を起動できませんでした。',
       portInUse: '別のプログラムが Hermes が必要とするネットワーク ポートを使用しています。',
       installMissing: 'Hermes のインストールの一部が欠落しています。元に戻すには、修復インストールを選択します。'
     }

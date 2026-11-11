@@ -58,10 +58,10 @@ export const zhModelSettings: TranslationOverride<ModelSettingsTranslations> = {
   needsApiKeyHint: name => `${name} 需要 API 密钥 — 完成设置后才能选择模型`,
   oauthHint: name => `${name} 通过浏览器登录 — Hermes 会为你完成整个流程`,
   moa: {
-    title: '混合智能体 (MOA)',
+    title: '混合智能体（MoA）',
     shortTitle: 'MoA',
     presetsTitle: 'MoA 预设',
-    description: '配置以模型形式出现在"混合智能体"提供方下的命名预设，聚合模型是实际应答的模型',
+    description: '配置以模型形式出现在“混合智能体”提供方下的命名预设。聚合模型是实际应答的模型',
     presetPlaceholder: '预设',
     enabled: '启用',
     setDefault: '设为默认',

@@ -46,7 +46,7 @@ export const zhFreeTier: TranslationOverrides['freeTier'] = {
     signIn: '登录',
     notNow: '暂不'
   },
-  busyHeading: '马上就到了',
+  busyHeading: '就差一步了',
   busyBody: wait => `Nous 服务繁忙，Hermes 未能完成登录，请在${wait}后重试。在此期间，你的会话会一直保留`,
   unreachableBody: 'Hermes 无法连接 Nous 服务以完成登录，请检查网络连接后重试。你的会话仍会保留',
   setupFailed: {

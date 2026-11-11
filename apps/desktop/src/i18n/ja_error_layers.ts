@@ -9,7 +9,7 @@ export const jaErrorLayers: Pick<ThreadCopy, 'errorLayerBodies' | 'errorLayers'>
     billing: 'クレジット不足',
     disk: 'ディスク容量不足',
     endpoint: 'カスタムエンドポイントのエラー',
-    gateway: 'ゲートウェイのエラー',
+    gateway: 'メッセージを送信できませんでした',
     generic: 'ターンが失敗しました',
     provider: 'プロバイダーのエラー',
     runtime: 'ローカルランタイムのエラー',

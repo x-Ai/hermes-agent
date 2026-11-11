@@ -1,4 +1,6 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it } from 'vitest'
+
+import { setRuntimeI18nLocale } from '@/i18n'
 
 import { summarizeToolRun, type ToolCallLike } from './run-summary'
 
@@ -117,5 +119,40 @@ describe('summarizeToolRun', () => {
   it('counts vision analysis as images', () => {
     expect(settled([analyzed('shot.png')])).toBe('Analyzed 1 image')
     expect(settled([analyzed('shot.png'), analyzed('other.png')])).toBe('Analyzed 2 images')
+  })
+})
+
+// Every clause comes from the active locale's catalog, and a locale missing a category falls
+// back to English mid-sentence (the line once read "运行了 2 条命令，1 tool call failed"). Two
+// calls per category, so each clause counts instead of naming the user's own paths and URLs.
+describe('summarizeToolRun in other languages', () => {
+  afterEach(() => setRuntimeI18nLocale('en'))
+
+  const everyCategory = [
+    analyzed('a.png'),
+    analyzed('b.png'),
+    navigated('https://a.example'),
+    navigated('https://b.example'),
+    tool('delegate_task', { goal: 'a' }, { ok: true }),
+    tool('delegate_task', { goal: 'b' }, { ok: true }),
+    read('a.ts'),
+    read('b.ts'),
+    browsed(),
+    browsed(),
+    tool('todo', {}, { ok: true }),
+    tool('todo', {}, { ok: true }),
+    webExtracted(['https://a.example']),
+    webExtracted(['https://b.example']),
+    ran('ls'),
+    ran('pwd'),
+    webSearched('a'),
+    webSearched('b')
+  ]
+
+  it.each(['zh', 'zh-hant', 'ja'] as const)('reads every category in %s, settled and live', locale => {
+    setRuntimeI18nLocale(locale)
+
+    expect(settled(everyCategory)).not.toMatch(/[A-Za-z]/)
+    expect(running(everyCategory)).not.toMatch(/[A-Za-z]/)
   })
 })

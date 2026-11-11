@@ -8,12 +8,12 @@ export const zhErrorLayers: Pick<ThreadCopy, 'errorLayerBodies' | 'errorLayers'>
     auth: '登录问题',
     billing: '额度不足',
     disk: '磁盘已满',
-    endpoint: '无法连接到您的模型服务器',
-    gateway: 'Hermes 遇到问题',
+    endpoint: '无法连接到你的模型服务器',
+    gateway: '无法发送你的消息',
     generic: 'Hermes 无法完成此回复',
-    provider: 'AI 服务返回了一个错误',
+    provider: 'AI 服务返回了错误',
     runtime: 'Hermes 遇到问题',
-    streaming: '答复被切断了'
+    streaming: '回复被截断了'
   },
   errorLayerBodies: {
     auth: 'AI 服务拒绝了登录凭据，请检查此提供商的凭据，然后重新发送消息',

@@ -88,7 +88,7 @@ export const jaOnboarding: TranslationOverrides['onboarding'] = {
   errorDetails: '詳細',
   localApiKeyPlaceholder: 'API キー (オプション - エンドポイントで必要な場合のみ)',
   signInDidNotFinish: provider =>
-    `でサインイン${provider}完了しませんでした。インターネット接続を確認してもう一度試すか、別のプロバイダーを選択してください。`,
-  tryAgain: 'もう一度試して',
+    `${provider} でのサインインが完了しませんでした。インターネット接続を確認してもう一度試すか、別のプロバイダーを選択してください。`,
+  tryAgain: 'もう一度試す',
   useApiKeyInstead: 'API キーを使用する'
 }

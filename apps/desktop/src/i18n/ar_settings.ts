@@ -1596,7 +1596,7 @@ export const arSettings = {
       gatewayManagedUpdatesUnavailable:
         'تتطلب التحديثات عن بُعد إصدارًا من تطبيق سطح المكتب يدعم تحديثات SSH المُدارة.',
       gatewayManagedUpdatesEmpty: 'أضف اتصال SSH في «الاتصالات المحفوظة» لإدارة تحديثاته هنا.',
-      keyboardShortcuts: 'اختصارات لوحة المفاتيح',
+      keyboardShortcuts: 'تعيينات المفاتيح',
       hudGesture: 'إيماءة HUD',
       screenCapture: 'التقاط الشاشة',
       notificationAlerts: 'تنبيهات سطح المكتب',

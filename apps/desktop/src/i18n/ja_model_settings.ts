@@ -56,7 +56,7 @@ export const jaModelSettings: TranslationOverride<ModelSettingsTranslations> = {
   fallbackAdd: 'フォールバックの追加',
   fallbackEmpty: 'フォールバック モデルなし - 失敗しない限り、デフォルト モデルが使用されます。',
   notInCatalog:
-    'このプロバイダーのモデル リストには含まれていません。呼び出しはバックアップにフォールバックされる可能性があります。',
+    'は、このプロバイダーのモデル リストに含まれていません。呼び出しがバックアップにフォールバックする可能性があります。',
   staleAuxPrefix: (count, names) => `${count} 件の補助タスク (${names}) は引き続き `,
   staleAuxSuffix: ' で実行されます — メインモデルではありません。',
   pasteKeyPlaceholder: keyEnv => `${keyEnv} を貼り付け`,

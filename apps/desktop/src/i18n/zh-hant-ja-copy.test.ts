@@ -154,11 +154,11 @@ describe('the zh-hant overlay', () => {
   })
 })
 
-// Like the English check, this one reads only the reviewed blocks: the unswept rest of
-// the overlay still has these.
-describe('the reviewed zh-hant copy', () => {
+// Like the Simplified check, this one reads the whole zh-hant overlay: the 2026-09-23 bulk
+// translation (df2988580f) filled unswept blocks with mainland terms and 您.
+describe('the zh-hant overlay terms', () => {
   it('uses Taiwan terms and addresses the user as 你', () => {
-    const faults = reviewedCopy('zh-hant')
+    const faults = copy(leaves(zhHantOverrides, ''))
       .filter(({ text }) => NOT_TAIWAN_USAGE.test(text))
       .map(({ path, text }) => `${path}: ${text}`)
 

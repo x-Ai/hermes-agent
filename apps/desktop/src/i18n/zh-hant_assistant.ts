@@ -446,8 +446,9 @@ export const zhHantAssistant = {
       alwaysDescription: pattern =>
         `這會將「${pattern}」模式加入永久允許清單（~/.hermes/config.yaml）。Hermes 對類似指令將不再詢問，包括目前工作階段和未來工作階段。`,
       alwaysAllow: '一律允許',
-      reconnect: '重新連接',
-      timedOutSystemLine: '批准超時 - 命令未運行。請Hermes重試，或在設定→安全性→批准逾時中提高限制。',
+      reconnect: '重新連線',
+      timedOutSystemLine:
+        '批准已逾時——指令未執行。請要求 Hermes 再試一次，或在「設定 → 安全性 → 批准逾時」中延長等待時間。',
       openSafetySettings: '開啟安全設定',
       commandDetails: '命令詳細資訊'
     },
@@ -456,8 +457,8 @@ export const zhHantAssistant = {
       gatewayDisconnected: 'Hermes 閘道未連線',
       sendFailed: '無法傳送澄清回應',
       loadingQuestion: '正在載入問題…',
-      other: '其他（輸入您的答案）',
-      placeholder: '輸入您的答案…',
+      other: '其他（輸入你的答案）',
+      placeholder: '輸入你的答案…',
       skip: '略過',
       skipped: '已略過',
       noAnswer: '未回答',
