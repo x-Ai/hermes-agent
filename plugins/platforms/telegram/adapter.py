@@ -3719,7 +3719,8 @@ class TelegramAdapter(TelegramContactMixin, TelegramHeldInboundMixin, TelegramRe
         self, chat_id: str, chunk: str, reply_to_id: Optional[int], thread_kwargs: dict[str, Any],
         thread_id: Optional[str], metadata: Optional[dict[str, Any]], finalize: bool):
         """Send one continuation chunk (MarkdownV2 then plain on finalize; raw when streaming); drops the
-        reply anchor once on 'reply message not found'. Returns the sent message or None."""
+        reply anchor once on 'reply message not found'. Returns the sent message, the flood-cap result on
+        a flood refusal, or None."""
         base = {**self._link_preview_kwargs(), **self._notification_kwargs(metadata)}
         for use_markdown in (True, False) if finalize else (False,):
             try:
@@ -3744,9 +3745,13 @@ class TelegramAdapter(TelegramContactMixin, TelegramHeldInboundMixin, TelegramRe
                             **retry_thread_kwargs, **base),
                             timeout=_TEXT_SEND_DEADLINE, label="telegram-send", dump_on_blocked_loop=False)
                     except Exception as _retry_err:
+                        if getattr(_retry_err, "retry_after", None) is not None or "retry after" in str(_retry_err).lower():
+                            return _flood_cap_result(float(getattr(_retry_err, "retry_after", None) or 30.0))
                         logger.warning(
                             "[%s] Overflow continuation no-reply retry failed: %s", self.name, _redact_telegram_error_text(_retry_err))
                         return None
+                if getattr(send_err, "retry_after", None) is not None or "retry after" in str(send_err).lower():
+                    return _flood_cap_result(float(getattr(send_err, "retry_after", None) or 30.0))  # no plain retry into the penalty (#76494)
                 if use_markdown:
                     continue  # try plain text on next loop iteration
                 logger.warning("[%s] Overflow continuation send failed: %s", self.name, _redact_telegram_error_text(send_err))
@@ -3782,16 +3787,24 @@ class TelegramAdapter(TelegramContactMixin, TelegramHeldInboundMixin, TelegramRe
             reply_to_id = int(prev_id) if prev_id else None
             thread_kwargs = self._thread_kwargs_for_send(chat_id, thread_id, metadata, reply_to_message_id=reply_to_id)
             sent_msg = await self._send_overflow_continuation(chat_id, chunk, reply_to_id, thread_kwargs, thread_id, metadata, finalize)
-            if sent_msg is None:
+            flood = sent_msg if isinstance(sent_msg, SendResult) else None  # flood-refused: the caller holds off
+            if sent_msg is None or flood:
                 # Partial delivery: do NOT report success — the consumer would treat it as final delivery.
                 logger.warning("[%s] Overflow split: stopped at %d/%d chunks delivered", self.name, 1 + len(continuation_ids), len(chunks))
                 delivered_prefix = "".join(re.sub(r" \(\d+/\d+\)$", "", delivered) for delivered in delivered_chunks)
+                raw = {
+                    "partial_overflow": True, "delivered_chunks": 1 + len(continuation_ids),
+                    "total_chunks": len(chunks), "last_message_id": prev_id, "delivered_prefix": delivered_prefix,
+                    "continuation_message_ids": tuple(continuation_ids)}
+                if flood and finalize:
+                    # A flood refusal posted nothing, so the rest is certain-undelivered: hand it over in the
+                    # shape _resume_partial_send sends (the MarkdownV2 continuation text), as send() does.
+                    raw["undelivered_chunks"] = tuple(
+                        _separate_chunk_indicator_from_fence(self.format_message(rest)) for rest in chunks[len(delivered_chunks):])
+                    raw["delivered_message_ids"] = (str(message_id), *continuation_ids)
                 return SendResult(
-                    success=False, message_id=prev_id, error="overflow_continuation_failed", retryable=True,
-                    raw_response={
-                        "partial_overflow": True, "delivered_chunks": 1 + len(continuation_ids),
-                        "total_chunks": len(chunks), "last_message_id": prev_id, "delivered_prefix": delivered_prefix,
-                        "continuation_message_ids": tuple(continuation_ids)},
+                    success=False, message_id=prev_id, retryable=True, retry_after=flood and flood.retry_after,
+                    error=flood.error if flood else "overflow_continuation_failed", raw_response=raw,
                     continuation_message_ids=tuple(continuation_ids))
             new_id = str(getattr(sent_msg, "message_id", "")) or prev_id
             continuation_ids.append(new_id)
