@@ -13,7 +13,7 @@ import pytest
 
 from agent.secret_scope import load_env_file
 from hermes_cli import profile_provision, profiles
-from hermes_cli.profile_provision import ProfileCreateRequest, provision_profile
+from hermes_cli.profile_provision import ProfileCreateReceipt, ProfileCreateRequest, provision_profile
 from hermes_cli.profiles_shared_providers import profile_shares_providers
 
 
@@ -28,7 +28,7 @@ def launch(tmp_path, monkeypatch):
         "providers:\n  acme:\n    name: Acme\n    base_url: https://acme.example.com/v1\n"
         "    api_key: ${ACME_TOKEN}\n    model: m-1\n", encoding="utf-8")
     (home / ".env").write_text("ACME_TOKEN=root-acme-secret\nBRAVE_API_KEY=root-brave-key\n", encoding="utf-8")
-    monkeypatch.setattr(profiles, "seed_profile_skills", lambda path, quiet=True: {"copied": []})
+    monkeypatch.setattr(profiles, "seed_profile_skills", lambda path, quiet=True, problems=None: {"copied": []})
     monkeypatch.setattr(profiles, "check_alias_collision", lambda name: None)
     monkeypatch.setattr(profiles, "create_wrapper_script", lambda name: None)
     return home
@@ -109,3 +109,13 @@ def test_a_named_launch_profile_keeps_its_own_providers_instead_of_sharing_the_r
     assert "share_providers" not in _profile_yaml(result.path)
     # A registry provider key a sharing profile would have stripped stays: the child owns its copy.
     assert load_env_file(result.path / ".env") == {"OPENAI_API_KEY": "sk-openai-b"}
+
+
+def test_the_create_receipt_carries_the_shared_providers_outcome(launch):
+    # `hermes profile create` prints from a receipt (built here, or sent by the gateway that made the
+    # profile): the share switch's outcome must survive both, or the CLI drops the fork's providers line.
+    request = ProfileCreateRequest(name="scout", mirror_credentials=True, share_auth=True)
+    made = ProfileCreateReceipt.of(request, provision_profile(request))
+
+    assert made.mirrored["providers"] == "shared"
+    assert ProfileCreateReceipt.from_wire(made.to_wire()).mirrored["providers"] == "shared"

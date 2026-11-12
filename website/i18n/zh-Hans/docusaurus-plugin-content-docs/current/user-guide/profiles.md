@@ -48,6 +48,8 @@ hermes profile create mybot
 - `--isolated-auth` 会把登录（`auth.json`）复制一份，而不是共享。从具名 profile 创建的 profile 总是获得该 profile 登录的副本；其中的订阅（一次性 OAuth）登录无法复制，因此对这些提供商，新 profile 读取默认 profile 的登录，`profile create` 会提示这一点。
 - `--no-credentials` 不复制任何密钥、登录或模型；之后请运行 `mybot setup`。
 
+当前 profile 有网关在运行时，`profile create` 会交给该网关来创建 profile，因此 CLI、仪表盘和桌面端都通过同一个运行中的进程创建。设置了 `HERMES_TUI_GATEWAY_URL` 时，profile 会创建在该网关所在的机器上；如果连接不上，命令会失败，也不会在本地创建任何内容。没有网关在运行时，profile 与以前一样在终端自己的进程中创建。
+
 如果你计划将此 profile 用作 kanban（看板）工作节点（或希望 kanban 编排器将任务路由到它），在创建时传入 `--description "<角色>"` 以便编排器了解其能力：
 
 ```bash

@@ -4933,7 +4933,9 @@ shared:
     answered_off: "{setting}. You won't be asked again."
     later: "Later. {command} decides it any time."
   # What a profile create reports: the hermes_cli/profile_provision.py warning (every create surface) and the
-  # `hermes profile create` lines (hermes_cli/profile_cmd.py). Keep the flags, commands, auth.json and OAuth as written.
+  # `hermes profile create` lines (hermes_cli/profile_cmd.py) and its errors when a gateway makes the profile
+  # (hermes_cli/profile_provision_gateway.py: {where} is gateway_running / gateway_at / gateway_env, {unknown} is a
+  # gateway_may_have_created* sentence). Keep the flags, commands, auth.json, OAuth, HERMES_* names and URLs as written.
   profile_create:
     subscription_logins_kept: "subscription logins not carried over ({providers}): the profile uses the default profile's; run `hermes -p {name} auth add <provider>` to sign it in separately"
     copied_keys: "Copied API keys from '{launch}' (bot tokens and allowlists left out)."
@@ -4943,6 +4945,24 @@ shared:
     copied_logins: "Copied logins from '{launch}' (single-use OAuth logins are still read from the default profile)."
     model_inherited: "Model inherited from '{launch}'."
     no_credentials_with_clone: "Error: --no-credentials cannot be combined with --clone / --clone-from / --clone-all (a clone copies the source's keys); create without cloning instead."
+    empty_name: "Error: profile name cannot be empty"
+    gateway_refused: "the gateway refused the create; nothing was created"
+    gateway_running: "the running gateway"
+    gateway_at: "the gateway at {url}"
+    gateway_env: "the HERMES_TUI_GATEWAY_URL gateway"
+    gateway_bad_url: "HERMES_TUI_GATEWAY_URL is not a ws:// or wss:// URL with a host; nothing was created"
+    gateway_not_named_profile: "this terminal's HERMES_HOME is not a named profile, so {where} cannot create from it; nothing was created"
+    gateway_may_have_created: "{where} may have created '{name}'; check `hermes profile list` before retrying"
+    gateway_may_have_created_remote: "{where} may have created '{name}'; check `hermes profile list` on the gateway's machine before retrying"
+    gateway_interrupted: "interrupted; {unknown}"
+    gateway_restarting: "{where} cannot create profiles for this terminal (it is restarting; retry)"
+    gateway_outdated: "{where} cannot create profiles for this terminal (it predates this version; update it, or unset HERMES_TUI_GATEWAY_URL to create locally)"
+    gateway_profile_refused: "{where} cannot serve this terminal's profile ({profile}); nothing was created"
+    gateway_its_profile: "its profile"
+    gateway_unfinished: "{where} did not finish the create ({reason}); {unknown}"
+    gateway_unreachable: "could not reach {where} ({error})"
+    gateway_lost: "lost {where} during the create ({error}); {unknown}"
+    gateway_no_receipt: "{where} answered without the details this version needs; {unknown}"
   # `hermes gateway migrate --backends`: the read-only serve/dashboard service report (hermes_cli/gateway_migrate_backends.py)
   # and its flag errors (hermes_cli/gateway_migrate.py). Keep the flags, commands, HERMES_HOME, Hermes, Nix, systemd, plist, s6,
   # Compose, run, SSH, the hermes-* name patterns and {unit} as written. Each label_* heads a report row: keep it short, ending
