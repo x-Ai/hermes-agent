@@ -1,18 +1,20 @@
 """Which reasoning-effort levels a (provider, model) route accepts — one answer for every surface.
 
-Hermes knows a route's effort vocabulary in four unrelated places: the Codex per-generation ladder
-(``agent.reasoning_effort``), provider plugins' ``supported_reasoning_efforts`` declarations, the
+Hermes knows a route's effort vocabulary in five unrelated places: the Codex per-generation ladder
+and the levels a managed local model's chat template accepts (both ``agent.reasoning_effort``
+entry clamps), provider plugins' ``supported_reasoning_efforts`` declarations, the
 OpenRouter / Nous Portal catalogs (``hermes_cli.models_reasoning_caps``) and models.dev's
 ``reasoning_options``. Transports consult the one they need at request time; the picker and the
 composer's reasoning pill need the merged verdict up front, so they can show the levels a model has
 and mark the ones the route will clamp. Cache-only: never blocks on HTTP (hot path — once per
 picker model and once per ``session.info``).
 
-Precedence, most specific first: Codex ladder (live-verified per generation) → a RESTRICTIVE plugin
-declaration (the plugin knows its wire) → the serving aggregator's catalog → models.dev
-``reasoning_options`` (a custom route without ``catalog_provider`` falls back to a cross-provider
-match on the model id) → unknown. The custom profile's generic ceiling (the whole OpenAI-compat
-set) is NOT a verdict: it says "undiscoverable", so it resolves to unknown.
+Precedence, most specific first: Codex ladder (live-verified per generation) → a managed local
+model's chat template (the request carries nothing else) → a RESTRICTIVE plugin declaration (the
+plugin knows its wire) → the serving aggregator's catalog → models.dev ``reasoning_options`` (a
+custom route without ``catalog_provider`` falls back to a cross-provider match on the model id) →
+unknown. The custom profile's generic ceiling (the whole OpenAI-compat set) is NOT a verdict: it
+says "undiscoverable", so it resolves to unknown.
 
 The fork forwards the verdict to the UI as a HINT: unsupported levels are dimmed and annotated with
 the level the route sends, never removed — the Portal is known to honor levels its catalog omits
@@ -36,8 +38,8 @@ _UNSET: Any = object()
 class RouteReasoningSupport:
     """``efforts``: None = unknown, ``()`` = the route takes no reasoning parameter at all, else the
     accepted levels. ``can_disable``: whether thinking can be switched off (None = unknown).
-    ``source`` names the deciding authority (``codex`` / ``profile`` / ``aggregator`` / ``catalog`` /
-    ``catalog_match``)."""
+    ``source`` names the deciding authority (``codex`` / ``local`` / ``profile`` / ``aggregator`` /
+    ``catalog`` / ``catalog_match``)."""
 
     efforts: Optional[tuple[str, ...]] = None
     can_disable: Optional[bool] = None
@@ -149,6 +151,20 @@ def _catalog_support(
     return efforts, can_disable, "catalog_match" if (efforts or can_disable is not None) else ""
 
 
+def _entry_clamp_support(
+    name: str, model: str, api_mode: Optional[str], base_url: Optional[str],
+) -> Optional[RouteReasoningSupport]:
+    """The route's entry clamp when it is narrower than the generic OpenAI-compat set: the Codex ladder,
+    or the levels a managed local model's chat template accepts. The request is clamped onto these
+    levels whatever any catalog says, so they are the verdict; None defers to the catalogs."""
+    efforts = _normalized(route_supported_efforts(name, model, api_mode, base_url))
+    if name == "openai-codex":
+        return RouteReasoningSupport(efforts, "none" in efforts, "codex")
+    if _is_generic_ceiling(efforts):
+        return None
+    return RouteReasoningSupport(efforts, "none" in efforts, "local")
+
+
 def route_reasoning_support(
     provider: Optional[str], model: Optional[str], api_mode: Optional[str] = None, *,
     base_url: Optional[str] = None, config: Optional[dict] = None,
@@ -164,9 +180,9 @@ def route_reasoning_support(
     mid = (model or "").strip()
     if not mid:
         return UNKNOWN_SUPPORT
-    if name == "openai-codex":
-        efforts = _normalized(route_supported_efforts(name, mid, api_mode))
-        return RouteReasoningSupport(efforts, "none" in efforts, "codex")
+    entry_clamp = _entry_clamp_support(name, mid, api_mode, base_url)
+    if entry_clamp is not None:
+        return entry_clamp
 
     declared = _declared_efforts(route_profile(provider, base_url) if profile is _UNSET else profile, mid)
     detail = aggregator_reasoning_detail(name, mid) if aggregator_detail is _UNSET else aggregator_detail

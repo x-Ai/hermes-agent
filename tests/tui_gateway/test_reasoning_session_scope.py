@@ -63,6 +63,23 @@ class TestSessionInfoReasoningEfforts:
         info = _session_info(_agent({"enabled": True, "effort": "high"}))
         assert (info["reasoning_efforts"], info["reasoning_effort"]) == (None, "high")
 
+    def test_a_managed_local_model_reports_the_levels_its_template_accepts(self, monkeypatch) -> None:
+        """The wire level and the ladder both follow the session's endpoint (#136324): Qwen3.8 on the managed
+        server sends ``xhigh`` for ``max``, and the Desktop dims the levels its chat template refuses."""
+        from hermes_cli.local_runtime import catalog, growth
+
+        managed = "http://127.0.0.1:18434/v1"
+        monkeypatch.setattr(growth, "is_managed_endpoint", lambda url: url == managed)
+        monkeypatch.setattr(server, "_scoped_session_provider", lambda agent, sess: "custom")
+        model = catalog.catalog_by_id()["qwen3.8-27b"].variants[0].model_id
+        info = _session_info(_agent({"enabled": True, "effort": "max"}, provider="custom", model=model,
+                                    base_url=managed))
+        assert (info["reasoning_effort_wire"], info["reasoning_efforts"]) == (
+            "xhigh", ["none", "low", "medium", "high", "xhigh"])
+        elsewhere = _agent({"enabled": True, "effort": "max"}, provider="custom", model=model,
+                           base_url="http://192.168.1.20:8080/v1")
+        assert _session_info(elsewhere)["reasoning_effort_wire"] == "max"
+
 
 class TestSessionInfoReasoningEffort:
     """Disabled reasoning must be reported as 'none', never ''."""

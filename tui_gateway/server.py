@@ -1497,7 +1497,7 @@ def _session_info(agent, session: dict | None = None) -> dict:
     reasoning_effort_wire = ""
     if reasoning_effort and reasoning_effort != "none":
         reasoning_effort_wire = str(clamp_effort(reasoning_effort, route_supported_efforts(
-            pending_provider or provider, model, getattr(agent, "api_mode", None))) or "")
+            pending_provider or provider, model, getattr(agent, "api_mode", None), getattr(agent, "base_url", None))) or "")
     # The levels this route accepts (plugin declaration / serving catalog / models.dev), so the Desktop
     # dims the ladder steps the route clamps instead of offering seven identical-looking levels. None =
     # unknown (the client keeps the full ladder). Cache-only; a lookup failure must never cost the event.

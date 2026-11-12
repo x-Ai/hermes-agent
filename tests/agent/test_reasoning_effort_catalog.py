@@ -1,7 +1,7 @@
 """``agent.reasoning_effort_catalog``: one merged "which effort levels does this route take" verdict.
 
-Precedence under test: Codex ladder → a RESTRICTIVE plugin declaration → the serving aggregator's
-catalog → models.dev ``reasoning_options`` (cross-provider match only for routes with no catalog of
+Precedence under test: Codex ladder → a managed local model's chat template → a RESTRICTIVE plugin
+declaration → the serving aggregator's catalog → models.dev ``reasoning_options`` (cross-provider match only for routes with no catalog of
 their own) → unknown. The custom profile's generic ceiling is "undiscoverable", never a verdict.
 """
 
@@ -52,6 +52,25 @@ def test_codex_ladder_comes_first_and_carries_ultra_on_the_app_server(monkeypatc
     assert support.source == "codex"
     assert {"none", "max", "ultra"} <= set(support.efforts)
     assert support.can_disable is True
+
+
+def test_a_managed_local_models_template_levels_are_the_verdict(monkeypatch):
+    """The managed server's request carries only the levels the model's chat template accepts (#136324),
+    so no catalog widens them; the same model name on someone else's server keeps the catalogs' verdict."""
+    from hermes_cli.local_runtime import catalog, growth
+
+    _isolated(monkeypatch)
+    managed = "http://127.0.0.1:18434/v1"
+    monkeypatch.setattr(growth, "is_managed_endpoint", lambda url: url == managed)
+    model = catalog.catalog_by_id()["qwen3.8-27b"].variants[0].model_id
+    for provider, base_url in (("custom", managed), ("llamacpp", None)):
+        support = route_reasoning_support(provider, model, base_url=base_url,
+                                          aggregator_detail=AGG_DETAIL, catalog_caps=CAT_CAPS)
+        assert (support.efforts, support.can_disable, support.source) == (
+            ("none", "low", "medium", "high", "xhigh"), True, "local")
+    elsewhere = route_reasoning_support("custom", model, base_url="http://192.168.1.20:8080/v1",
+                                        aggregator_detail=None, catalog_caps=CAT_CAPS)
+    assert (elsewhere.efforts, elsewhere.source) == (("medium",), "catalog")
 
 
 def test_restrictive_declaration_beats_both_catalogs_but_not_the_aggregator_disable_verdict(monkeypatch):
