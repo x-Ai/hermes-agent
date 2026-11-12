@@ -4907,3 +4907,8 @@ tools:
       media_delivery: "a entrega de multimédia"
       transcription: "a transcrição"
       delegation: "a delegação"
+
+webapp:
+  bundle_unavailable:
+    title: "O Hermes está indisponível"
+    ask_host: "Peça a quem administra este host do Hermes para executar esse comando e depois recarregue esta página."

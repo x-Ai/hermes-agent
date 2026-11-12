@@ -4906,3 +4906,8 @@ tools:
       media_delivery: "medya teslimi"
       transcription: "yazıya dökme"
       delegation: "delegasyon"
+
+webapp:
+  bundle_unavailable:
+    title: "Hermes kullanılamıyor"
+    ask_host: "Bu Hermes ana makinesini yöneten kişiden bu komutu çalıştırmasını isteyin, ardından bu sayfayı yeniden yükleyin."

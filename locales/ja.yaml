@@ -4905,3 +4905,8 @@ tools:
       media_delivery: "メディア配信"
       transcription: "文字起こし"
       delegation: "委任"
+
+webapp:
+  bundle_unavailable:
+    title: "Hermes を利用できません"
+    ask_host: "この Hermes ホストを運用している人にそのコマンドを実行してもらい、このページを再読み込みしてください。"

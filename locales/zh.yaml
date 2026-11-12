@@ -4911,3 +4911,8 @@ tools:
       media_delivery: "媒体投递"
       transcription: "语音转写"
       delegation: "委派"
+
+webapp:
+  bundle_unavailable:
+    title: "Hermes 暂不可用"
+    ask_host: "请联系管理这台 Hermes 主机的人执行该命令，然后重新加载此页面。"

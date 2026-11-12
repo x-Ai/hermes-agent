@@ -4907,3 +4907,8 @@ tools:
       media_delivery: "seachadadh meán"
       transcription: "tras-scríobh"
       delegation: "tarmligean"
+
+webapp:
+  bundle_unavailable:
+    title: "Níl Hermes ar fáil"
+    ask_host: "Iarr ar an duine a ritheann an t-óstach Hermes seo an t-ordú sin a rith, agus ansin athlódáil an leathanach seo."

@@ -119,9 +119,44 @@ def test_saved_endpoint_details_read_the_runtime_memo_and_never_probe(monkeypatc
     monkeypatch.setattr(model_metadata, "_endpoint_disk_cache_get", fake_memo)
     monkeypatch.setattr(model_metadata, "fetch_endpoint_model_metadata", lambda *a, **k: pytest.fail("must not probe"))
     detail = saved_endpoint_model_details("https://relay.example/v1", ["glm-5.3"], {"catalog_provider": ""})[0]
-    assert seen["key"] == model_metadata._normalize_base_url("https://relay.example/v1")
+    # A keyless entry's runtime sends the no-key-required placeholder, so its read is filed under that key.
+    assert seen["key"] == _runtime_slot("https://relay.example/v1", "no-key-required")
     assert (detail["context_length"], detail["sources"]["context_length"]) == (65_536, SOURCE_ENDPOINT)
     assert (detail["max_output_tokens"], detail["sources"]["max_output_tokens"]) == (128_000, SOURCE_CATALOG_MATCH)
+
+
+def _runtime_slot(base_url, api_key):
+    """The disk slot ``fetch_endpoint_model_metadata`` files a read made with ``api_key`` under."""
+    from agent.model_metadata_memo_keys import endpoint_disk_slot, endpoint_memo_key
+
+    return endpoint_disk_slot(endpoint_memo_key(model_metadata._normalize_base_url(base_url), api_key))
+
+
+@pytest.mark.parametrize(("entry", "answered"), [
+    ({"api_key": "sk-relay-key-a-1234"}, True),
+    ({"key_env": "RELAY_TEST_KEY"}, True),
+    ({"api_key": "sk-relay-key-b-5678"}, False),
+    ({}, False),
+], ids=["own-plaintext-key", "own-key-env", "another-key", "keyless"])
+def test_saved_endpoint_details_read_only_the_memo_of_the_entrys_own_credential(monkeypatch, entry, answered):
+    """Upstream files each ``/models`` read under the credential that made it: the saved row shows the
+    endpoint's self-description fetched with its own key, never one another key fetched."""
+    memos = {_runtime_slot("https://relay.example/v1", "sk-relay-key-a-1234"): {
+        "glm-5.3": {"name": "glm-5.3", "context_length": 65_536}}}
+    monkeypatch.setenv("RELAY_TEST_KEY", "sk-relay-key-a-1234")
+    monkeypatch.setattr(model_metadata, "_endpoint_disk_cache_get", memos.get)
+    detail = saved_endpoint_model_details("https://relay.example/v1", ["glm-5.3"], entry)[0]
+    assert (detail["sources"]["context_length"] == SOURCE_ENDPOINT) is answered
+    assert detail["context_length"] == (65_536 if answered else 200_000)
+
+
+def test_saved_endpoint_details_read_the_minted_slot_without_running_key_cmd(monkeypatch):
+    seen = []
+    monkeypatch.setattr(model_metadata, "_endpoint_disk_cache_get", lambda slot: seen.append(slot))
+    monkeypatch.setattr("agent.command_token_source.build_command_token_provider",
+                        lambda *a, **k: pytest.fail("must not build a key_cmd token provider"))
+    saved_endpoint_model_details("https://relay.example/v1", ["glm-5.3"], {"key_cmd": "print-token"})
+    assert seen == [f"{model_metadata._normalize_base_url('https://relay.example/v1')} [minted]"]
 
 
 def test_saved_endpoint_details_never_raise(monkeypatch):

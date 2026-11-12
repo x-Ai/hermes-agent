@@ -4925,3 +4925,8 @@ tools:
       media_delivery: "médiakézbesítés"
       transcription: "átírás"
       delegation: "delegálás"
+
+webapp:
+  bundle_unavailable:
+    title: "A Hermes nem érhető el"
+    ask_host: "Kérd meg azt, aki ezt a Hermes-gazdagépet üzemelteti, hogy futtassa le azt a parancsot, majd töltsd újra ezt az oldalt."

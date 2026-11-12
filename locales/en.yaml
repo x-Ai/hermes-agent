@@ -5046,3 +5046,11 @@ tools:
       media_delivery: "media delivery"
       transcription: "transcription"
       delegation: "delegation"
+
+webapp:
+  # The page a browser is shown when the dashboard or Webapp bundle cannot be served
+  # (hermes_cli/web_server_dashboard.py). Between the title and ask_host the server prints its reason,
+  # which names the build command verbatim: "that command" is that one.
+  bundle_unavailable:
+    title: "Hermes is unavailable"
+    ask_host: "Ask whoever runs this Hermes host to run that command, then reload this page."

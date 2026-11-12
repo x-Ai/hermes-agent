@@ -4905,3 +4905,8 @@ tools:
       media_delivery: "미디어 전달"
       transcription: "음성 전사"
       delegation: "위임"
+
+webapp:
+  bundle_unavailable:
+    title: "Hermes를 사용할 수 없어요"
+    ask_host: "이 Hermes 호스트를 운영하는 사람에게 해당 명령을 실행해 달라고 요청한 다음 이 페이지를 새로고침하세요."

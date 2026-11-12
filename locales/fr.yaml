@@ -5235,3 +5235,8 @@ tools:
       media_delivery: "la livraison des médias"
       transcription: "la transcription"
       delegation: "la délégation"
+
+webapp:
+  bundle_unavailable:
+    title: "Hermes est indisponible"
+    ask_host: "Demandez à la personne qui gère cet hôte Hermes de lancer cette commande, puis rechargez cette page."

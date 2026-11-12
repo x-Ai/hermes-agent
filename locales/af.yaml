@@ -4907,3 +4907,8 @@ tools:
       media_delivery: "media-aflewering"
       transcription: "transkripsie"
       delegation: "delegasie"
+
+webapp:
+  bundle_unavailable:
+    title: "Hermes is nie beskikbaar nie"
+    ask_host: "Vra wie ook al hierdie Hermes-gasheer bestuur om daardie opdrag uit te voer, en laai dan hierdie bladsy weer."

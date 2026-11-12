@@ -4907,3 +4907,8 @@ tools:
       media_delivery: "доставку медіа"
       transcription: "транскрипцію"
       delegation: "делегування"
+
+webapp:
+  bundle_unavailable:
+    title: "Hermes недоступний"
+    ask_host: "Попросіть того, хто керує цим хостом Hermes, виконати цю команду, а потім перезавантажте цю сторінку."

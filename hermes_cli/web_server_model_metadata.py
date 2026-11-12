@@ -152,16 +152,33 @@ def resolve_custom_endpoint_model_details(
     return details
 
 
+def _own_memo_slot(normalized: str, entry: dict[str, Any]) -> str:
+    """The disk-memo slot the runtime files this endpoint's ``/models`` read under. A catalog answers only
+    the credential that fetched it (``agent/model_metadata_memo_keys.py``), so the slot is the entry's own:
+    a ``key_cmd`` token is minted per request (one shared slot), else the first usable ``api_key`` /
+    ``key_env`` value, else the ``no-key-required`` placeholder every custom route sends a keyless server."""
+    from agent.model_metadata_memo_keys import endpoint_disk_slot, endpoint_memo_key
+    from agent.secret_scope import get_secret_str
+    from hermes_cli.auth import has_usable_secret
+
+    if str(entry.get("key_cmd") or "").strip():
+        return endpoint_disk_slot(endpoint_memo_key(normalized, object()))  # any non-string key is a minted one
+    key_env = str(entry.get("key_env") or entry.get("api_key_env") or "").strip()
+    candidates = (str(entry.get("api_key") or "").strip(), get_secret_str(key_env, "").strip() if key_env else "")
+    key = next((c for c in candidates if has_usable_secret(c)), "") or "no-key-required"
+    return endpoint_disk_slot(endpoint_memo_key(normalized, key))
+
+
 def saved_endpoint_model_details(base_url: str, models: Iterable[str], entry: dict[str, Any]) -> list[dict[str, Any]]:
     """Details for a SAVED endpoint's model list without any probe: the runtime's on-disk memo of its
-    last ``/models`` read (when still fresh) plus the catalogs. Never raises — the endpoint row must list
-    even when the enrichment cannot."""
+    last ``/models`` read with the entry's own credential (when still fresh) plus the catalogs. Never
+    raises — the endpoint row must list even when the enrichment cannot."""
     rows = None
     try:
         from agent.model_metadata import _endpoint_disk_cache_get, _normalize_base_url
 
         normalized = _normalize_base_url(base_url) if base_url else ""
-        rows = _endpoint_disk_cache_get(normalized) if normalized else None
+        rows = _endpoint_disk_cache_get(_own_memo_slot(normalized, entry)) if normalized else None
     except Exception as exc:
         _log.debug("endpoint metadata memo unavailable for %s: %s", base_url, exc)
     try:

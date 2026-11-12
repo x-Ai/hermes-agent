@@ -4906,3 +4906,8 @@ tools:
       media_delivery: "媒體傳送"
       transcription: "語音轉錄"
       delegation: "委派"
+
+webapp:
+  bundle_unavailable:
+    title: "Hermes 暫時無法使用"
+    ask_host: "請聯絡管理這台 Hermes 主機的人執行該指令，然後重新載入此頁面。"

@@ -4906,3 +4906,8 @@ tools:
       media_delivery: "تسليم الوسائط"
       transcription: "النسخ الصوتي"
       delegation: "التفويض"
+
+webapp:
+  bundle_unavailable:
+    title: "Hermes غير متاح"
+    ask_host: "اطلب ممّن يدير مضيف Hermes هذا تشغيل ذلك الأمر، ثم أعد تحميل هذه الصفحة."
