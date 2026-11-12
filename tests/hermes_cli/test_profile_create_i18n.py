@@ -8,6 +8,7 @@ the fork's shared-providers line still resolve through the catalog at call time.
 
 from __future__ import annotations
 
+import contextlib
 from types import SimpleNamespace
 
 import pytest
@@ -58,6 +59,78 @@ def test_gateway_create_errors_print_in_the_terminal_language(use_language, monk
     with pytest.raises(GatewayCreateError) as bad_url:
         create_through_gateway(ProfileCreateRequest(name="scout"))
     assert str(bad_url.value) == _localized("shared.profile_create.gateway_bad_url", "zh-hant")
+
+
+def _url_gateway_answering(monkeypatch, tmp_path, error) -> str:
+    """This terminal in profile ``work``, pointed by URL at a gateway whose create raises *error*;
+    returns how the errors name that gateway (resolved in the active language)."""
+    import hermes_constants
+    from hermes_cli import gateway_client
+    from hermes_cli.profile_provision_gateway import _where
+
+    class _Client:
+        async def rpc(self, method, **_params):
+            assert method == "profiles.create"
+            raise error
+
+    @contextlib.asynccontextmanager
+    async def connect(endpoint=None):
+        yield _Client()
+
+    url = "wss://gw.invalid/api/ws"
+    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("HERMES_TUI_GATEWAY_URL", url)
+    monkeypatch.setattr(hermes_constants, "profile_name_for_home", lambda home: "work")
+    monkeypatch.setattr(gateway_client, "connect_gateway", connect)
+    return _where(url)
+
+
+def test_routing_refusals_matched_by_code_and_reason_print_in_the_terminal_language(
+        use_language, monkeypatch, tmp_path):
+    """Upstream matches the gateway's routing refusals by code AND ``data.reason``; the fork's translated
+    refusals stay on that path, and a handler failure merely named like one (5062) is the translated
+    unknown outcome, never "nothing was created"."""
+    from hermes_cli.gateway_client import GatewayRPCError
+    use_language("zh")
+    request = ProfileCreateRequest(name="scout", alias=False)
+
+    mismatch = GatewayRPCError("profile_mismatch", 4001, {"reason": "profile_mismatch"})
+    where = _url_gateway_answering(monkeypatch, tmp_path, mismatch)
+    with pytest.raises(GatewayCreateError) as refused:
+        create_through_gateway(request)
+    assert str(refused.value) == _localized("shared.profile_create.gateway_profile_refused", "zh",
+                                            where=where, profile="work")
+
+    draining = GatewayRPCError("runtime_draining", 4001, {"reason": "runtime_draining"})
+    where = _url_gateway_answering(monkeypatch, tmp_path, draining)
+    with pytest.raises(GatewayCreateError) as restarting:
+        create_through_gateway(request)
+    assert str(restarting.value) == _localized("shared.profile_create.gateway_restarting", "zh", where=where)
+
+    use_language("zh-hant")
+    failed = GatewayRPCError("profile_mismatch", 5062, {"reason": "profile_mismatch"})
+    where = _url_gateway_answering(monkeypatch, tmp_path, failed)
+    with pytest.raises(GatewayCreateError) as unknown:
+        create_through_gateway(request)
+    may_have = _localized("shared.profile_create.gateway_may_have_created_remote", "zh-hant",
+                          where=where, name="scout")
+    assert str(unknown.value).endswith(may_have)
+    assert i18n.t("shared.profile_create.gateway_profile_refused", lang="zh-hant", where=where,
+                  profile="work") != str(unknown.value)
+
+
+def test_an_unnamed_home_asking_a_url_gateway_for_its_command_reads_in_the_terminal_language(
+        use_language, monkeypatch, tmp_path):
+    """An alias request by URL now also runs discovery (to prove the gateway is this home's); a home
+    outside the profiles tree is still refused first, in the terminal's language."""
+    import hermes_constants
+    use_language("zh-hant")
+    where = _url_gateway_answering(monkeypatch, tmp_path, AssertionError("never sent"))
+    monkeypatch.setattr(hermes_constants, "profile_name_for_home", lambda home: None)
+    with pytest.raises(GatewayCreateError) as unnamed:
+        create_through_gateway(ProfileCreateRequest(name="scout", alias=True))
+    assert str(unnamed.value) == _localized("shared.profile_create.gateway_not_named_profile", "zh-hant",
+                                            where=where)
 
 
 def test_a_gateway_refusal_without_text_reads_in_the_terminal_language(use_language):
