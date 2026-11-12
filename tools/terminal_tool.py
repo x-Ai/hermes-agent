@@ -915,8 +915,10 @@ def _resolve_config_cwd(env_type: str, mount_cwd_active: bool) -> tuple:
     default_cwd = _backend_default_cwd(env_type)
     cwd = _tenv("TERMINAL_CWD", default_cwd)
     from hermes_cli.config import _is_ssh_remote_tilde_cwd
-    # The backend's own default is an in-sandbox path: its ``~`` is the sandbox home, not ours.
-    if cwd and cwd != default_cwd and not _is_ssh_remote_tilde_cwd(env_type, cwd):
+    from tools.environments.sandbox_scope import hosted_scope
+    # The backend's own default is an in-sandbox path: its ``~`` is the sandbox home, not ours. So is a
+    # hosted scope's ``~``: it names that agent's sandbox home, never this host's HOME.
+    if cwd and cwd != default_cwd and not _is_ssh_remote_tilde_cwd(env_type, cwd) and hosted_scope() is None:
         cwd = os.path.expanduser(cwd)
     host_cwd = None
     if mount_cwd_active:
@@ -1258,21 +1260,25 @@ def _error_json(error: str, *, exit_code: int = -1, status: Optional[str] = None
 
 
 def _fatal_error_json(e: BaseException) -> str:
-    """Log the traceback and return the redacted error+traceback envelope.
+    """Log the traceback and return the redacted error+traceback envelope (no traceback in a hosted scope).
 
     Exception text can embed the failing command line (and any secrets inline
     in it), so both fields are force-redacted before reaching the model.
     """
     import traceback
+    from tools.environments.sandbox_scope import hosted_scope
     tb_str = traceback.format_exc()
     logger.error("terminal_tool exception:\n%s", tb_str)
-    return json.dumps({
+    body = {
         "output": "",
         "exit_code": -1,
         "error": _redact_terminal_error_text(f"Failed to execute command: {e}"),
-        "traceback": _redact_terminal_error_text(tb_str),
-        "status": "error"
-    }, ensure_ascii=False)
+    }
+    # A hosted agent gets no traceback: it names this host's checkout and interpreter paths.
+    if hosted_scope() is None:
+        body["traceback"] = _redact_terminal_error_text(tb_str)
+    body["status"] = "error"
+    return json.dumps(body, ensure_ascii=False)
 
 
 class _Rejected(Exception):
