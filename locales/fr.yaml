@@ -61,6 +61,7 @@ approval:
     breaker: " DISJONCTEUR : {count} commandes consécutives ont été bloquées par le réviseur de sécurité. ARRÊTEZ d'essayer des variantes de cette opération. Signalez l'opération bloquée à l'utilisateur et demandez-lui soit de l'exécuter manuellement, soit d'utiliser /approve."
     no_human: "BLOCKED : approbation requise ({description}), mais aucun utilisateur interactif ni aucune passerelle n'est présent pour l'accorder."
     no_human_plugin: "BLOCKED : {subject}, mais aucun utilisateur interactif ni aucune passerelle n'est présent pour l'accorder. Un plugin a signalé cette action pour confirmation humaine."
+    stranded: "BLOCKED : aucun canal d'approbation n'est disponible pour interroger l'utilisateur — le tour de la passerelle qui achemine les demandes d'approbation est terminé, donc cette {noun} n'a pas été exécutée et aucune demande ne peut recevoir de réponse depuis ce contexte. Ne réessayez PAS et ne reformulez pas ; exécutez-la plutôt depuis un tour interactif."
     execute_code_unattended: "BLOCKED : execute_code exécute du Python local arbitraire (y compris des appels subprocess qui contournent les contrôles d'approbation des chaînes shell). {clause}. Utilisez plutôt les outils normaux, ou définissez approvals.{cfg_key}: approve seulement si {trust}."
     unattended: "BLOCKED : {subject}, mais {clause}. {advice} Pour autoriser {noun} {scope}, définissez approvals.{cfg_key}: approve dans config.yaml."
     flagged_subject: "Commande signalée comme dangereuse ({description})"

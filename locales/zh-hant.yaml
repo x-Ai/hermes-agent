@@ -59,6 +59,7 @@ approval:
     breaker: "斷路器已觸發：安全審查器已連續封鎖 {count} 個指令。停止嘗試此操作的各種變體。向使用者回報被封鎖的操作，並請其手動執行或使用 /approve。"
     no_human: "BLOCKED：需要批准（{description}），但目前沒有可以批准的互動式使用者或閘道。"
     no_human_plugin: "BLOCKED：{subject}，但目前沒有可以批准的互動式使用者或閘道。有外掛將此操作標記為需要人工確認。"
+    stranded: "BLOCKED：沒有可用來詢問使用者的批准通道——負責傳送批准提示的閘道回合已經結束，因此此{noun}沒有執行，在此上下文中也無法回答任何提示。不要重試或改寫；請改在互動式回合中執行。"
     execute_code_unattended: "BLOCKED：execute_code 會執行任意本機 Python（包括繞過 shell 字串審批檢查的 subprocess 呼叫）。{clause}。請改用一般工具，或僅在{trust}時設定 approvals.{cfg_key}: approve。"
     unattended: "BLOCKED：{subject}，但{clause}。{advice}如需{scope}允許{noun}，請在 config.yaml 中設定 approvals.{cfg_key}: approve。"
     flagged_subject: "指令被標記為危險（{description}）"

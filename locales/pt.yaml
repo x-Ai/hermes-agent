@@ -61,6 +61,7 @@ approval:
     breaker: " DISJUNTOR: {count} comandos consecutivos foram bloqueados pelo revisor de segurança. PARE de tentar variações desta operação. Informe a operação bloqueada ao usuário e peça que ele a execute manualmente ou use /approve."
     no_human: "BLOCKED: aprovação necessária ({description}), mas não há nenhum usuário interativo nem gateway presente para concedê-la."
     no_human_plugin: "BLOCKED: {subject}, mas não há nenhum usuário interativo nem gateway presente para concedê-la. Um plugin marcou esta ação para confirmação humana."
+    stranded: "BLOCKED: não há nenhum canal de aprovação disponível para perguntar ao usuário — o turno do gateway que entrega os pedidos de aprovação já terminou, então este pedido ({noun}) não foi executado e nenhum pedido pode ser respondido neste contexto. NÃO tente de novo nem reformule; execute-o a partir de um turno interativo."
     execute_code_unattended: "BLOCKED: execute_code executa Python local arbitrário (incluindo chamadas subprocess que contornam as verificações de aprovação de strings de shell). {clause}. Use as ferramentas normais em vez disso, ou defina approvals.{cfg_key}: approve apenas se {trust}."
     unattended: "BLOCKED: {subject}, mas {clause}. {advice} Para permitir {noun} {scope}, defina approvals.{cfg_key}: approve em config.yaml."
     flagged_subject: "Comando marcado como perigoso ({description})"

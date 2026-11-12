@@ -61,6 +61,7 @@ approval:
     breaker: " STROOMBREKER: {count} opeenvolgende opdragte is deur die sekuriteitsbeoordelaar geblokkeer. HOU OP om variasies van hierdie bewerking te probeer. Rapporteer die geblokkeerde bewerking aan die gebruiker en vra hom om dit óf self uit te voer óf /approve te gebruik."
     no_human: "BLOCKED: goedkeuring vereis ({description}), maar geen interaktiewe gebruiker of poort is teenwoordig om dit te gee nie."
     no_human_plugin: "BLOCKED: {subject}, maar geen interaktiewe gebruiker of poort is teenwoordig om dit te gee nie. 'n Inprop het hierdie aksie vir menslike bevestiging gemerk."
+    stranded: "BLOCKED: geen goedkeuringskanaal is beskikbaar om die gebruiker te vra nie — die poortbeurt wat goedkeuringsversoeke aflewer, het geëindig, dus is hierdie versoek ({noun}) nie uitgevoer nie en geen versoek kan uit hierdie konteks beantwoord word nie. MOENIE weer probeer of herformuleer nie; voer dit eerder vanuit 'n interaktiewe beurt uit."
     execute_code_unattended: "BLOCKED: execute_code voer arbitrêre plaaslike Python uit (insluitend subprocess-oproepe wat die goedkeuringskontroles vir dop-stringe omseil). {clause}. Gebruik eerder die gewone gereedskap, of stel approvals.{cfg_key}: approve slegs as {trust}."
     unattended: "BLOCKED: {subject}, maar {clause}. {advice} Om {noun} {scope} toe te laat, stel approvals.{cfg_key}: approve in config.yaml."
     flagged_subject: "Opdrag as gevaarlik gemerk ({description})"

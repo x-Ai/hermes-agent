@@ -467,6 +467,18 @@ telegram.error.InvalidToken: Not Found
 
 如果你看到这个，说明大小提升正在工作，但文件共享没有。以 gateway 运行用户的身份从 Hermes 宿主机执行 `ls -la /var/lib/telegram-bot-api/<TOKEN>/voice/`，并确认单个文件可以 `cat` 而不出现权限错误。
 
+**存储挂载在其他路径。** 当 Hermes 运行在另一个容器或另一台主机上，而服务器的数据目录被挂载到别处（例如 compose 文件中的 `./tg-bot-api-data`）时，请告诉 Hermes 它的位置：
+
+```yaml
+platforms:
+  telegram:
+    extra:
+      local_mode: true
+      local_bot_api_root: "/home/me/tg-bot-api-data"   # 服务器的 /var/lib/telegram-bot-api 在宿主机上的路径
+```
+
+服务器报告的是它自己的路径（`/var/lib/telegram-bot-api/<TOKEN>/videos/file_7.MOV`，有时带有 `base_file_url` 前缀）。Hermes 取 token 目录之后的部分，读取 `<local_bot_api_root>/<TOKEN>/videos/file_7.MOV`；如果你挂载的是 token 目录本身，则读取 `<local_bot_api_root>/videos/file_7.MOV`。这只需两次文件检查，不扫描目录，并且绝不会跟随包含 `..` 的路径。如果两个文件都不存在，则照常执行普通下载。
+
 ### 第六步：测试
 
 向机器人发送一个超过 20 MB 的语音备忘录或音频文件。查看 gateway 日志：
@@ -893,7 +905,19 @@ gateway:
 
 **群组、超级群组和群组论坛话题怎么办？** Telegram 将 `sendMessageDraft` 限制为私聊（私信）。gateway 对这些聊天透明地回退到基于编辑的路径——与之前的用户体验相同。私聊中的话题算作私信：它们会尝试草稿，若被 Telegram 拒绝则回退到编辑。
 
-**如果草稿帧失败怎么办？** 任何失败（瞬时网络错误、服务器端拒绝、旧版 python-telegram-bot 安装）都会将该响应的剩余流切换回基于编辑的路径。下一个响应会重新尝试。
+**预览多久更新一次？** 每个 `streaming.edit_interval` 最多更新一次：其间到达的增量会被合并，因此下一帧携带的是最新文本，而不是一连串几乎相同的帧。Telegram 按聊天对草稿帧和正在输入指示器合并计量（每 5 秒 20 次调用，每 30 秒 40 次；参见 [Telegram 的流式传输说明](https://core.telegram.org/api/bots/ai)），Hermes 会让两者都保持在这一预算之内，因此调低 `edit_interval` 也无法推送超出 Telegram 允许的更新次数。
+
+**如果草稿帧失败怎么办？** Telegram 的 `RetryAfter`（限流，flood control）会暂停预览更新，等待时间结束后再以最新文本继续；该响应仍使用原生草稿。任何其他失败（瞬时网络错误、服务器端拒绝、旧版 python-telegram-bot 安装）都会将该响应的剩余流切换回基于编辑的路径。下一个响应会重新尝试。完整答案始终由正常的最终发送投递。
+
+**原地增长的预览文本（`plain_drafts`）。** 默认情况下，草稿预览使用与最终回复相同的 MarkdownV2 格式渲染，这意味着当代码块或粗体片段闭合时，已经显示在屏幕上的文本可能会重新渲染。设置 `telegram.extra.plain_drafts: true`（嵌套形式为 `gateway.platforms.telegram.extra.plain_drafts`）即可改为以原始文本流式传输预览：此后每一帧都只是在上一帧之后追加字符，因此 Telegram 只为新文本播放动画。无论哪种方式，最终回复都保持其正常格式；对于预览，`plain_drafts` 优先于 `rich_drafts`。
+
+```yaml
+gateway:
+  platforms:
+    telegram:
+      extra:
+        plain_drafts: true   # 默认 false
+```
 
 ## 渲染：富消息、表格和链接预览
 

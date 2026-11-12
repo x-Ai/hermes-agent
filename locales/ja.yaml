@@ -59,6 +59,7 @@ approval:
     breaker: "サーキットブレーカー: セキュリティレビュアーが {count} 件連続でコマンドをブロックしました。この操作のバリエーションを試すのをやめてください。ブロックされた操作をユーザーに報告し、手動で実行してもらうか /approve を使ってもらってください。"
     no_human: "BLOCKED: 承認が必要です（{description}）が、承認できる対話ユーザーもゲートウェイも存在しません。"
     no_human_plugin: "BLOCKED: {subject}が、承認できる対話ユーザーもゲートウェイも存在しません。プラグインがこの操作に人間の確認を求めています。"
+    stranded: "BLOCKED: ユーザーに確認できる承認チャネルがありません — 承認プロンプトを届けるゲートウェイのターンはすでに終了したため、この{noun}は実行されておらず、このコンテキストからはどのプロンプトにも回答できません。再試行や言い換えはしないでください。代わりに対話型のターンから実行してください。"
     execute_code_unattended: "BLOCKED: execute_code は任意のローカル Python を実行します（シェル文字列の承認チェックを迂回する subprocess 呼び出しを含む）。{clause}。代わりに通常のツールを使うか、{trust}場合に限り approvals.{cfg_key}: approve を設定してください。"
     unattended: "BLOCKED: {subject}が、{clause}。{advice}{scope}{noun}を許可するには、config.yaml で approvals.{cfg_key}: approve を設定してください。"
     flagged_subject: "コマンドが危険と判定されました（{description}）"

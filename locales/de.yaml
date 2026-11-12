@@ -61,6 +61,7 @@ approval:
     breaker: " SICHERUNG AUSGELÖST: {count} aufeinanderfolgende Befehle wurden vom Sicherheitsprüfer blockiert. HÖREN SIE AUF, Varianten dieser Operation zu versuchen. Melden Sie die blockierte Operation dem Nutzer und bitten Sie ihn, sie entweder manuell auszuführen oder /approve zu verwenden."
     no_human: "BLOCKED: Genehmigung erforderlich ({description}), aber kein interaktiver Nutzer und kein Gateway ist anwesend, um sie zu erteilen."
     no_human_plugin: "BLOCKED: {subject}, aber kein interaktiver Nutzer und kein Gateway ist anwesend, um sie zu erteilen. Ein Plugin hat diese Aktion zur menschlichen Bestätigung markiert."
+    stranded: "BLOCKED: Kein Genehmigungskanal verfügbar, um den Nutzer zu fragen — der Gateway-Zug, der Genehmigungsanfragen zustellt, ist beendet. Daher wurde diese Anfrage ({noun}) nicht ausgeführt, und aus diesem Kontext kann keine Anfrage beantwortet werden. NICHT erneut versuchen oder umformulieren; stattdessen aus einem interaktiven Zug ausführen."
     execute_code_unattended: "BLOCKED: execute_code führt beliebiges lokales Python aus (einschließlich subprocess-Aufrufen, die die Genehmigungsprüfung von Shell-Strings umgehen). {clause}. Verwenden Sie stattdessen normale Werkzeuge oder setzen Sie approvals.{cfg_key}: approve nur, wenn {trust}."
     unattended: "BLOCKED: {subject}, aber {clause}. {advice} Um {noun} {scope} zu erlauben, setzen Sie approvals.{cfg_key}: approve in config.yaml."
     flagged_subject: "Befehl als gefährlich eingestuft ({description})"

@@ -61,6 +61,7 @@ approval:
     breaker: " MEGSZAKÍTÓ: a biztonsági ellenőr {count} egymást követő parancsot tiltott le. HAGYD ABBA a művelet változatainak próbálgatását. Jelentsd a letiltott műveletet a felhasználónak, és kérd meg, hogy futtassa kézzel, vagy használja az /approve parancsot."
     no_human: "BLOCKED: jóváhagyás szükséges ({description}), de nincs jelen interaktív felhasználó vagy átjáró, aki megadhatná."
     no_human_plugin: "BLOCKED: {subject}, de nincs jelen interaktív felhasználó vagy átjáró, aki megadhatná. Egy bővítmény emberi megerősítésre jelölte ezt a műveletet."
+    stranded: "BLOCKED: nincs elérhető jóváhagyási csatorna a felhasználó megkérdezéséhez — a jóváhagyási kéréseket kézbesítő átjárókör véget ért, ezért ez a kérés ({noun}) nem futott le, és ebből a környezetből egyetlen kérésre sem lehet válaszolni. NE próbáld újra és ne fogalmazd át; inkább egy interaktív körből futtasd."
     execute_code_unattended: "BLOCKED: az execute_code tetszőleges helyi Pythont futtat (beleértve a shell-sztringek jóváhagyási ellenőrzését megkerülő subprocess hívásokat). {clause}. Használd inkább a szokásos eszközöket, vagy csak akkor állítsd be az approvals.{cfg_key}: approve értéket, ha {trust}."
     unattended: "BLOCKED: {subject}, de {clause}. {advice} Ahhoz, hogy {scope} engedélyezd a következőt: {noun}, állítsd be az approvals.{cfg_key}: approve értéket a config.yaml-ban."
     flagged_subject: "A parancs veszélyesként lett megjelölve ({description})"

@@ -1266,7 +1266,7 @@ display:
   compact: false          # 紧凑输出模式（减少空白）
   resume_display: full    # full（恢复时显示之前的消息）| minimal（仅单行）
   bell_on_complete: false # 当 agent 完成时播放终端铃声（适合长任务）
-  show_reasoning: false   # 在每次响应上方显示模型推理/思考（用 /reasoning show|hide 切换）
+  show_reasoning: true    # 在每次响应上方显示模型推理/思考（默认：true；用 /reasoning show|hide 切换）。在已流式发送的 gateway 回复中，它会作为单独的消息跟在答案之后
   streaming: false        # 将 token 实时流式传输到终端
   show_cost: false        # 在 CLI 状态栏中显示估计 $ 成本
   timestamps: false       # 为 true 时，在 CLI/TUI 记录中为用户和 assistant 标签添加 [HH:MM] 时间戳前缀
@@ -1334,7 +1334,7 @@ display:
 — claude-opus-4.7 · 12 tool calls · 2m 14s · $0.042
 ```
 
-只有轮次的**最终**消息获得页脚；中间更新保持干净。
+只有轮次的**最终**消息获得页脚；中间更新保持干净。如果这条最终消息原本只会剩下页脚本身（流式回复的正文已经显示在屏幕上，或者回复只有一张 `MEDIA:` 图片），在支持图片说明文字的平台（Telegram）上，页脚会改为放进最后一张图片的说明文字中，且仅在不超过说明文字长度上限（Telegram 为 1,024 个字符）时才这样做。否则，它仍会像以前一样作为一条单独的简短消息发送。
 
 ### 每平台进度覆盖
 

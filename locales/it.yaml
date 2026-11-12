@@ -61,6 +61,7 @@ approval:
     breaker: " INTERRUTTORE: {count} comandi consecutivi sono stati bloccati dal revisore di sicurezza. SMETTI di tentare varianti di questa operazione. Segnala l'operazione bloccata all'utente e chiedigli di eseguirla manualmente oppure di usare /approve."
     no_human: "BLOCKED: è richiesta un'approvazione ({description}), ma non è presente alcun utente interattivo né gateway che possa concederla."
     no_human_plugin: "BLOCKED: {subject}, ma non è presente alcun utente interattivo né gateway che possa concederla. Un plugin ha segnalato questa azione per una conferma umana."
+    stranded: "BLOCKED: non è disponibile alcun canale di approvazione per chiedere all'utente — il turno del gateway che recapita le richieste di approvazione è terminato, quindi questa richiesta ({noun}) non è stata eseguita e da questo contesto non si può rispondere ad alcuna richiesta. NON riprovare né riformulare; eseguila invece da un turno interattivo."
     execute_code_unattended: "BLOCKED: execute_code esegue Python locale arbitrario (incluse chiamate subprocess che aggirano i controlli di approvazione delle stringhe shell). {clause}. Usa invece gli strumenti normali, oppure imposta approvals.{cfg_key}: approve solo se {trust}."
     unattended: "BLOCKED: {subject}, ma {clause}. {advice} Per consentire {noun} {scope}, imposta approvals.{cfg_key}: approve in config.yaml."
     flagged_subject: "Comando segnalato come pericoloso ({description})"

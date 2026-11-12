@@ -59,6 +59,7 @@ approval:
     breaker: " 회로 차단기: 보안 검토기가 {count}개의 명령을 연속으로 차단했습니다. 이 작업의 변형을 시도하는 것을 중단하세요. 차단된 작업을 사용자에게 보고하고, 직접 실행하거나 /approve를 사용하도록 요청하세요."
     no_human: "BLOCKED: 승인이 필요하지만({description}) 승인할 수 있는 대화형 사용자나 게이트웨이가 없습니다."
     no_human_plugin: "BLOCKED: {subject}, 하지만 승인할 수 있는 대화형 사용자나 게이트웨이가 없습니다. 플러그인이 이 작업에 사람의 확인을 요구했습니다."
+    stranded: "BLOCKED: 사용자에게 물어볼 수 있는 승인 채널이 없습니다 — 승인 프롬프트를 전달하는 게이트웨이 턴이 이미 끝났으므로 이 {noun}은(는) 실행되지 않았고, 이 컨텍스트에서는 어떤 프롬프트에도 응답할 수 없습니다. 다시 시도하거나 바꿔 쓰지 마세요. 대신 대화형 턴에서 실행하세요."
     execute_code_unattended: "BLOCKED: execute_code는 임의의 로컬 Python을 실행합니다(셸 문자열 승인 검사를 우회하는 subprocess 호출 포함). {clause}. 대신 일반 도구를 사용하거나, {trust} 경우에만 approvals.{cfg_key}: approve를 설정하세요."
     unattended: "BLOCKED: {subject}, 하지만 {clause}. {advice} {scope} {noun}을(를) 허용하려면 config.yaml에 approvals.{cfg_key}: approve를 설정하세요."
     flagged_subject: "명령이 위험한 것으로 표시됨({description})"

@@ -73,6 +73,7 @@ approval:
     breaker: " CIRCUIT BREAKER: {count} consecutive commands were blocked by the security reviewer. STOP attempting variations of this operation. Report the blocked operation to the user and either ask them to run it manually or use /approve."
     no_human: "BLOCKED: approval required ({description}) but no interactive user or gateway is present to approve it."
     no_human_plugin: "BLOCKED: {subject} but no interactive user or gateway is present to approve it. A plugin flagged this action for human confirmation."
+    stranded: "BLOCKED: no approval channel is available to ask the user — the gateway turn that delivers approval prompts has ended, so this {noun} did not run and no prompt can be answered from this context. Do NOT retry or rephrase; run it from an interactive turn instead."
     execute_code_unattended: "BLOCKED: execute_code runs arbitrary local Python (including subprocess calls that bypass shell-string approval checks). {clause}. Use normal tools instead, or set approvals.{cfg_key}: approve only if {trust}."
     unattended: "BLOCKED: {subject} but {clause}. {advice} To allow {noun} {scope}, set approvals.{cfg_key}: approve in config.yaml."
     flagged_subject: "Command flagged as dangerous ({description})"

@@ -59,6 +59,7 @@ approval:
     breaker: "，熔断器已触发：安全审查器已连续拦截 {count} 条命令，停止尝试此操作的各种变体，请向用户报告被拦截的操作，并请其手动运行或使用 /approve"
     no_human: "BLOCKED：需要审批（{description}），但当前没有可以审批的交互式用户或网关"
     no_human_plugin: "BLOCKED：{subject}，但当前没有可以审批的交互式用户或网关，有插件将此操作标记为需要人工确认"
+    stranded: "BLOCKED：没有可用于询问用户的审批通道——负责投递审批提示的网关回合已经结束，因此此{noun}没有运行，在此上下文中也无法回答任何提示，不要重试或改写，请改为在交互式回合中运行它"
     execute_code_unattended: "BLOCKED：execute_code 会运行任意本地 Python（包括绕过 shell 字符串审批检查的 subprocess 调用），{clause}，请改用常规工具，或仅在{trust}时设置 approvals.{cfg_key}: approve"
     unattended: "BLOCKED：{subject}，但{clause}，{advice}，如需{scope}允许{noun}，请在 config.yaml 中设置 approvals.{cfg_key}: approve"
     flagged_subject: "命令被标记为危险（{description}）"

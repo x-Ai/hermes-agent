@@ -75,3 +75,23 @@ def test_english_stays_the_default_and_matches_the_catalog(monkeypatch):
         assert result["message"].startswith("BLOCKED (hardline): fork bomb. This command is on the unconditional blocklist")
     finally:
         i18n.reset_language_cache()
+
+
+def test_stranded_background_child_denial_is_localized(chinese):
+    """A background child's request no chat can show (its parent turn ended, no transport left) is
+    refused in the user's language, naming the gate's noun, and never as a pending approval."""
+    from tools.approval_notify_lease import NotifyLease, run, stranded_denial
+
+    key = "agent:test:stranded-i18n"
+    lease = NotifyLease(key, None)  # live, but nothing can show its prompt
+    result = run(lease, lambda: stranded_denial(key, True, "command", "recursive_delete", "recursive delete"))
+
+    assert result["approved"] is False and result["outcome"] == "notify_failed"
+    assert "approval_pending" not in result
+    message = result["message"]
+    zh_noun = i18n.t("approval.noun.command", lang="zh")
+    assert message.startswith("BLOCKED")
+    assert message == i18n.t("approval.blocked.stranded", lang="zh", noun=zh_noun)
+    assert zh_noun in message and "{noun}" not in message
+    assert message != _english("approval.blocked.stranded", noun="command")
+    assert "approval." not in message and "approval." not in result["user_summary"]

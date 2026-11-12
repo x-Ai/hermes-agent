@@ -60,6 +60,7 @@ approval:
     breaker: " DEVRE KESİCİ: güvenlik gözden geçiricisi art arda {count} komutu engelledi. Bu işlemin varyasyonlarını denemeyi BIRAKIN. Engellenen işlemi kullanıcıya bildirin ve ya elle çalıştırmasını ya da /approve kullanmasını isteyin."
     no_human: "BLOCKED: onay gerekiyor ({description}) ancak onaylayacak etkileşimli bir kullanıcı veya ağ geçidi yok."
     no_human_plugin: "BLOCKED: {subject} ancak onaylayacak etkileşimli bir kullanıcı veya ağ geçidi yok. Bir eklenti bu eylemi insan onayı için işaretledi."
+    stranded: "BLOCKED: kullanıcıya sormak için kullanılabilir bir onay kanalı yok — onay isteklerini ileten ağ geçidi turu sona erdi, bu yüzden bu istek ({noun}) çalıştırılmadı ve bu bağlamdan hiçbir isteğe yanıt verilemez. YENİDEN DENEMEYİN ve başka biçimde yazmayın; bunun yerine etkileşimli bir turdan çalıştırın."
     execute_code_unattended: "BLOCKED: execute_code rastgele yerel Python çalıştırır (kabuk dizesi onay denetimlerini atlayan subprocess çağrıları dahil). {clause}. Bunun yerine normal araçları kullanın veya yalnızca {trust} durumunda approvals.{cfg_key}: approve ayarlayın."
     unattended: "BLOCKED: {subject} ancak {clause}. {advice} {scope} {noun} için izin vermek üzere config.yaml içinde approvals.{cfg_key}: approve ayarlayın."
     flagged_subject: "Komut tehlikeli olarak işaretlendi ({description})"

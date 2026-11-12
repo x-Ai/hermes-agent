@@ -61,6 +61,7 @@ approval:
     breaker: " BRISEOIR CIORCAID: chuir an t-athbhreithneoir slándála cosc ar {count} ordú as a chéile. STOP ag triail leaganacha den oibríocht seo. Tuairiscigh an oibríocht choiscthe don úsáideoir agus iarr air í a rith de láimh nó /approve a úsáid."
     no_human: "BLOCKED: ceadú ag teastáil ({description}) ach níl aon úsáideoir idirghníomhach ná geata i láthair chun é a thabhairt."
     no_human_plugin: "BLOCKED: {subject} ach níl aon úsáideoir idirghníomhach ná geata i láthair chun é a thabhairt. Chuir breiseán bratach ar an ngníomh seo le haghaidh deimhniú daonna."
+    stranded: "BLOCKED: níl aon chainéal ceadaithe ar fáil chun ceist a chur ar an úsáideoir — tá deireadh leis an mbabhta geata a sheachadann iarratais cheadaithe, mar sin níor ritheadh an t-iarratas seo ({noun}) agus ní féidir aon iarratas a fhreagairt ón gcomhthéacs seo. NÁ bain triail eile as agus ná hathfhoclaigh é; rith é ó bhabhta idirghníomhach ina ionad sin."
     execute_code_unattended: "BLOCKED: ritheann execute_code Python áitiúil treallach (lena n-áirítear glaonna subprocess a sheachnaíonn na seiceálacha ceadaithe ar theaghráin bhlaoisce). {clause}. Úsáid na gnáthuirlisí ina ionad, nó socraigh approvals.{cfg_key}: approve ach amháin má {trust}."
     unattended: "BLOCKED: {subject} ach {clause}. {advice} Chun {noun} a cheadú {scope}, socraigh approvals.{cfg_key}: approve in config.yaml."
     flagged_subject: "Ordú marcáilte mar ordú contúirteach ({description})"

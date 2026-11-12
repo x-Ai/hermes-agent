@@ -22,6 +22,7 @@ from hermes_dir_acl import make_user_dir, unusable_dir_remedy
 from gateway.platforms.base_log_safety import describe_proxy_error, env_proxy_for_redaction, safe_proxy_url_for_log, safe_url_for_log
 from gateway.platforms.base_image_sniff import _looks_like_image
 from gateway.platforms.base_media_flags import pad_inline_flags
+from gateway.runtime_footer import footer_onto_photo_caption, send_footer_unless_captioned
 from gateway.platforms.session_model import _SessionModelSettingsMixin
 from utils import normalize_proxy_url, unlink_files_older_than
 from agent.i18n import t
@@ -436,7 +437,8 @@ if (_checkout_root := str(Path(__file__).resolve().parents[2])) not in sys.path:
 from gateway.config import Platform, PlatformConfig
 from gateway.platforms.helpers import fence_state_after, typing_metadata_for_turn, typing_pause_key
 from gateway.platforms.base_post_delivery import run_post_delivery_callback
-from gateway.platforms.base_delivery_ledger import finalize_final_obligation, ledger_bracket, record_final_obligation
+from gateway.platforms.base_delivery_ledger import (
+    finalize_final_obligation, ledger_attempted, ledger_bracket, record_final_obligation)
 from gateway.platforms.base_exec_approval import (
     approval_timeout_seconds, ea_action_labels, ea_default_reason_text, ea_header_text,
     ea_reason_label_text, ea_smart_deny_line_text, exec_approval_cmd_budget, format_approval_deadline_line,
@@ -4192,9 +4194,9 @@ class BasePlatformAdapter(_SessionModelSettingsMixin, ABC):
                 chat_id=event.source.chat_id, images=images, metadata=metadata, human_delay=human_delay)
         except Exception as batch_err:
             logger.warning("[%s] Error batching images: %s", self.name, batch_err, exc_info=True)
-            record_delivery(SendResult(success=False, error=str(batch_err)))
-            return
-        record_delivery(result)
+            result = SendResult(success=False, error=str(batch_err))
+        record_delivery(result)  # a footer the captioned photo lost goes out on its own (#74547):
+        await send_footer_unless_captioned(self, event.source.chat_id, images, result, metadata, record_delivery)
 
     async def send_final_ledgered(
         self, event: MessageEvent, session_key: str, text_content: str, metadata: dict[str, Any], *,
@@ -4220,21 +4222,12 @@ class BasePlatformAdapter(_SessionModelSettingsMixin, ABC):
                                     is_ephemeral_response=is_ephemeral_response)
 
     async def ledger_attempted_final(self, event: MessageEvent, session_key: str, response: str, *,
-                                     error: str) -> None:
-        """A final already sent once whose outcome is unknown (the request left, the ACK never came):
-        ledger it as a failed row on the CURRENT transport instead of sending it again, so the timed
-        redelivery sends it once more WITH the may-be-a-duplicate marker and a lost send is not silence."""
+                                     error: str) -> bool:
+        """A final already sent once whose outcome is unknown: ledger it as a failed row so the timed
+        redelivery sends it WITH the may-be-a-duplicate marker. True only when a row was saved."""
         text = (await self._extract_response_content(
             response, event, session_key, is_ephemeral_response=False)).text_content
-        if not text:
-            return
-
-        async def _attempted(_delivery_adapter: "BasePlatformAdapter", obligation_id: Optional[str]) -> SendResult:
-            if obligation_id:
-                logger.warning("Final for session %s may not have landed; the delivery ledger "
-                               "redelivers it with the duplicate marker", session_key)
-            return SendResult(success=False, error=error)
-        await ledger_bracket(self, event, session_key, text, _attempted)
+        return bool(text) and await ledger_attempted(self, event, session_key, text, error)
 
     async def _release_turn_marker(self, event: MessageEvent) -> None:
         """Clear the crash marker handed to this delivery lifecycle only once the final reply is ledgered or
@@ -4358,9 +4351,8 @@ class BasePlatformAdapter(_SessionModelSettingsMixin, ABC):
                                "no attachment; delivering recovered original to %s", self.name,
                                len(pre_extract), event.source.chat_id)
                 text_content = _recovered
-        return _ExtractedResponse(
-            text_content=text_content, images=images, media_files=media_files,
-            local_files=local_files, force_document_attachments=force_document, pre_extract=pre_extract)
+        return footer_onto_photo_caption(self, _ExtractedResponse(text_content=text_content, images=images, media_files=media_files,
+            local_files=local_files, force_document_attachments=force_document, pre_extract=pre_extract), _IMAGE_EXTS)  # #74547
 
     async def _fire_post_delivery_callback(self, session_key: str, interrupt_event: asyncio.Event) -> None:
         """Run the one-shot post-delivery callback (bounded, errors swallowed). The generation is

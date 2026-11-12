@@ -61,6 +61,7 @@ approval:
     breaker: " CORTACIRCUITOS: el revisor de seguridad bloqueó {count} comandos consecutivos. DEJA de intentar variantes de esta operación. Informa al usuario de la operación bloqueada y pídele que la ejecute manualmente o que use /approve."
     no_human: "BLOCKED: se requiere aprobación ({description}), pero no hay ningún usuario interactivo ni gateway presente para concederla."
     no_human_plugin: "BLOCKED: {subject}, pero no hay ningún usuario interactivo ni gateway presente para concederla. Un plugin marcó esta acción para confirmación humana."
+    stranded: "BLOCKED: no hay ningún canal de aprobación disponible para preguntar al usuario — el turno del gateway que entrega las solicitudes de aprobación ha terminado, así que esta solicitud ({noun}) no se ejecutó y ninguna solicitud puede responderse desde este contexto. NO reintentes ni reformules; ejecútala desde un turno interactivo."
     execute_code_unattended: "BLOCKED: execute_code ejecuta Python local arbitrario (incluidas llamadas subprocess que eluden las comprobaciones de aprobación de cadenas de shell). {clause}. Usa las herramientas normales en su lugar, o define approvals.{cfg_key}: approve solo si {trust}."
     unattended: "BLOCKED: {subject}, pero {clause}. {advice} Para permitir {noun} {scope}, define approvals.{cfg_key}: approve en config.yaml."
     flagged_subject: "Comando marcado como peligroso ({description})"
