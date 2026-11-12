@@ -3282,6 +3282,7 @@ cli:
     token_provider: "Token provider"
     api_key_not_set: "未設定！"
     value_not_set: "未設定"
+    value_unlimited: "無制限"
     section_model: "モデル"
     section_terminal: "ターミナル"
     section_agent: "エージェント"

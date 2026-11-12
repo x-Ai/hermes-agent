@@ -3284,6 +3284,7 @@ cli:
     token_provider: "Token provider"
     api_key_not_set: "Не задано!"
     value_not_set: "не задано"
+    value_unlimited: "без обмежень"
     section_model: "Модель"
     section_terminal: "Термінал"
     section_agent: "Агент"

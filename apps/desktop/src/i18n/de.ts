@@ -21,6 +21,7 @@ import { deOnboarding } from './de_onboarding'
 import { dePluginUpdate } from './de_plugin_update'
 import { dePluginUpdateAll } from './de_plugin_update_all'
 import { deProjects } from './de_projects'
+import { deRuntime } from './de_runtime'
 import { deSharedMetrics } from './de_shared_metrics'
 import { deThemePicker } from './de_theme_picker'
 import { deUpdateChannel } from './de_update_channel'
@@ -29,6 +30,7 @@ import { introDe } from './intro-de'
 
 export const deOverrides = {
   sharedMetrics: deSharedMetrics,
+  runtimeErrors: deRuntime.runtimeErrors,
   firstRun: deFirstRun,
   intro: introDe,
   connectors: deConnectorCard,

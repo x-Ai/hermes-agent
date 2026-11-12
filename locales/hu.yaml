@@ -3302,6 +3302,7 @@ cli:
     token_provider: "Token provider"
     api_key_not_set: "Nincs beállítva!"
     value_not_set: "nincs beállítva"
+    value_unlimited: "korlátlan"
     section_model: "Modell"
     section_terminal: "Terminál"
     section_agent: "Ügynök"

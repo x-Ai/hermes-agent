@@ -72,7 +72,13 @@ export const arRuntime = {
     backendConnectTimedOut: (seconds: null | number) =>
       seconds === null
         ? 'انتهت مهلة الاتصال بخدمة Hermes الخلفية.'
-        : `انتهت مهلة الاتصال بخدمة Hermes الخلفية بعد ${seconds} ث.`
+        : `انتهت مهلة الاتصال بخدمة Hermes الخلفية بعد ${seconds} ث.`,
+    imageCopyNoDimensions: 'لا تملك الصورة أبعادًا يمكن نسخها',
+    imageCopyCanvasUnavailable: 'سياق Canvas 2D غير متاح',
+    imageCopyEncodeFailed: 'تعذّر ترميز الصورة بصيغة PNG',
+    imageCopyDecodeFailed: 'تعذّر فك ترميز الصورة لنسخها إلى الحافظة',
+    imageCopyFetchFailed: (status: number) => `تعذّر جلب الصورة (${status})`,
+    imageCopyNeedsSecureContext: 'يتطلب نسخ الصور إلى الحافظة سياقًا آمنًا (HTTPS)'
   },
   sharedProviders: {
     badge: 'مشترك من الملف الشخصي الرئيسي',

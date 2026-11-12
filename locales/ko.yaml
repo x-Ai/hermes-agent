@@ -3282,6 +3282,7 @@ cli:
     token_provider: "Token provider"
     api_key_not_set: "설정되지 않음!"
     value_not_set: "설정되지 않음"
+    value_unlimited: "무제한"
     section_model: "모델"
     section_terminal: "터미널"
     section_agent: "에이전트"

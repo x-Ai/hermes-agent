@@ -3286,6 +3286,7 @@ cli:
     token_provider: "令牌提供方"
     api_key_not_set: "未设置！"
     value_not_set: "未设置"
+    value_unlimited: "无限制"
     section_model: "模型"
     section_terminal: "终端"
     section_agent: "代理"

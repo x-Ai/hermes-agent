@@ -3283,6 +3283,7 @@ cli:
     token_provider: "Token provider"
     api_key_not_set: "Ayarlanmamış!"
     value_not_set: "ayarlanmamış"
+    value_unlimited: "sınırsız"
     section_model: "Model"
     section_terminal: "Terminal"
     section_agent: "Ajan"

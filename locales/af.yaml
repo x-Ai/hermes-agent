@@ -3284,6 +3284,7 @@ cli:
     token_provider: "Token provider"
     api_key_not_set: "Nie gestel nie!"
     value_not_set: "nie gestel nie"
+    value_unlimited: "onbeperk"
     section_model: "Model"
     section_terminal: "Terminaal"
     section_agent: "Agent"

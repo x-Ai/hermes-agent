@@ -22,6 +22,7 @@ import { frOnboarding } from './fr_onboarding'
 import { frPluginUpdate } from './fr_plugin_update'
 import { frPluginUpdateAll } from './fr_plugin_update_all'
 import { frProjects } from './fr_projects'
+import { frRuntime } from './fr_runtime'
 import { frSharedMetrics } from './fr_shared_metrics'
 import { frThemePicker } from './fr_theme_picker'
 import { frUpdateChannel } from './fr_update_channel'
@@ -29,6 +30,7 @@ import { introFr } from './intro-fr'
 
 export const frOverrides = {
   sharedMetrics: frSharedMetrics,
+  runtimeErrors: frRuntime.runtimeErrors,
   firstRun: frFirstRun,
   intro: introFr,
   connectors: frConnectorCard,

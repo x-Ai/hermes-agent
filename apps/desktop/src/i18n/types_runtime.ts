@@ -82,6 +82,13 @@ export interface RuntimeErrorsCopy {
   /** A backend connection timeout as the user reads it (lib/backend-timeout.ts: the boot overlay's
    *  Details, error toasts, inline load errors); `seconds` when the report named the wait. */
   backendConnectTimedOut: (seconds: null | number) => string
+  /** Browser-hosted Copy Image (lib/browser-image-copy.ts): why the PNG never reached the clipboard. */
+  imageCopyNoDimensions: string
+  imageCopyCanvasUnavailable: string
+  imageCopyEncodeFailed: string
+  imageCopyDecodeFailed: string
+  imageCopyFetchFailed: (status: number) => string
+  imageCopyNeedsSecureContext: string
 }
 
 /** Rows a bot profile reads through from the main profile (`profile.yaml` `share_providers`; the

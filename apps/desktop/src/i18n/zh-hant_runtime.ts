@@ -67,7 +67,13 @@ export const zhHantRuntime = {
       `「${id}」仍是設定檔 ${profiles} 的模型供應商，請先更改它們的模型指向（或取消其供應商共享），再刪除。`,
     sharedProviderAccount: (id: string) => `「${id}」沿用主設定檔的登入，請到主設定檔中登出，或先在此設定檔中登入。`,
     backendConnectTimedOut: (seconds: null | number) =>
-      seconds === null ? '連線 Hermes 後台服務逾時。' : `連線 Hermes 後台服務逾時，等待了 ${seconds} 秒。`
+      seconds === null ? '連線 Hermes 後台服務逾時。' : `連線 Hermes 後台服務逾時，等待了 ${seconds} 秒。`,
+    imageCopyNoDimensions: '圖片缺少尺寸資訊，無法複製',
+    imageCopyCanvasUnavailable: 'Canvas 2D 上下文無法使用',
+    imageCopyEncodeFailed: '無法將圖片編碼為 PNG',
+    imageCopyDecodeFailed: '無法解碼圖片，不能複製到剪貼簿',
+    imageCopyFetchFailed: (status: number) => `取得圖片失敗（${status}）`,
+    imageCopyNeedsSecureContext: '將圖片複製到剪貼簿需要安全上下文（HTTPS）'
   },
   sharedProviders: {
     badge: '由主設定檔共享',

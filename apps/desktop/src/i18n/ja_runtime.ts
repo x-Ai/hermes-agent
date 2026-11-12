@@ -84,7 +84,13 @@ export const jaRuntime = {
     backendConnectTimedOut: (seconds: null | number) =>
       seconds === null
         ? 'Hermes のバックグラウンドサービスへの接続がタイムアウトしました。'
-        : `Hermes のバックグラウンドサービスへの接続がタイムアウトしました（${seconds} 秒待機）。`
+        : `Hermes のバックグラウンドサービスへの接続がタイムアウトしました（${seconds} 秒待機）。`,
+    imageCopyNoDimensions: '画像のサイズを取得できないため、コピーできません',
+    imageCopyCanvasUnavailable: 'Canvas 2D コンテキストを利用できません',
+    imageCopyEncodeFailed: '画像を PNG にエンコードできませんでした',
+    imageCopyDecodeFailed: 'クリップボードにコピーする画像をデコードできませんでした',
+    imageCopyFetchFailed: (status: number) => `画像の取得に失敗しました（${status}）`,
+    imageCopyNeedsSecureContext: '画像をクリップボードにコピーするには、安全なコンテキスト（HTTPS）が必要です'
   },
   sharedProviders: {
     badge: 'メインプロファイルから共有',

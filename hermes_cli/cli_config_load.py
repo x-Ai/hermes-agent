@@ -182,6 +182,7 @@ def _mirror_config_to_env(defaults, _file_has_terminal_config):
 
 def _cli_config_defaults():
     """Built-in defaults for every config key the CLI reads (the file overlays these)."""
+    from hermes_cli.config import DEFAULT_CONFIG as shared, cfg_get
     from hermes_cli.config_defaults import DEFAULT_SANDBOX_IMAGE as img
     return {
         "model": {"default": "", "base_url": "", "provider": "auto"},
@@ -197,7 +198,7 @@ def _cli_config_defaults():
         # threshold: fraction of the model's context limit; min_tail: real user messages kept in the tail
         "compression": {"enabled": True, "threshold": 0.50, "min_tail_user_messages": 1},
         "agent": {
-            "max_turns": 500, "verbose": False, "system_prompt": "", "prefill_messages_file": "",  # max_turns shared with subagents
+            "max_turns": cfg_get(shared, "agent", "max_turns"), "verbose": False, "system_prompt": "", "prefill_messages_file": "",  # max_turns shared with subagents
             "reasoning_effort": "", "service_tier": "",
             "output_truncation_retries": 3,
             "post_tool_empty_retries": 1,
@@ -222,8 +223,8 @@ def _cli_config_defaults():
         "auxiliary": {"vision": {"provider": "auto", "model": "", "base_url": "", "api_key": ""}},
         # delegation: empty model/provider = inherit parent; api_key falls back to OPENAI_API_KEY
         "delegation": {
-            "max_iterations": 45, "model": "", "provider": "", "use_custom_endpoints": False,
-            "base_url": "", "api_key": ""},
+            "max_iterations": cfg_get(shared, "delegation", "max_iterations"), "model": "", "provider": "",
+            "use_custom_endpoints": False, "base_url": "", "api_key": ""},
         "onboarding": {"seen": {}},  # first-touch hint flags (agent/onboarding.py), latched once shown
     }
 

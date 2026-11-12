@@ -83,7 +83,13 @@ export const enRuntime = {
     backendConnectTimedOut: (seconds: null | number) =>
       seconds === null
         ? "Timed out connecting to Hermes' background service."
-        : `Timed out connecting to Hermes' background service after ${seconds} s.`
+        : `Timed out connecting to Hermes' background service after ${seconds} s.`,
+    imageCopyNoDimensions: 'Image has no dimensions to copy',
+    imageCopyCanvasUnavailable: 'Canvas 2D context is unavailable',
+    imageCopyEncodeFailed: 'Failed to encode image as PNG',
+    imageCopyDecodeFailed: 'Failed to decode image for clipboard copy',
+    imageCopyFetchFailed: (status: number) => `Image fetch failed (${status})`,
+    imageCopyNeedsSecureContext: 'Copying images to the clipboard requires a secure context (HTTPS)'
   },
   sharedProviders: {
     badge: 'Shared from the main profile',

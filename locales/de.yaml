@@ -3284,6 +3284,7 @@ cli:
     token_provider: "Token provider"
     api_key_not_set: "Nicht gesetzt!"
     value_not_set: "nicht gesetzt"
+    value_unlimited: "unbegrenzt"
     section_model: "Modell"
     section_terminal: "Terminal"
     section_agent: "Agent"

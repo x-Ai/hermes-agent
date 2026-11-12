@@ -3283,6 +3283,7 @@ cli:
     token_provider: "Token provider"
     api_key_not_set: "غير معيّن!"
     value_not_set: "غير معيّن"
+    value_unlimited: "غير محدود"
     section_model: "النموذج"
     section_terminal: "الطرفية"
     section_agent: "الوكيل"

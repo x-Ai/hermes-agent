@@ -75,7 +75,13 @@ export const zhRuntime = {
       `"${id}" 仍是配置档案 ${profiles} 的模型提供方，请先改变它们的模型指向（或取消其提供方共享），再删除`,
     sharedProviderAccount: (id: string) => `"${id}" 沿用主配置档案的登录，请到主配置档案中退出，或先在此配置档案中登录`,
     backendConnectTimedOut: (seconds: null | number) =>
-      seconds === null ? '连接 Hermes 后台服务超时' : `连接 Hermes 后台服务超时，等待了 ${seconds} 秒`
+      seconds === null ? '连接 Hermes 后台服务超时' : `连接 Hermes 后台服务超时，等待了 ${seconds} 秒`,
+    imageCopyNoDimensions: '图片缺少尺寸信息，无法复制',
+    imageCopyCanvasUnavailable: 'Canvas 2D 上下文不可用',
+    imageCopyEncodeFailed: '无法将图片编码为 PNG',
+    imageCopyDecodeFailed: '无法解码图片，不能复制到剪贴板',
+    imageCopyFetchFailed: (status: number) => `获取图片失败（${status}）`,
+    imageCopyNeedsSecureContext: '将图片复制到剪贴板需要安全上下文（HTTPS）'
   },
   sharedProviders: {
     badge: '由主配置档案共享',

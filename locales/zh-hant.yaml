@@ -3282,6 +3282,7 @@ cli:
     token_provider: "token 提供方"
     api_key_not_set: "未設定！"
     value_not_set: "未設定"
+    value_unlimited: "無限制"
     section_model: "模型"
     section_terminal: "終端機"
     section_agent: "代理"

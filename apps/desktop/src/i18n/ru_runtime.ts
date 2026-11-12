@@ -83,6 +83,12 @@ export const ruRuntime = {
     backendConnectTimedOut: (seconds: null | number) =>
       seconds === null
         ? 'Не удалось дождаться ответа фоновой службы Hermes.'
-        : `Не удалось дождаться ответа фоновой службы Hermes за ${seconds} с.`
+        : `Не удалось дождаться ответа фоновой службы Hermes за ${seconds} с.`,
+    imageCopyNoDimensions: 'У изображения нет размеров, его нельзя скопировать',
+    imageCopyCanvasUnavailable: 'Контекст Canvas 2D недоступен',
+    imageCopyEncodeFailed: 'Не удалось закодировать изображение в PNG',
+    imageCopyDecodeFailed: 'Не удалось декодировать изображение для копирования в буфер обмена',
+    imageCopyFetchFailed: (status: number) => `Не удалось загрузить изображение (${status})`,
+    imageCopyNeedsSecureContext: 'Для копирования изображений в буфер обмена нужен защищённый контекст (HTTPS)'
   }
 } satisfies Pick<TranslationOverrides, 'timelineEvents' | 'runtimeErrors'>

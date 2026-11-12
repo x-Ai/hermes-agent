@@ -22,6 +22,7 @@ import { esOnboarding } from './es_onboarding'
 import { esPluginUpdate } from './es_plugin_update'
 import { esPluginUpdateAll } from './es_plugin_update_all'
 import { esProjects } from './es_projects'
+import { esRuntime } from './es_runtime'
 import { esSharedMetrics } from './es_shared_metrics'
 import { esThemePicker } from './es_theme_picker'
 import { esUpdateChannel } from './es_update_channel'
@@ -29,6 +30,7 @@ import { introEs } from './intro-es'
 
 export const esOverrides = {
   sharedMetrics: esSharedMetrics,
+  runtimeErrors: esRuntime.runtimeErrors,
   firstRun: esFirstRun,
   intro: introEs,
   connectors: esConnectorCard,
