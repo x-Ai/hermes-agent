@@ -7,6 +7,7 @@ child prompt and the task-id/cwd seed used by terminal and file tools.
 """
 
 import json
+import threading
 from pathlib import PurePosixPath
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
@@ -14,7 +15,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from agent.delegation_context import delegated_child_context
-from tools import file_tools, terminal_tool
+from tools import delegate_tool, file_tools, terminal_tool
 from tools.approval_context import reset_current_session_key, set_current_session_key
 from tools.delegate_tool import (
     _build_child_system_prompt,
@@ -102,7 +103,6 @@ def test_child_prompt_names_container_workspace_but_loads_host_rules(
     execution_path = _resolve_workspace_hint(parent)
     context_path = _resolve_host_workspace_hint(parent)
     prompt = _build_child_system_prompt(
-        "inspect the mounted project",
         workspace_path=execution_path,
         context_workspace_path=context_path,
     )
@@ -111,6 +111,56 @@ def test_child_prompt_names_container_workspace_but_loads_host_rules(
     assert context_path == str(workspace)
     assert f"WORKSPACE PATH:\n{mount_path}\n" in prompt
     assert "Always verify child workspace inheritance." in prompt
+
+
+@pytest.mark.parametrize("backend,mount_path", _MOUNT_CASES)
+def test_built_child_keeps_host_rules_and_container_path_with_the_brief_out_of_its_prompt(
+    monkeypatch, tmp_path, backend, mount_path
+):
+    """The built child's system prompt names the container workspace and carries the host
+    workspace's rules, while its goal and context stay out of it (they are its first user turn)."""
+    workspace = tmp_path / "project"
+    workspace.mkdir()
+    (workspace / "AGENTS.md").write_text(
+        "# Mounted project rule\nAlways verify child workspace inheritance.\n",
+        encoding="utf-8",
+    )
+    _configure_mounted_backend(monkeypatch, backend, workspace, mount_path)
+    terminal_tool.record_session_cwd("parent-task", str(workspace))
+
+    parent = MagicMock()
+    parent._current_task_id = "parent-task"
+    parent._subdirectory_hints = SimpleNamespace(working_dir=str(workspace))
+    parent.terminal_cwd = parent.cwd = parent.session_cwd = None
+    parent._delegate_depth = 0
+    parent._active_children = []
+    parent._active_children_lock = threading.Lock()
+    parent._session_db = None
+    parent.enabled_toolsets = ["terminal", "file"]
+    parent.disabled_toolsets = []
+    parent.request_overrides = {}
+    parent.provider, parent.base_url = "custom", "https://fixture.invalid/v1"
+    parent.api_key, parent.api_mode, parent.model = "fixture-only", "chat_completions", "fixture"
+    parent.platform = "cli"
+    parent._print_fn = parent.tool_progress_callback = parent.thinking_callback = None
+    child = MagicMock()
+    child._credential_pool = None
+
+    with (
+        patch.object(delegate_tool, "_load_config", return_value={}),
+        patch("run_agent.AIAgent", return_value=child) as agent_class,
+    ):
+        built = delegate_tool._build_child_agent(
+            task_index=0, goal="GOAL-SENTINEL inspect", context="BRIEF-SENTINEL shared notes",
+            toolsets=None, model=None, max_iterations=5, task_count=1, parent_agent=parent,
+        )
+
+    prompt = agent_class.call_args.kwargs["ephemeral_system_prompt"]
+    assert built is child
+    assert f"WORKSPACE PATH:\n{mount_path}\n" in prompt
+    assert "Always verify child workspace inheritance." in prompt
+    assert "GOAL-SENTINEL" not in prompt and "BRIEF-SENTINEL" not in prompt
+    assert child._delegate_context == "BRIEF-SENTINEL shared notes"
 
 
 @pytest.mark.parametrize("backend,mount_path", _MOUNT_CASES)
