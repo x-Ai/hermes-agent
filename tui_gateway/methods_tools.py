@@ -489,35 +489,6 @@ def _dispatch_quick(rid, params, session, name, arg):
     return _ok(rid, {"type": "alias", "target": qc.get("target", "")}) if qc.get("type") == "alias" else None
 
 
-def _plugin_command_handler(name: str):
-    try:
-        return _tools_mod("hermes_cli.plugins").get_plugin_command_handler(name)
-    except Exception:
-        return None
-
-
-def _run_plugin_command(handler, arg: str, session=None, sid: str = "") -> str:
-    """Run a plugin slash-command handler under the session's ``HERMES_SESSION_*`` binding.
-
-    Plugin handlers read ``get_session_env()`` for the chat/session they serve; these RPCs run on
-    the socket/worker thread where nothing upstream binds it (only the turn path does), so a handler
-    saw ``""`` or the launch process's inherited values. Same class as the messaging gateway's
-    #108698; ``_set_session_context`` is the turn path's own seam."""
-    plugins = _tools_mod("hermes_cli.plugins")
-    invoke = _tools_mod("hermes_cli.plugin_command_dispatch").invoke_plugin_command
-    key = str(session.get("session_key") or "") if session else ""
-    tokens = _set_session_context(key, cwd=str(session.get("cwd") or "")) if session else []
-    context = {"source": None, "session_key": key, "platform": _session_source(session),
-               "session_id": getattr(session.get("agent"), "session_id", None) or key if session else ""}
-    # ctx.ask_choice: the ``clarify`` server request this backend's clarify tool sends.
-    choices = _tools_mod("hermes_cli.plugin_choices")
-    try:
-        with choices.bind_asker(choices.clarify_asker(lambda questions: _clarify_block(sid, questions))):
-            return str(plugins.resolve_plugin_command_result(invoke(handler, arg, **context)) or "")
-    finally:
-        _clear_session_context(tokens)
-
-
 @contextlib.contextmanager
 def _session_home_scope(session, cwd: str | None = None, profile: str | None = None):
     """Bind HERMES_HOME and the logical cwd to the session for the block.
@@ -589,10 +560,10 @@ def _is_registry_command(base: str) -> bool:
 
 
 def _dispatch_plugin(rid, params, session, name, arg):
-    if handler := _plugin_command_handler(name):
-        with contextlib.suppress(Exception):
-            return _ok(rid, {"type": "plugin", "output": _run_plugin_command(
-                handler, arg, session, params.get("session_id", ""))})
+    with contextlib.suppress(Exception):
+        if (output := _dispatch_plugin_in_profile_scope(
+                name, arg, session, params.get("session_id", ""), _str_arg(params, "profile") or None)) is not None:
+            return _ok(rid, {"type": "plugin", "output": output})
     return None
 
 
@@ -995,7 +966,6 @@ _SLASH_BUILTINS = {
     "memory": _cmd_memory, "skills": _cmd_skills}
 
 @method("command.dispatch")
-@_profile_scoped
 def _(rid, params: dict) -> dict:
     name, arg = _resolve_name(params.get("name", "").lstrip("/")), params.get("arg", "")
     session = _sessions.get(params.get("session_id", ""))
@@ -1004,7 +974,7 @@ def _(rid, params: dict) -> dict:
     # must resolve against the SAME profile or a secondary-only skill is routed here and then
     # not found (#110695).
     stages = (_dispatch_quick, _dispatch_plugin, _dispatch_bundle, _dispatch_skill, _SLASH_BUILTINS.get(name))
-    with _session_home_scope(session):
+    with _session_home_scope(session, profile=_str_arg(params, "profile") or None):
         for stage in filter(None, stages):
             res = stage(rid, params, session, name, arg)
             if res is not None:
@@ -1015,7 +985,6 @@ def _(rid, params: dict) -> dict:
 
 
 @method("slash.exec")
-@_profile_scoped
 def _(rid, params: dict) -> dict:
     session, err = _sess_nowait(params, rid)
     if err:
@@ -1052,10 +1021,11 @@ def _(rid, params: dict) -> dict:
         # run it. Anything else might be the skill the scan failed to see.
         if (dispatched.get("result") or {}).get("type") or not _is_registry_command(base):
             return dispatched
-    if plugin_handler := _plugin_command_handler(base) if base else None:
+    if base:
         try:
-            return _ok(rid, {"output": _run_plugin_command(plugin_handler, arg, session, params.get("session_id", ""))
-                             or "(no output)"})
+            plugin_output = _dispatch_plugin_in_profile_scope(base, arg, session, params.get("session_id", ""))
+            if plugin_output is not None:
+                return _ok(rid, {"output": plugin_output or "(no output)"})
         except Exception as e:
             return _ok(rid, {"output": _t("tui_gateway.tools.plugin_command_error", detail=e)})
     worker = session.get("slash_worker")
@@ -1974,3 +1944,6 @@ def _(rid, params: dict) -> dict:
 def register(server) -> None:
     """Rebind this module's helpers + handlers onto ``server`` and register the handlers."""
     bind_module(globals(), server, skip=("_",))
+    from . import methods_tools_plugin_commands  # the plugin-command stage's helpers, same namespace
+
+    methods_tools_plugin_commands.register(server)

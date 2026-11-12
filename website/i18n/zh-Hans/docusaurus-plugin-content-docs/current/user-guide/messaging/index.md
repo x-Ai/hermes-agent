@@ -281,6 +281,8 @@ gateway:
 - `queue` — 后续消息等待，在当前任务完成后作为下一轮运行。
 - `steer` — 后续消息通过 `/steer` 注入当前运行，在下一次工具调用后到达 agent。不中断，不开新轮次。如果 agent 尚未开始，则回退为 `queue` 行为。
 
+引导只携带文本，因此带附件的消息（照片、文件或视频，包括说明文字为 `/steer ...` 的附件）会连同附件一起排队，作为下一轮运行。没有 agent 运行时，把 `/queue` 或 `/steer` 用作附件的说明文字（单独使用或附带文本）会将该附件作为普通消息发送。
+
 ```yaml
 display:
   busy_input_mode: steer   # 或 queue，或 interrupt（默认）

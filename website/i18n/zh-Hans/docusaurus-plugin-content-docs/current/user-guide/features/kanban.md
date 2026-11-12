@@ -742,6 +742,10 @@ hermes kanban notify-unsubscribe t_abcd \
 
 订阅在任务达到 `done` 或 `archived` 后自动移除；无需清理。
 
+当 agent 在 gateway 聊天内部（通过其终端工具）运行 `notify-subscribe`，且目标正是该聊天（及话题）本身时，缺失的 `--user-id` 会自动填为该轮消息的发送者。在启用 `group_sessions_per_user`（默认）的群组中，唤醒因此会留在该参与者自己的会话里，而不是另开一个共享会话。订阅到其他任何聊天或话题时都不会采用调用者的 id；显式给出 `--user-id-alt` 的订阅也不会。
+
+**`profile_routes` 下的话题与线程：** gateway 多路复用多个 profile 并按 `profile_routes` 路由聊天时，Telegram 论坛话题或 Slack 私信线程位于其所属聊天之内（`chat_id` 是群组或私信，而不是线程），因此不需要 `--parent-chat-id`：通知器会将其与指明该聊天的路由进行匹配。这要求明确给出 `--chat-type`（`dm`、`group` 或 `channel`；gateway 会自动为你记录）。没有该值的行可能把线程自身的 id 存为 `chat_id`，因此仍需要 `--parent-chat-id` 才能匹配到频道级路由。
+
 ### 多 profile 部署：投递按 profile 归属
 
 在每个 profile 一个 gateway 的部署中（单一调度器，`writer`、`admin` 等各自
