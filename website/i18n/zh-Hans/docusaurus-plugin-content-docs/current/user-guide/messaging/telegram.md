@@ -1172,6 +1172,21 @@ HTTPS_PROXY=http://proxy.example.com:8080
 这涵盖了 Hermes 用于 Telegram 连接的自定义备用传输层。其他地方使用的标准 `httpx` 客户端已经原生支持代理环境变量。
 :::
 
+### OpenSSL 3.5 下的 TLS 握手失败
+
+如果 Telegram 反复重连，并报出空的 `httpx.ConnectError` 或 `SSL: UNEXPECTED_EOF_WHILE_READING`，而 curl 通过同一代理却能正常工作，那么网络路径可能拒绝了 OpenSSL 3.5 更大的后量子 TLS ClientHello。仅凭这一症状并不能下定论：启用此变通方案之前，请先对比默认握手与 X25519 握手的结果。
+
+如需仅对 Telegram 使用经典 X25519 密钥交换，请在 `config.yaml` 中添加以下内容并重启 gateway：
+
+```yaml
+platforms:
+  telegram:
+    extra:
+      tls_classic_key_exchange: true
+```
+
+该设置同时涵盖 Bot API 请求和长轮询，包括代理和备用 IP 连接、与 `https://` 代理本身的 TLS 握手、DNS-over-HTTPS 备用 IP 发现，以及一次性发送（cron、`send_message`）。TLS 1.3、主机名检查和证书验证仍保持启用；平台信任存储和 `SSL_CERT_FILE` 仍会被使用。代价是 Telegram 不再使用后量子密钥交换。其他平台和模型提供商客户端保持其现有的 TLS 设置。默认值为 `false`；删除该设置或将其设为 `false` 即可恢复 OpenSSL 的默认密钥交换组。true/false 以外的值会被忽略，并在 gateway 日志中记录一条警告。另请参阅[相关的 OpenSSL 3.5 报告](https://github.com/NousResearch/hermes-agent/issues/106384)。
+
 ## 消息反应
 
 机器人可以为消息添加 emoji 反应作为视觉处理反馈：

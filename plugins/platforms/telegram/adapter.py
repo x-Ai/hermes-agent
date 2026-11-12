@@ -203,7 +203,7 @@ from gateway.approval_actor import picker_refusal, update_prompt_refusal
 from plugins.platforms.telegram.callback_answer import TOAST_LIMIT as _TOAST_LIMIT, answer_callback, answer_or_note, refuse_tap
 from plugins.platforms.telegram.telegram_network import (
     SEED_FALLBACK_IPS, TelegramFallbackTransport, build_ptb_requests, discover_fallback_ips, parse_fallback_ip_env,
-    proxy_target_hosts)
+    proxy_target_hosts, telegram_verify)
 from plugins.platforms.telegram.telegram_outbound import is_visually_empty, resolve_notifications_mode
 from plugins.platforms.telegram.telegram_send_path_recovery import TelegramSendPathRecoveryMixin, mark_send_path_recovered
 from plugins.platforms.telegram.telegram_send_errors import LOST, is_entity_parse_error, maybe_delivered_result as _maybe_delivered_result, send_error_kind
@@ -353,7 +353,7 @@ from plugins.platforms.telegram.telegram_chunking import (
 
 # MarkdownV2 has no table syntax, so pipe tables become bullet groups via convert_table_to_bullets().
 from gateway.platforms.helpers import (
-    TABLE_SEPARATOR_RE as _TABLE_SEPARATOR_RE, compile_mention_patterns)
+    TABLE_SEPARATOR_RE as _TABLE_SEPARATOR_RE, compile_mention_patterns, prompt_id_counter)
 
 # Internal safety bounds (not user knobs): no reconnect/teardown path may hang on a dead CLOSE-WAIT
 # socket PTB's polling task is blocked on in epoll.
@@ -2785,11 +2785,15 @@ class TelegramAdapter(TelegramContactMixin, TelegramHeldInboundMixin, TelegramRe
         direct DNS; the getUpdates request is instrumented for polling-progress tracking."""
         disable_fallback = os.getenv("HERMES_TELEGRAM_DISABLE_FALLBACK_IPS", "").strip().lower() in {"1", "true", "yes", "on"}
         fallback_ips = [] if disable_fallback else self._fallback_ips()
+        default_verify = platform_ssl_context()
+        verify = telegram_verify(self.config.extra, default_verify)
         if not fallback_ips and not disable_fallback:
             discovery_timeout = self._env_float_clamped("HERMES_TELEGRAM_FALLBACK_DISCOVERY_TIMEOUT", 5.0, min_value=0.0)
             logger.warning("[%s] Discovering Telegram API fallback IPs via DNS-over-HTTPS…", self.name)
+            # DoH discovery handshakes with the opt-in context too (a default call when it is off).
+            discovery = discover_fallback_ips() if verify is default_verify else discover_fallback_ips(verify)
             try:
-                fallback_ips = await _await_with_thread_deadline(discover_fallback_ips(), timeout=discovery_timeout)
+                fallback_ips = await _await_with_thread_deadline(discovery, timeout=discovery_timeout)
             except Exception as exc:
                 logger.warning(
                     "[%s] Telegram fallback-IP discovery failed after %.0fs; "
@@ -2808,8 +2812,7 @@ class TelegramAdapter(TelegramContactMixin, TelegramHeldInboundMixin, TelegramRe
             logger.info("[%s] Proxy detected; passing explicitly to HTTPXRequest: %s", self.name, safe_proxy_url_for_log(proxy_url))
         elif disable_fallback:
             logger.info("[%s] Telegram fallback-IP transport disabled via env", self.name)
-        request, get_updates_request = build_ptb_requests(
-            HTTPXRequest, fallback_ips=fallback_ips, proxy_url=proxy_url, verify=platform_ssl_context())
+        request, get_updates_request = build_ptb_requests(HTTPXRequest, fallback_ips=fallback_ips, proxy_url=proxy_url, verify=verify)
         return request, self._instrument_polling_request(get_updates_request)
 
     async def _initialize_app_with_retries(self, builder) -> None:
@@ -3899,9 +3902,14 @@ class TelegramAdapter(TelegramContactMixin, TelegramHeldInboundMixin, TelegramRe
         def build():
             default_hint = t("platform.telegram.prompt.default_hint", default=default) if default else ""
             text = self.format_message(f"☤ *{t('platform.telegram.prompt.update_header')}*\n\n{prompt}{default_hint}")
+            if not hasattr(self, "_update_prompt_counter"):
+                self._update_prompt_counter = prompt_id_counter()
+            prompt_id = next(self._update_prompt_counter)  # an old /update card must not answer this one
             keyboard = InlineKeyboardMarkup([[
-                InlineKeyboardButton(t("platform.telegram.prompt.affirm"), callback_data="update_prompt:y"),
-                InlineKeyboardButton(t("platform.telegram.prompt.negate"), callback_data="update_prompt:n")]])
+                InlineKeyboardButton(t("platform.telegram.prompt.affirm"), callback_data=f"update_prompt:y:{prompt_id}"),
+                InlineKeyboardButton(t("platform.telegram.prompt.negate"), callback_data=f"update_prompt:n:{prompt_id}")]])
+            # Installed BEFORE the send: while its receipt is pending, an older card must already be stale.
+            self._update_prompt_id = str(prompt_id)
             return text, keyboard, None
         return await self._send_prompt(
             "send_update_prompt", chat_id, metadata, build, thread_id=self._metadata_thread_id(metadata), reply_to_mode=self._reply_to_mode)
@@ -3941,10 +3949,9 @@ class TelegramAdapter(TelegramContactMixin, TelegramHeldInboundMixin, TelegramRe
         """Inline-keyboard approval prompt; buttons call ``resolve_gateway_approval()`` like the
         text ``/approve`` flow."""
         def build():
-            # Short monotonic ids in callback_data map back to session_key.
-            import itertools
+            # Short ids in callback_data map back to session_key; restart-unique (prompt_id_counter).
             if not hasattr(self, "_approval_counter"):
-                self._approval_counter = itertools.count(1)
+                self._approval_counter = prompt_id_counter()
             approval_id = next(self._approval_counter)
             buttons = [InlineKeyboardButton(label, callback_data=f"ea:{choice}:{approval_id}")
                        for label, choice, _ in prompt.actions]
@@ -4408,9 +4415,16 @@ class TelegramAdapter(TelegramContactMixin, TelegramHeldInboundMixin, TelegramRe
             if data.startswith(prefixes):
                 chat_id = str(query.message.chat_id) if query.message else None
                 state = getattr(self, states).get(chat_id) or {}  # one gate for every picker: admitted, then its opener or an admin
-                if chat_id and await self._callback_authorized(query, cb, _unauthorized()) and not await refuse_tap(query, picker_refusal(
-                        state.get("on_model_selected") or state.get("on_choice_selected"), query.from_user.id, extra=self.config.extra)):
-                    await handler(query, data, chat_id)
+                if chat_id and await self._callback_authorized(query, cb, _unauthorized()):
+                    # Old cards keep their callback_data after a restart; bind taps to the sent message.
+                    tapped = getattr(query.message, "message_id", None)
+                    if state and None not in (state.get("msg_id"), tapped) and str(state["msg_id"]) != str(tapped):
+                        await answer_or_note(self, query, _toast("platform.telegram.picker.expired_rerun"))
+                        return
+                    if not await refuse_tap(query, picker_refusal(
+                            state.get("on_model_selected") or state.get("on_choice_selected"), query.from_user.id,
+                            extra=self.config.extra)):
+                        await handler(query, data, chat_id)
                 return
         for prefix, handler in (
             ("gt:", self._handle_gmail_triage_callback), ("ea:", self._handle_exec_approval_callback),
@@ -4596,15 +4610,17 @@ class TelegramAdapter(TelegramContactMixin, TelegramHeldInboundMixin, TelegramRe
             logger.warning("Telegram clarify button: resolve_gateway_clarify returned False (id=%s)", clarify_id)
 
     async def _handle_update_prompt_callback(self, query, data: str, cb: dict[str, Any]) -> None:
-        """``update_prompt:<y|n>`` — forward the answer to the update process."""
-        answer = data.split(":", 1)[1]  # "y" or "n"
+        """``update_prompt:<y|n>[:<id>]`` — forward the answer to the update process."""
+        _, answer, card_id = (data.split(":", 2) + [None])[:3]  # answer is "y" or "n"
         if not await self._callback_authorized(query, cb, _unauthorized()) or await refuse_tap(
                 query, update_prompt_refusal(query.from_user.id, extra=self.config.extra)):
             return
-        await answer_callback(query, _toast("platform.telegram.prompt.update_sent", answer=answer))
-        word = t("platform.telegram.prompt.affirm_word" if answer == "y" else "platform.telegram.prompt.negate_word")
-        await self._edit_md_quiet(query, f"☤ {t('platform.telegram.prompt.update_answered', answer=f'*{word}*')}")
-        try:
+        current_id = getattr(self, "_update_prompt_id", None)
+        if current_id is not None and (not current_id or card_id != current_id):
+            # A card from an earlier /update (or from before a restart) answers nothing.
+            await answer_callback(query, _toast("platform.telegram.slash_confirm.already_resolved"))
+            return
+        try:  # the answer reaches the updater first: a failed write leaves the card answerable
             from hermes_constants import get_hermes_home
             response_path = get_hermes_home() / ".update_response"
             tmp = response_path.with_suffix(".tmp")
@@ -4613,6 +4629,11 @@ class TelegramAdapter(TelegramContactMixin, TelegramHeldInboundMixin, TelegramRe
             logger.info("Telegram update prompt answered '%s' by user %s", answer, getattr(query.from_user, "id", "unknown"))
         except Exception as exc:
             logger.error("Failed to write update response from callback: %s", exc)
+            return
+        self._update_prompt_id = ""  # answered: no card answers again until the next prompt is sent
+        await answer_callback(query, _toast("platform.telegram.prompt.update_sent", answer=answer))
+        word = t("platform.telegram.prompt.affirm_word" if answer == "y" else "platform.telegram.prompt.negate_word")
+        await self._edit_md_quiet(query, f"☤ {t('platform.telegram.prompt.update_answered', answer=f'*{word}*')}")
 
     # `gt:<verb>` -> (script in ~/.hermes/scripts/gmail-triage/, extra-args, success-label, is_state). The callback
     # `arg` is always the first positional arg. is_state=True keeps the keyboard tappable (sticky sender rule);

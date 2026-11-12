@@ -722,6 +722,7 @@ Gateway 运行一个仅通知的卡死监视器（`agent.session_stall_timeout`�
 - **仅通知。** 监视器绝不会终止当前轮次 —— 对比 `agent.gateway_timeout`（长时间无活动后取消运行）。卡死通知只是告诉您 agent 看起来卡住了，由您决定（`/new`、`/stop` 或继续等待）。
 - **每个卡死周期只通知一次。** 待处理入站消息被消化或活动恢复时闩锁清除，因此恢复后再次卡死的会话会再次通知。
 - 进度仅来自共享活动快照（工具调用、API 流式进度、压缩心跳）。待处理入站消息是通知门槛，不是进度时钟。
+- **agent 启动之前。** 仍处于准备阶段的轮次（加载会话与 transcript、运行 `agent:start` 钩子）在超过该时长后，会对后续消息回复“Still starting this turn … Use /stop if it should be cancelled”（本轮仍在启动中……）。准备阶段本身受 `agent.gateway_timeout` 限制：超时后该轮次以“Turn setup stalled … Please resend your message”（本轮准备工作卡住……请重新发送你的消息）结束，随后处理下一条消息。`/stop` 和 `/new` 可以结束仍处于准备阶段的轮次。
 
 ```yaml
 agent:
@@ -1455,7 +1456,7 @@ streaming:
 **新的最终消息（Telegram）：** Telegram 的 `editMessageText` 保留原始消息时间戳，因此长时间运行的流式回复即使在完成后也会保留第一个 token 的时间戳。设置 `fresh_final_after_seconds > 0` 可选择将旧预览作为全新的最终消息传递，并尽力删除旧预览。默认值为 `0`，始终就地最终化流式回复，避免某些客户端短暂显示重复消息再删除其中一条。
 
 :::note
-主开关 `streaming.enabled` 默认为 `false`——在你启用之前不会有任何流式传输。启用后，是否流式传输按**平台**决定：Telegram 默认带有 `display.platforms.telegram.streaming: true`（流式传输），Discord 为 `display.platforms.discord.streaming: false`（不流式传输）。因此启用流式传输后，Telegram 开箱即用地流式传输，Discord 在你修改其开关之前仍使用整条消息回复。你可以在仪表盘的 **Channels** 开关中或直接在 `~/.hermes/config.yaml` 中调整这些按平台的开关；这些按平台的开关会在每条消息时重新读取，因此无需重启即可生效。而 `streaming:` 配置段本身（`enabled`、`transport`、`edit_interval`、`buffer_threshold`、`cursor`、`fresh_final_after_seconds`）只在网关启动时读取一次：修改其中任何键后，需要重启网关才能生效。注意按平台的开关只能在主开关范围内收窄，不能独自启用流式传输。
+主开关 `streaming.enabled` 默认为 `false`——在你启用之前不会有任何流式传输。启用后，是否流式传输按**平台**决定：Telegram 默认带有 `display.platforms.telegram.streaming: true`（流式传输），Discord 为 `display.platforms.discord.streaming: false`（不流式传输）。因此启用流式传输后，Telegram 开箱即用地流式传输，Discord 在你修改其开关之前仍使用整条消息回复。你可以在仪表盘的 **Channels** 开关中或直接在 `~/.hermes/config.yaml` 中调整这些按平台的开关；这些按平台的开关会在每条消息时重新读取，因此无需重启即可生效。而 `streaming:` 配置段本身（`enabled`、`transport`、`edit_interval`、`buffer_threshold`、`cursor`、`fresh_final_after_seconds`）只在网关启动时读取一次：修改其中任何键后，需要重启网关才能生效。注意按平台的开关只能在主开关范围内收窄，不能独自启用流式传输。在 `gateway.multiplex_profiles` 下，每个被服务 profile 的轮次使用该 profile 自己 `config.yaml` 中的 `streaming:` 配置段（`hermes -p <profile> config set streaming.enabled true`），而不是宿主 profile 的。自身没有 `streaming:` 配置段的被服务 profile 使用默认值（关闭）：它不再仅因宿主 profile 启用了流式传输就跟着流式传输。
 :::
 
 ## 群聊会话隔离
