@@ -562,6 +562,8 @@ class TurnRunner(GatewayTurnProgressMixin, GatewaySessionAgentMixin):
             mem_notif = "on" if mem_notif else "off"
         agent.memory_notifications = str(mem_notif).lower() if mem_notif else "on"
         agent.clarify_callback = self._clarify_callback_sync
+        from gateway.run_turn_runner_clarify_delivery import clarify_context_sink
+        agent.clarify_context_callback = None if want_interim_messages else clarify_context_sink(self)
         # Thinking between tool calls is independent of tool_progress mode (Mattermost opts in
         # per platform so global scratch-text doesn't leak into threads).
         agent.thinking_progress = ctx._thinking_enabled
@@ -574,6 +576,7 @@ class TurnRunner(GatewayTurnProgressMixin, GatewaySessionAgentMixin):
             # Keep diagnostic observers installed; concrete sinks veto display.
             agent.stream_delta_callback = None
             agent.interim_assistant_callback = None
+            agent.clarify_context_callback = None
             agent.thinking_progress = False
         ctx.agent_holder[0] = agent  # interrupt support
         if self._approval_owner is not None:
@@ -617,6 +620,11 @@ class TurnRunner(GatewayTurnProgressMixin, GatewaySessionAgentMixin):
             return False
 
     async def _send_shared_clarify(self, entry, **kwargs):
+        from gateway.run_turn_runner_clarify_delivery import (
+            await_clarify_context, clarify_card_still_wanted, withdrawn_result)
+        await await_clarify_context(self)
+        if not clarify_card_still_wanted(self, entry):
+            return withdrawn_result()  # cancelled or reset while the explanation was sending
         result = await self._ctx._status_adapter.send_clarify(**kwargs)
         if self._approval_owner is not None and result.success:
             authority, session_id, generation = self._approval_owner
