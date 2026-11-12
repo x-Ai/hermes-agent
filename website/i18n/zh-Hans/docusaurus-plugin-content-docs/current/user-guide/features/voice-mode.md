@@ -390,7 +390,11 @@ stt:
                                     # gateway 仍会缓存音频文件并将其路径
                                     # 作为入站消息的一部分传递给 Agent，
                                     # 适用于自定义流水线
-                                    # （说话人分离、对齐、归档等）
+                                    # （说话人分离、对齐、归档等）。
+                                    # 启用时，Agent 会收到带引号的
+                                    # 转录文本，其后跟一行
+                                    # "[User sent audio: <path>]"，
+                                    # 因此 STT 成功后录音仍可访问
   provider: "local"                  # "local"（免费）| "groq" | "openai" | "mistral" | "xai"
   local:
     model: "base"                    # tiny, base, small, medium, large-v3, turbo

@@ -301,6 +301,8 @@ display:
   tool_progress_command: false  # 设为 true 可在消息平台中启用 /verbose
 ```
 
+无法识别的 `tool_progress` 值——拼写错误，或从其他工具照搬来的模式——不会被当作要求更多输出的请求：网关只记录一次日志，并保留该平台自身的默认值，因此档位为 `off` 的 Telegram 聊天依然保持安静。
+
 启用后，机器人在工作时发送状态消息：
 
 ```text

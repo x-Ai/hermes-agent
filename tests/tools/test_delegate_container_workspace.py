@@ -218,6 +218,67 @@ def test_run_single_child_seeds_relative_file_tools_at_container_mount(
     assert result["status"] == "completed"
 
 
+@pytest.mark.parametrize("backend,mount_path", _MOUNT_CASES)
+def test_continued_child_resumes_in_its_own_cwd_not_the_parents_container_mount(
+    monkeypatch, tmp_path, backend, mount_path
+):
+    """delegate_task(action='continue') under a mounted workspace: the fork seeds a fresh child at the
+    parent's container-translated cwd, but a continued child picks up the cwd it stopped in."""
+    workspace = tmp_path / "project"
+    workspace.mkdir()
+    _configure_mounted_backend(monkeypatch, backend, workspace, mount_path)
+    terminal_tool.record_session_cwd("parent-task", str(workspace))
+    stopped_cwd = f"{mount_path}/child-stop"
+    history = [{"role": "user", "content": "first brief"}, {"role": "assistant", "content": "done"}]
+
+    parent = MagicMock()
+    parent._current_task_id = "parent-task"
+    parent._active_children = []
+    parent._active_children_lock = None
+    parent.session_id = "parent-session"
+    parent.tool_progress_callback = None
+    parent._touch_activity = None
+
+    child = MagicMock()
+    child._subagent_id = "continued-child"
+    child._credential_pool = None
+    child._delegate_saved_tool_names = []
+    child._delegate_role = "leaf"
+    child._parent_session_id = "parent-session"
+    child._delegation_id = None
+    child.session_id = "child-session"
+    child.model = "test-model"
+    child.session_prompt_tokens = 0
+    child.session_completion_tokens = 0
+    child._delegate_continue_workspace = {"cwd": stopped_cwd, "worktree": None}
+    child._delegate_continue_history = history
+
+    def _run_child(*, user_message, task_id, stream_callback, conversation_history=None):
+        assert task_id == "continued-child"
+        assert terminal_tool.get_session_cwd(task_id) == stopped_cwd
+        assert conversation_history == history
+        assert user_message == "now add tests"  # the follow-up is sent bare on a continue
+        return {
+            "final_response": "continued",
+            "completed": True,
+            "interrupted": False,
+            "api_calls": 1,
+            "messages": [],
+        }
+
+    child.run_conversation.side_effect = _run_child
+    with patch("tools.delegate_tool._get_worktree_isolation", return_value=False):
+        result = _run_single_child(
+            task_index=0,
+            goal="now add tests",
+            child=child,
+            parent_agent=parent,
+        )
+
+    assert result["status"] == "completed"
+    assert terminal_tool.get_session_cwd("parent-task") == str(workspace)
+
+
 @pytest.mark.parametrize("backend", sorted(_BACKEND_MOUNT_FLAG))
 def test_delegated_terminal_uses_child_cwd_not_parent_routing_key(
     monkeypatch, tmp_path, backend

@@ -338,6 +338,9 @@ delegation:
   # max_concurrent_children: 3              # Parallel children per batch (default: 3)
   # max_spawn_depth: 1                      # Tree depth (1-3, default 1 = flat). Raise to 2 to allow orchestrator children to spawn leaves; 3 for three levels.
   # orchestrator_enabled: true              # Disable to force all children to leaf role.
+  # resumable_ttl_hours: 48                 # 重启后已停止的子智能体保持可继续的时长，期间保留其 worktree
+  # max_resumable: 32                       # 每个 profile 中保留 worktree 的可恢复子智能体数量（最旧的先解除固定）
+  # auto_resume: false                      # 选择启用：无需询问即自动恢复此类子智能体
   model: "google/gemini-3-flash-preview"             # Optional provider/model override
   provider: "openrouter"                             # Optional built-in provider
   api_mode: anthropic_messages                       # optional; auto-detected from base_url for anthropic_messages endpoints

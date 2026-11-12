@@ -429,6 +429,31 @@ skill_view("my-workflow")              # → 内置版本（不受影响）
 旧的 `shutil.copy2` 模式（将技能复制到 `~/.hermes/skills/`）仍然有效，但存在与内置技能名称冲突的风险。新插件请优先使用 `ctx.register_skill()`。
 :::
 
+### 用 Hermes 自己的辅助函数检查文件路径和读取 YAML
+
+如果插件要读写由模型选定的路径（附件、导出目标、待摘要的文件），就应当拒绝 Hermes 自身文件工具会拒绝的那些路径：凭据存储、skills-hub 缓存、项目的 `.env` 文件，以及 `HERMES_WRITE_SAFE_ROOT` 之外的一切。请调用下面这些函数，而不是自己维护一份黑名单：
+
+| 导入 | 提供的功能 |
+|---|---|
+| `agent.file_safety.get_read_block_error(path)` | 如果 Hermes 的文件工具会拒绝读取 `path`，返回一条错误字符串，否则返回 `None`。请传入绝对路径。 |
+| `agent.file_safety.raise_if_read_blocked(path)` | 同样的检查，被拦截时抛出 `ValueError`。 |
+| `agent.file_safety.get_write_denied_error(path)` | 如果 Hermes 的文件工具会拒绝写入 `path`，返回一条错误字符串，否则返回 `None`。 |
+| `agent.file_safety.is_write_denied(path)` | 该写入会被拒绝时返回 `True`。 |
+| `hermes_yaml.safe_load(text)` / `hermes_yaml.safe_dump(data)` | Hermes 读写自身配置所用的 YAML 读取器和写入器。Hermes 不自带 PyYAML，因此除非你的插件声明了该依赖，否则 `import yaml` 会失败。 |
+
+```python
+from agent.file_safety import get_read_block_error
+from hermes_yaml import safe_load
+
+def load_recipe(path):
+    if err := get_read_block_error(path):
+        return err
+    with open(path, encoding="utf-8") as fh:
+        return safe_load(fh)
+```
+
+请像上面那样直接导入这些名称（`from hermes_yaml import safe_load`）：`hermes plugins validate` 接受这些写法，而会把裸的 `import agent.file_safety` 报告为私有导入。要读取 Hermes 自己的设置，请使用 `hermes_cli.config` 中的 `load_config_readonly()`，不要自行解析 `config.yaml`。
+
 ### 根据环境变量决定是否启用
 
 如果你的插件需要 API 密钥：

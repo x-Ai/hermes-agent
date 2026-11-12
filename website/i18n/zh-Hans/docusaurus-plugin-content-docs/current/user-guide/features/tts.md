@@ -144,6 +144,7 @@ tts:
 Telegram 语音气泡需要 Opus/OGG 音频格式：
 
 - **OpenAI、ElevenLabs 和 Mistral** 原生输出 Opus，无需额外配置
+- **不支持 Opus 的 OpenAI 兼容服务器**（Speaches/Kokoro、OpenRouter 的语音路由）：当服务器以 400/422 拒绝 `response_format: opus` 时，Hermes 会改为请求 MP3 再试一次，并用 **ffmpeg** 进行转换
 - **Edge TTS**（默认）输出 MP3，需要 **ffmpeg** 进行转换
 - **MiniMax TTS** 输出 MP3，需要 **ffmpeg** 转换以在 Telegram 显示语音气泡
 - **Google Gemini TTS** 输出原始 PCM，使用 **ffmpeg** 直接编码为 Opus 以在 Telegram 显示语音气泡

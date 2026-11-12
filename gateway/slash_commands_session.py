@@ -151,8 +151,16 @@ class GatewaySessionCommandsMixin:
         if _old_agent is None:
             return
         try:
+            # The teardown fires the memory-provider lifecycle hooks (``flush_pending`` ->
+            # ``on_session_end`` -> ``shutdown``), which read the caller profile from the
+            # context at call time. The reset path runs on the main loop with no scope
+            # installed, so under multiplexing ``on_session_end`` failed closed and the old
+            # session's transcript was never extracted (#151672). ``_run_release_in_profile_scope``
+            # enters the OWNING profile's scope from ``session_key``, exactly like the
+            # shutdown path (run_shutdown) and cache eviction.
             await asyncio.wait_for(
-                self._run_housekeeping_in_executor(self._cleanup_agent_resources, _old_agent),
+                self._run_housekeeping_in_executor(
+                    self._run_release_in_profile_scope, self._cleanup_agent_resources, (_old_agent,), session_key),
                 timeout=_RESET_CLEANUP_TIMEOUT_S)
         except TimeoutError:
             logger.warning(
@@ -170,13 +178,30 @@ class GatewaySessionCommandsMixin:
         arbitrarily), then session:end and session:reset."""
         platform_value = source.platform.value if source.platform else ""
         with contextlib.suppress(Exception):
+            # session_key: the reset runs unscoped (confirm button, main loop), so finalize enters the
+            # OWNING profile's scope, like the old agent's cleanup above (#151672).
             messages = await self._finalize_session_off_loop(
                 session_id=old_sid, platform=platform_value, reason="new_session",
-                old_session_id=old_sid, new_session_id=new_sid)
+                old_session_id=old_sid, new_session_id=new_sid, session_key=session_key)
             await self._deliver_session_end_messages(messages, source=source, session_key=session_key)
         hook_payload = {"platform": platform_value, "user_id": source.user_id, "session_key": session_key}
-        await self.hooks.emit("session:end", dict(hook_payload))
-        await self.hooks.emit("session:reset", dict(hook_payload))
+        # Gateway event-hook registries resolve from the ambient profile home. /new can arrive on an
+        # unscoped callback, so bind the owner of the session that ended: the key names it, like the
+        # old agent's cleanup; a key with no named owner falls back to the source's routed profile.
+        from gateway.run import _async_profile_runtime_scope
+        store = getattr(self, "session_store", None)
+        owner = store._profile_home_for_key(session_key) if store is not None else None
+        async with _async_profile_runtime_scope(owner) if owner else self._async_profile_scope_for_source(source):
+            await self.hooks.emit("session:end", dict(hook_payload))
+            await self.hooks.emit("session:reset", dict(hook_payload))
+
+    async def _fire_plugin_session_reset(self, source: SessionSource, session_key: str, old_sid, new_sid) -> None:
+        """Plugin ``on_session_reset`` for the session /new opened: off-loop, bounded, and under the
+        profile owning ``session_key`` (#151672), as the viewer-close /new path does."""
+        await self._reset_session_off_loop(
+            session_key=session_key, session_id=new_sid, reason="new_session",
+            platform=source.platform.value if source.platform else "",
+            old_session_id=old_sid, new_session_id=new_sid)
 
     async def _handle_discard_command(self, event: MessageEvent) -> str:
         """``/discard``: drop this chat's turn lost in a gateway restart so its queue runs again."""
@@ -255,13 +280,7 @@ class GatewaySessionCommandsMixin:
                 logger.debug("Failed to rebind Telegram topic after /new", exc_info=True)
         _new_sid = new_entry.session_id if new_entry else None
         # Plugin on_session_reset hook (new session guaranteed to exist); best-effort.
-        try:
-            from hermes_cli.lifecycle import invoke_hook as _invoke_hook
-            _invoke_hook("on_session_reset", session_id=_new_sid, reason="new_session",
-                         platform=source.platform.value if source.platform else "",
-                         old_session_id=_old_sid, new_session_id=_new_sid)
-        except Exception:
-            pass
+        await self._fire_plugin_session_reset(source, session_key, _old_sid, _new_sid)
         try:
             from hermes_cli.tips import get_random_tip
             _tip_line = t("gateway.reset.tip", tip=get_random_tip())
@@ -789,7 +808,8 @@ class GatewaySessionCommandsMixin:
             finalize_context_engine_compression_notification(tmp_agent, committed=False)
             self._evict_cached_agent(session_key)  # next turn rebuilds the prompt from current files
             # Off-loop + bounded: teardown can block on subprocess/network/SQLite.
-            await self._cleanup_agent_resources_off_loop(tmp_agent, context="manual compression")
+            await self._cleanup_agent_resources_off_loop(tmp_agent, context="manual compression",
+                                                         session_key=session_key)
         return "\n".join(_manual_compression_reply_lines(summary, compressor, request.focus_topic))
 
     async def _build_manual_compression_agent(self, session_id: str, model, runtime_kwargs: dict):

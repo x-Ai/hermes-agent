@@ -1739,6 +1739,9 @@ delegation:
   max_concurrent_children: 3                # 每批并行子 agent 数（下限 1，无上限）。也可通过 DELEGATION_MAX_CONCURRENT_CHILDREN 环境变量设置。
   max_spawn_depth: 1                        # 委托树深度上限（1-3，截断）。1 = 扁平（默认）：父级生成无法委托的叶子。2 = 编排器子级可以生成叶子孙级。3 = 三级。
   orchestrator_enabled: true                # 全局终止开关。为 false 时，role="orchestrator" 被忽略，每个子级无论 max_spawn_depth 如何都被强制为叶子。
+  resumable_ttl_hours: 48                   # 因重启、崩溃或 provider 故障而停止的子 agent 在这段时间内保持可继续（delegate_task action=continue），其 worktree 也不会被启动时的清理移除。
+  max_resumable: 32                         # 每个 profile 最多有多少个此类子 agent 的 worktree 保持固定；超出上限时最旧的先失去固定（记录保留）。
+  auto_resume: false                        # 选择启用：自动恢复此类子 agent。关闭 = 由您手动继续它们。
 ```
 
 **子 agent provider:model 覆盖：** 默认情况下，子 agent 继承父 agent 的 provider 和模型。设置 `delegation.provider` 和 `delegation.model` 将子 agent 路由到不同的 provider:model 对 —— 例如，在您的主 agent 运行昂贵推理模型时，为范围较窄的子任务使用便宜/快速的模型。
