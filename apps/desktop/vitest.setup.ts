@@ -1,3 +1,5 @@
+import { setTimeout as nextTimerTurn } from 'node:timers/promises'
+
 import { configure } from '@testing-library/react'
 import { afterEach } from 'vitest'
 
@@ -84,3 +86,12 @@ configure({ asyncUtilTimeout: 12_000 })
 // Resolved stream URLs outlive a mount on purpose; a test file reusing one path must not
 // inherit the previous case's source.
 afterEach(() => clearPlaybackSourceCache())
+
+// cleanup() unmounting an open Radix menu or dialog leaves FocusScope's unmount event on a 0 ms
+// timer. vitest 4 tears jsdom down when the worker is stopped after a file's last test, without
+// a timer turn first, so that timer could fire against Node's own CustomEvent: the unhandled
+// TypeError failed runs whose tests had all passed (profile-rail-fleet.test.tsx). Give such
+// timers their turn while jsdom is still installed. Setup-file hooks register first and
+// after-hooks run in stack order, so this runs after each test's own cleanup;
+// node:timers/promises stays real under vi.useFakeTimers().
+afterEach(() => nextTimerTurn(0))
