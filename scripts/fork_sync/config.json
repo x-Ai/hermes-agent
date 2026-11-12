@@ -21,7 +21,7 @@
   "ui_tests": ["pnpm", "--dir", "apps/desktop", "exec", "vitest", "run", "--project", "ui"],
   "ui_shards": 5,
   "tests": {
-    "command": ["bash", "scripts/run_tests.sh", "-j", "4", "--file-retries", "1", "-q"],
+    "command": ["bash", "scripts/run_tests.sh", "-j", "4", "--file-retries", "1", "--file-timeout", "600", "-q"],
     "full_suite": ["pyproject.toml", "uv.lock", "pm/lock.json"],
     "tests_per_shard": 10000,
     "max_shards": 8
