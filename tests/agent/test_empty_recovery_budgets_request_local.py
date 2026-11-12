@@ -139,3 +139,49 @@ def test_recovery_status_renders_in_the_client_language(zh, after_tool):
     assert CJK.search(status)
     assert "(1/" in status.replace("（", "(")
     assert "Thinking-only" not in status and "Model returned empty" not in status
+
+
+def _machinery_turn():
+    return [{"role": "user", "content": "[process completed] done", "display_kind": "process_complete"}]
+
+
+def test_machinery_quiet_exit_spends_none_of_the_configured_budgets():
+    """Upstream's quiet exit runs before the fork's configurable nudge/reminder budgets."""
+    agent = _agent(post_tool_budget=3, thinking_budget=5)
+    agent._build_assistant_message = MagicMock(return_value={"role": "assistant", "content": ""})
+    messages = _machinery_turn()
+    retry_empty = MagicMock(return_value=("continue", None, False))
+
+    verdict = _recover(agent, messages, _reply(reasoning="thinking"), retry_empty)
+
+    assert verdict.action == "break"
+    assert verdict.final_response == ""
+    assert verdict.turn_exit_reason == ter.NOTIFICATION_NO_REPLY_EXIT
+    assert agent._post_tool_empty_retry_count == 0
+    assert agent._thinking_prefill_retries == 0
+    assert agent._empty_response_retry_hint is None
+    agent._buffer_diagnostic_status.assert_not_called()
+    retry_empty.assert_not_called()
+    assert messages[-1]["role"] == "assistant"
+    assert messages[-1]["content"] == ter.MACHINERY_NO_REPLY_ROW
+
+
+def test_machinery_announced_tool_call_keeps_the_localized_ladder(zh):
+    """A dropped tool call on a machinery turn is recovered through the fork's budgeted,
+    client-language reminder instead of the quiet exit."""
+    agent = _agent(thinking_budget=3)
+    messages = _machinery_turn()
+    with patch.object(ter, "_retry_empty", MagicMock(return_value=(None, None, False))):
+        verdict = ter.recover_empty_response(
+            agent, _reply(reasoning="thinking"), None, "tool_calls", final_response="", messages=messages,
+            api_messages=[], conversation_history=[], active_system_prompt="sys", api_call_count=1,
+            turn_exit_reason=None, preflight_compression_blocked=False,
+        )
+
+    assert verdict.action == "continue"
+    assert verdict.turn_exit_reason != ter.NOTIFICATION_NO_REPLY_EXIT
+    assert agent._empty_response_retry_hint == _CODEX_INCOMPLETE_NUDGE
+    assert len(messages) == 1, "the reminder rides the outgoing request, never the history"
+    status = _last_status(agent)
+    assert CJK.search(status)
+    assert "(1/3)" in status.replace("（", "(").replace("）", ")")

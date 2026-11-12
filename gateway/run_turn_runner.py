@@ -1241,7 +1241,7 @@ class TurnRunner(GatewayTurnProgressMixin, GatewaySessionAgentMixin):
             (ctx.channel_prompt or "").strip(),
             self._runner._get_system_prompt_for_channel(
                 ctx.source.platform, ctx.source.chat_id or "", thread_id=getattr(ctx.source, "thread_id", None),
-                parent_id=getattr(ctx.source, "parent_chat_id", None),
+                parent_id=getattr(ctx.source, "parent_chat_id", None), source=ctx.source,
             ),
         ):
             if extra:
@@ -1508,7 +1508,11 @@ class TurnRunner(GatewayTurnProgressMixin, GatewaySessionAgentMixin):
                 **({"billing_block": result["billing_block"]} if isinstance(result.get("billing_block"), dict) else {}),
                 **({"warning": result["warning"]} if isinstance(result.get("warning"), str) and result["warning"] else {}),
             }
-        if not final_response:
+        from gateway.response_filters import is_intentional_silence_agent_result
+        # A machinery turn the model chose to leave unanswered (``notification_no_reply``) stays
+        # empty: the delivery seam gates that silence by turn kind, and a "no response" notice
+        # filled in here would reach the chat for a turn no human started (#135816).
+        if not final_response and not is_intentional_silence_agent_result(result, final_response):
             final_response = _normalize_empty_agent_response(result, final_response or "", history_len=len(agent_history))
             final_response = _sanitize_gateway_final_response(ctx.source.platform, final_response)
             if not final_response:

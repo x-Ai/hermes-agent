@@ -191,10 +191,10 @@ from plugins.platforms.telegram.telegram_text_photo_pairing import (
     IMAGE_EXTENSIONS as _TELEGRAM_IMAGE_EXTENSIONS, absorb_claimed_text, claim_pending_text, is_image_document, tracking_media_items,
     wait_text_flush)
 from plugins.platforms.telegram.telegram_media_flood import TelegramMediaFloodMixin
+from plugins.platforms.telegram.telegram_media_retry import unconfirmed_media_result as _unconfirmed
 from plugins.platforms.telegram import telegram_flood_window as _flood_window
 from plugins.platforms.telegram.telegram_media_fetch import (
     cache_replied_media, fetch_telegram_file, merged_typed_text, record_typed_text)
-from plugins.platforms.telegram.telegram_media_budget import media_sources, scaled_budgets
 from plugins.platforms.telegram.telegram_ids import normalize_telegram_chat_id, parse_send_target, parse_telegram_message_id
 from plugins.platforms.telegram.telegram_resolved_prompt import edit_keeping_prompt
 from plugins.platforms.telegram.telegram_clarify_binding import ClarifyPrompt, log_resolved, tap_matches_prompt
@@ -709,6 +709,12 @@ class TelegramAdapter(TelegramContactMixin, TelegramHeldInboundMixin, TelegramRe
         if normalized == "supergroup":
             return "forum" if is_forum else "group"
         return normalized
+
+    @classmethod
+    def _gateway_chat_type(cls, chat: Any, *, is_forum: bool) -> str:
+        """``_normalize_chat_type`` of a chat object; a type not a known group/channel is a DM."""
+        chat_type = cls._normalize_chat_type(cls._chat_type_str(chat), is_forum=is_forum)
+        return chat_type if chat_type in {"group", "forum", "channel"} else "dm"
 
     def _legacy_runner_auth_fn(self):
         """``runner._is_user_authorized`` resolved off the bound handler (bare-adapter tests, direct
@@ -4840,15 +4846,6 @@ class TelegramAdapter(TelegramContactMixin, TelegramHeldInboundMixin, TelegramRe
             "chat_id": normalize_telegram_chat_id(chat_id), "reply_to_message_id": reply_to_id,
             "read_timeout": _MEDIA_SEND_READ_TIMEOUT, **thread_kwargs, **self._notification_kwargs(metadata)}
 
-    async def _send_media(
-        self, send_fn: Any, chat_id: str, reply_to: Optional[str], metadata: Optional[dict[str, Any]], media_label: str,
-        reset_media: Optional[Any] = None, **media_kwargs: Any) -> Any:
-        """Send one native media payload with thread routing + DM-topic anchor retry."""
-        _, kwargs = self._media_send_kwargs(chat_id, reply_to, metadata)
-        budget, deadline = scaled_budgets(media_sources(media_kwargs), _MEDIA_SEND_DEADLINE, _MEDIA_SEND_READ_TIMEOUT)  # #133093
-        return await self._send_with_dm_topic_reply_anchor_retry(
-            send_fn, {**kwargs, **budget, **media_kwargs}, metadata, media_label, reset_media=reset_media, deadline=deadline)
-
     @staticmethod
     def _caption_1024(caption: Optional[str]) -> Optional[str]:
         return caption[:1024] if caption else None
@@ -4937,8 +4934,8 @@ class TelegramAdapter(TelegramContactMixin, TelegramHeldInboundMixin, TelegramRe
         except Exception as e:
             if (recovered := await self._media_flood_recover(e, chat_id, lambda p: self.send_voice(
                     chat_id, p or source_path, caption, reply_to, metadata, **kwargs), f"voice {os.path.basename(source_path)}",
-                    source_path, metadata)):
-                return recovered
+                    source_path, metadata) or _unconfirmed(e, f"voice {os.path.basename(source_path)}")):
+                return recovered  # a flood recovery, or an upload that may be in the chat (#62079): no fallback notice
             logger.error(
                 "[%s] Failed to send Telegram voice/audio, falling back to base adapter: %s", self.name,
                 _redact_telegram_error_text(e), exc_info=True)
@@ -4964,14 +4961,12 @@ class TelegramAdapter(TelegramContactMixin, TelegramHeldInboundMixin, TelegramRe
         is_anim = lambda url: not url.startswith("file://") and self._is_animation_url(url)
         animations = [img for img in images if is_anim(img[0])]
         photos = [img for img in images if not is_anim(img[0])]
-        delivered = False
-        if animations:
-            anim_result = await super().send_multiple_images(chat_id, animations, metadata, human_delay=human_delay)
-            delivered = anim_result.success
+        from plugins.platforms.telegram.telegram_album import send_animations, send_photo_album
+        delivered, ambiguous = await send_animations(self, chat_id, animations, metadata, human_delay)  # a lost GIF receipt stays unknown
         if not photos:
-            return SendResult(success=delivered, error=None if delivered else "all images failed to send")
-        from plugins.platforms.telegram.telegram_album import send_photo_album
-        return await send_photo_album(self, chat_id, photos, metadata, human_delay, delivered=delivered)
+            return SendResult(success=delivered, error=None if delivered else "all images failed to send",
+                              raw_response={"ambiguous": True} if ambiguous else None)
+        return await send_photo_album(self, chat_id, photos, metadata, human_delay, delivered=delivered, ambiguous=ambiguous)
 
     async def send_image_file(
         self, chat_id: str, image_path: str, caption: Optional[str] = None, reply_to: Optional[str] = None,
@@ -5081,7 +5076,7 @@ class TelegramAdapter(TelegramContactMixin, TelegramHeldInboundMixin, TelegramRe
         except Exception as e:
             def redo(_path=None):
                 return self.send_image(chat_id, image_url, caption, reply_to, metadata)
-            if (recovered := await self._media_flood_recover(e, chat_id, redo, "URL photo", metadata=metadata)):
+            if (recovered := await self._media_flood_recover(e, chat_id, redo, "URL photo", metadata=metadata) or _unconfirmed(e, "URL photo", as_failure=True)):
                 return recovered
             logger.warning(
                 "[%s] URL-based send_photo failed, trying file upload: %s", self.name, _redact_telegram_error_text(e), exc_info=True)
@@ -5096,7 +5091,7 @@ class TelegramAdapter(TelegramContactMixin, TelegramHeldInboundMixin, TelegramRe
                     self._bot.send_photo, chat_id, reply_to, metadata, "uploaded photo", photo=image_data, caption=photo_caption)
                 return SendResult(success=True, message_id=str(msg.message_id))
             except Exception as e2:
-                if (recovered := await self._media_flood_recover(e2, chat_id, redo, "uploaded photo", metadata=metadata)):
+                if (recovered := await self._media_flood_recover(e2, chat_id, redo, "uploaded photo", metadata=metadata) or _unconfirmed(e2, "uploaded photo", as_failure=True)):
                     return recovered  # the byte upload follows the same flood contract as the URL send
                 logger.error("[%s] File upload send_photo also failed: %s", self.name, e2, exc_info=True)
                 return await super().send_image(chat_id, image_url, caption, reply_to, metadata=metadata)
@@ -5114,7 +5109,8 @@ class TelegramAdapter(TelegramContactMixin, TelegramHeldInboundMixin, TelegramRe
             return SendResult(success=True, message_id=str(msg.message_id))
         except Exception as e:
             if (recovered := await self._media_flood_recover(
-                    e, chat_id, lambda _p: self.send_animation(chat_id, animation_url, caption, reply_to, metadata), "animation", metadata=metadata)):
+                    e, chat_id, lambda _p: self.send_animation(chat_id, animation_url, caption, reply_to, metadata), "animation", metadata=metadata)
+                    or _unconfirmed(e, "animation", as_failure=True)):
                 return recovered
             logger.error(
                 "[%s] Failed to send Telegram animation, falling back to photo: %s", self.name,
@@ -5252,16 +5248,9 @@ class TelegramAdapter(TelegramContactMixin, TelegramHeldInboundMixin, TelegramRe
             return {"name": "Unknown", "type": "dm"}
         try:
             chat = await self._bot.get_chat(normalize_telegram_chat_id(chat_id))
-            chat_type = "dm"
-            if chat.type == ChatType.GROUP:
-                chat_type = "group"
-            elif chat.type == ChatType.SUPERGROUP:
-                chat_type = "forum" if chat.is_forum else "group"
-            elif chat.type == ChatType.CHANNEL:
-                chat_type = "channel"
-            return {
-                "name": chat.title or chat.full_name or str(chat_id), "type": chat_type, "username": chat.username,
-                "is_forum": getattr(chat, "is_forum", False)}
+            is_forum = getattr(chat, "is_forum", False)
+            return {"name": chat.title or chat.full_name or str(chat_id), "username": chat.username, "is_forum": is_forum,
+                    "type": self._gateway_chat_type(chat, is_forum=is_forum is True)}
         except Exception as e:
             logger.error("[%s] Failed to get Telegram chat info for %s: %s", self.name, chat_id, _redact_telegram_error_text(
                 e), exc_info=True)
@@ -6508,8 +6497,8 @@ class TelegramAdapter(TelegramContactMixin, TelegramHeldInboundMixin, TelegramRe
         triggering offset so the new gateway process advances past it."""
         chat = message.chat
         user = message.from_user
-        telegram_chat_type = self._chat_type_str(chat)  # str() so PTB enums and plain-string mocks both work
-        chat_type = "group" if telegram_chat_type in {"group", "supergroup"} else ("channel" if telegram_chat_type == "channel" else "dm")
+        # Session keys carry a forum topic as thread_id, so an inbound supergroup is "group", never "forum".
+        chat_type = self._gateway_chat_type(chat, is_forum=False)
         # Shared normalizer so gating and session routing agree (reply-UI anchors dropped, General → "1").
         # Resolve routable thread id for DM topics and forum group topics via the shared normalizer, so
         # gating and session routing agree on one value. Only real topic/forum messages keep a thread id;
