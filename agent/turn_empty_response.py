@@ -102,9 +102,11 @@ def _retry_empty(
         t("core.empty_recovery.high_cost_note")
         if budget < _empty_guard.configured_empty_retry_budget(agent) else ""
     )
-    agent._buffer_diagnostic_status(
+    # Rendered in the user's language, so the chat filter drops it by class, not the English regex.
+    from gateway.warning_notifications import RetryChatterText
+    agent._buffer_diagnostic_status(RetryChatterText(
         t("core.empty_recovery.retry_status", n=n, budget=budget, wait=f"{wait_time:.0f}", note=_budget_note)
-    )
+    ))
     _interrupted = interruptible_backoff_sleep(
         agent, wait_time, None,
         messages=messages,
@@ -146,11 +148,13 @@ def _terminal_empty(agent: Any, assistant_message: Any, finish_reason: str, mess
             agent._empty_content_retries, agent.model,
             agent.provider,
         )
-        agent._emit_diagnostic_status(
+        # The gateway's final reply explains this turn's empty result, so a chat drops this copy.
+        from gateway.warning_notifications import TerminalFailureText
+        agent._emit_diagnostic_status(TerminalFailureText(
             "❌ Model returned no content after all retries"
             + (" and fallback attempts." if agent._fallback_chain else
                ". No fallback providers configured.")
-        )
+        ))
         return "(empty)"
 
     logger.warning(
@@ -158,9 +162,10 @@ def _terminal_empty(agent: Any, assistant_message: Any, finish_reason: str, mess
         "(model=%s provider=%s)",
         agent._empty_content_retries, agent.model, agent.provider,
     )
-    agent._emit_diagnostic_status(
+    from gateway.warning_notifications import TerminalFailureText
+    agent._emit_diagnostic_status(TerminalFailureText(
         "⚠️ Model produced reasoning but no visible response after all retries. Returning empty."
-    )
+    ))
     return "(empty)"
 
 

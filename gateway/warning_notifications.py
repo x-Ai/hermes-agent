@@ -16,6 +16,12 @@ class TerminalFailureText(DiagnosticText):
     surfaces drop this copy whatever its length or shape (#72131)."""
 
 
+class RetryChatterText(DiagnosticText):
+    """A buffered retry counter rendered in the user's language (``core.empty_recovery.retry_status``):
+    chat surfaces drop it like the English ``retrying (1/3) in 8s`` the noise regex matches (#101138),
+    which cannot match a translation; the CLI and Desktop keep it."""
+
+
 def is_warning_status(event_type: str, message: str) -> bool:
     return event_type == "warn" or isinstance(message, DiagnosticText)
 

@@ -333,6 +333,7 @@ from plugins.platforms.telegram.telegram_markdown import (
     degrade_unrenderable_links, escape_rich_currency_dollars, normalize_rich_latex, to_markdown_v2)
 from plugins.platforms.telegram.rich_markdown import (
     RICH_EMAIL_TOKEN_RE, escape_literal_hash_prefixes, rich_normalize_linebreaks)
+from plugins.platforms.telegram.rich_parts import edit_rich_parts, resume_rich_parts, send_rich_parts
 
 
 def _strip_mdv2(text: str) -> str:
@@ -1181,8 +1182,9 @@ class TelegramAdapter(TelegramContactMixin, TelegramHeldInboundMixin, TelegramRe
     # RAW agent markdown so tables, task lists, <details>, math render natively; legacy MarkdownV2 send()
     # is the fallback. Streaming edits stay on the MarkdownV2 edit path.
     def _content_fits_rich_limits(self, content: str) -> bool:
-        """Pre-check the 32,768-char cap only; other rich limits surface as BadRequest (permanent)."""
-        return len(content) <= self.RICH_MESSAGE_MAX_CHARS
+        """Pre-check the 32,768-char cap on the markdown actually sent (normalization adds hard breaks,
+        spacer rows and escapes); other rich limits surface as BadRequest (permanent)."""
+        return len(self._rich_message_payload(content)["markdown"]) <= self.RICH_MESSAGE_MAX_CHARS
 
     def _bot_supports_rich(self) -> bool:
         """True when ``do_api_request`` is an *async* callable (real Bot or AsyncMock); plain MagicMock
@@ -1236,9 +1238,9 @@ class TelegramAdapter(TelegramContactMixin, TelegramHeldInboundMixin, TelegramRe
         """Whether rich delivery is allowed (``rich_messages`` opt-in)."""
         return bool(getattr(self, "_rich_messages_enabled", True))
 
-    def _rich_content_ok(self, content: str) -> bool:
+    def _rich_content_ok(self, content: str, *, check_size: bool = True) -> bool:
         """Shape checks shared by rich sends and rich drafts (non-blank, no Desktop crash/garble
-        shapes, under the cap, async-capable bot)."""
+        shapes, async-capable bot; ``check_size=False`` applies the cap per part — ``rich_parts``)."""
         return bool(
             content and content.strip()
             and not self._has_telegram_desktop_details_math_crash_shape(content)
@@ -1246,7 +1248,7 @@ class TelegramAdapter(TelegramContactMixin, TelegramHeldInboundMixin, TelegramRe
                 getattr(self, "_allow_cjk_rich_messages", False)
                 or not self._has_telegram_desktop_cjk_rich_garble_shape(content)
             )
-            and self._content_fits_rich_limits(content)
+            and (not check_size or self._content_fits_rich_limits(content))
             and self._bot_supports_rich())
 
     def _rich_eligible(self, content: str) -> bool:
@@ -3446,12 +3448,11 @@ class TelegramAdapter(TelegramContactMixin, TelegramHeldInboundMixin, TelegramRe
         try:
             # Bot API 10.1 rich fast-path; falls through to legacy MarkdownV2 on permanent/capability
             # errors or DM-topic skips; returns directly on success or transient failure (no legacy resend).
-            if self._should_attempt_rich(content, metadata=metadata):
-                rich_result = await self._try_send_rich(chat_id, content, reply_to, metadata)
-                if rich_result is not None:
-                    if rich_result.success:
-                        await self._retrigger_typing(chat_id, metadata)
-                    return rich_result
+            rich_result = await send_rich_parts(self, chat_id, content, reply_to, metadata)
+            if rich_result is not None:
+                if rich_result.success:
+                    await self._retrigger_typing(chat_id, metadata)
+                return rich_result
             # Entities cut by a split are closed and reopened; the (N/M) markers come back MarkdownV2-escaped.
             chunks = split_formatted_mdv2(self.format_message(content), self.MAX_MESSAGE_LENGTH, self.truncate_message, utf16_len)
             return await self._send_chunks(chat_id, chunks, delivered, reply_to, metadata, error_types)
@@ -3522,6 +3523,8 @@ class TelegramAdapter(TelegramContactMixin, TelegramHeldInboundMixin, TelegramRe
         """Send only the chunks a partial ``send()`` could not deliver (``undelivered_chunks``, or the never-attempted
         ``unattempted_chunks``), continuing the message-id sequence; ``None`` when no tail is certain-undelivered."""
         raw = result.raw_response if isinstance(result.raw_response, dict) else {}
+        if raw.get("undelivered_rich_parts") and self._bot:  # a rich part that never left: resend it rich
+            return await resume_rich_parts(self, chat_id, result, metadata)
         undelivered = raw.get("undelivered_chunks") or raw.get("unattempted_chunks")
         if not undelivered or not self._bot:
             return None
@@ -3603,12 +3606,10 @@ class TelegramAdapter(TelegramContactMixin, TelegramHeldInboundMixin, TelegramRe
         # 4,096 overflow pre-flight because the rich text cap is 32,768 — a rich table that exceeds the
         # MarkdownV2 limit must not be split into legacy chunks. Falls back to the legacy edit path
         # (overflow split included) on capability/permanent rejection.
-        if finalize and self._rich_eligible(content):
-            rich_result = await self._try_edit_rich(chat_id, message_id, content, metadata=metadata)
+        if finalize:
+            rich_result = await edit_rich_parts(self, chat_id, message_id, content, metadata)
             if rich_result is not None:
                 return rich_result
-        # Pre-flight: over-limit content is split-and-delivered on finalize; mid-stream we truncate instead
-        # (splitting moves the edit target to a continuation → infinite duplication loop).
         # Pre-flight: if content already exceeds the limit, split-and-deliver without round-tripping a
         # doomed edit. During streaming (finalize=False) we truncate instead of splitting — splitting
         # creates continuation messages whose IDs become the new edit target, and on the next token chunk

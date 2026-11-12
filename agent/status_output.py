@@ -252,7 +252,8 @@ class StatusOutputMixin:
 
     def _buffer_diagnostic_status(self, message: str) -> None:
         from gateway.warning_notifications import DiagnosticText
-        self._buffer_status(DiagnosticText(message))
+        # A finer producer class (RetryChatterText) stays, as in _emit_diagnostic_status.
+        self._buffer_status(message if isinstance(message, DiagnosticText) else DiagnosticText(message))
 
     def _buffer_vprint(self, message: str) -> None:
         self._buffer_retry_message("vprint", message)

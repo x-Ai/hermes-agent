@@ -137,6 +137,29 @@ async def discard_lost_turns(authority, session_id) -> str:
     return t("gateway.discard.done", count=done) if done else t("gateway.discard.nothing")
 
 
+async def paused_followers(runner, session_id) -> int:
+    """How many chat messages are saved behind a turn lost in a restart on *session_id*, else 0.
+    ``/new`` leaves them saved there (the pause notice promised so), so its reply names them and the
+    way back: ``/resume`` that id, then ``/discard`` (#145177). Telegram and the other chats have no
+    resume button, so unsaid they look lost. Counted after the route rotated: nothing can join the
+    old queue from then on, so the count includes a message admitted while the reset ran."""
+    from gateway.session_authorities import active_authority
+    from hermes_state_runtime import list_session_admissions
+    authority = active_authority(runner)
+    if authority is None or not session_id:
+        return 0
+    rows = await asyncio.to_thread(list_session_admissions, authority.db,
+                                   session_id=authority.logical_owner(session_id))
+    if not any(row['status'] == 'unknown' for row in rows):
+        return 0
+    return sum(row['status'] == 'queued' and row['principal_id'].startswith('messaging:') for row in rows)
+
+
+def discard_command_for(source) -> str:
+    """The lost-turn discard command this chat can send: Slack registers no native ``/discard``."""
+    return '/hermes discard' if getattr(getattr(source, 'platform', None), 'value', None) == 'slack' else '/discard'
+
+
 class GatewaySessionCommandsMixin:
     """Session-transcript slash commands (/new, /resume, /sessions, /branch, /title, /save, /undo, /retry, /topic, /compress)."""
 
@@ -254,6 +277,7 @@ class GatewaySessionCommandsMixin:
         async with route_owner_lock(self, _old_sid):
             new_entry = await self.async_session_store.reset_session(session_key)
             await move_route_wakes(self, session_key, _old_sid)  # main #114456: a parked wake survives /new
+            paused_count = await paused_followers(self, _old_sid)
         await self._fire_session_reset_hooks(source, session_key, _old_sid,
                                              new_entry.session_id if new_entry else None)
         # Scoped to the profile serving this source so a multiplexed /new banner reports the
@@ -287,6 +311,10 @@ class GatewaySessionCommandsMixin:
         except Exception:
             _tip_line = ""
         body = f"{header}\n\n{session_info}" if session_info else header
+        if paused_count:
+            from gateway.session_authorities import active_authority
+            body += t("gateway.reset.paused_left", count=paused_count, discard=discard_command_for(source),
+                      session_id=active_authority(self).logical_owner(_old_sid))
         return EphemeralReply(f"{body}{_tip_line}")
 
     async def _reset_titled_header(self, header: str, session_id: str, title_arg: str) -> str:
@@ -1155,6 +1183,9 @@ class GatewaySessionCommandsMixin:
                                                          departed=current_entry)
             except TopicLinkedElsewhere as refused:  # bound elsewhere since the check: route put back
                 return str(refused)
+        # /resume also leaves the paused chat's queued messages on the departed conversation.
+        # Count only after the route switched, as /new does, so fresh admissions use the new route.
+        left_count = await paused_followers(self, current_entry.session_id)
         if local_owner is not None and authority is not None:  # a Desktop still viewing it follows it
             follow_hand_off(authority, source, session_key, authority.logical_owner(target_id), local_owner)
         # Conversation boundary: all conversation-scoped state + security state in one funnel call.
@@ -1171,22 +1202,25 @@ class GatewaySessionCommandsMixin:
         self._evict_cached_agent(session_key)
         title = await self._session_db.get_session_title(target_id) or name
         await self._rename_telegram_topic_after_switch(source, new_entry, title)
+        left_notice = (t("gateway.reset.paused_left", count=left_count,
+                         session_id=current_entry.session_id, discard=discard_command_for(source))
+                       if left_count else "")
         try:
             history = await self.async_session_store.load_transcript(target_id)
         except TranscriptReadError:
             # The resume itself succeeded; only the count is missing — say so rather than "empty".
-            return t("gateway.resume.resumed_no_count", title=title) + "\n" + history_unreadable()
+            return t("gateway.resume.resumed_no_count", title=title) + "\n" + history_unreadable() + left_notice
         msg_count = len([m for m in history if m.get("role") == "user"]) if history else 0
         if source.platform == Platform.MATRIX and allow_cross_room:
             msg_part = t("gateway.resume.msg_count_one" if msg_count == 1 else "gateway.resume.msg_count_other",
                          count=msg_count) if msg_count else ""
             return t("gateway.resume.matrix_cross_room_success", title=title,
-                     room=source.chat_name or source.chat_id, msg_part=msg_part)
+                     room=source.chat_name or source.chat_id, msg_part=msg_part) + left_notice
         if not msg_count:
-            return t("gateway.resume.resumed_no_count", title=title)
+            return t("gateway.resume.resumed_no_count", title=title) + left_notice
         if msg_count == 1:
-            return t("gateway.resume.resumed_one", title=title, count=msg_count)
-        return t("gateway.resume.resumed_many", title=title, count=msg_count)
+            return t("gateway.resume.resumed_one", title=title, count=msg_count) + left_notice
+        return t("gateway.resume.resumed_many", title=title, count=msg_count) + left_notice
 
     def _resume_listing_reply(self, source, titled: list[dict], allow_all: bool) -> str:
         """Numbered /resume list; a non-admin ``--all`` falls back to same-origin scoping and says so
