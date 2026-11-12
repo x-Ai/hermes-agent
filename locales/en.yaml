@@ -5054,3 +5054,19 @@ webapp:
   bundle_unavailable:
     title: "Hermes is unavailable"
     ask_host: "Ask whoever runs this Hermes host to run that command, then reload this page."
+
+# secret_sources: external secret-source refusals (agent/secret_sources/bitwarden.py), printed by
+# `hermes secrets bitwarden setup|status` and carried in the startup secret-fetch error / warnings.
+# {value} is the refused value already quoted (repr); {error} the underlying reason. Config keys,
+# env names, URLs, the UUID shape and the command stay verbatim.
+secret_sources:
+  bitwarden:
+    project_id_not_uuid: "secrets.bitwarden.project_id {value} is not a project UUID (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx).  Run `hermes secrets bitwarden setup` to pick a project."
+    server_url_invalid: "secrets.bitwarden.server_url {value} is not a valid URL: {error}"
+    server_url_not_https: "secrets.bitwarden.server_url {value} must be an https:// URL"
+    server_url_no_host: "secrets.bitwarden.server_url {value} has no host"
+    server_url_credentials: "secrets.bitwarden.server_url must not embed credentials (user:pass@host)"
+    server_url_plaintext: "secrets.bitwarden.server_url {value} uses plaintext http:// — the access token would cross the network unencrypted.  Use https:// (http:// is accepted only for localhost)."
+    configured_url_dropped: "Ignoring the configured Bitwarden server_url: {error}.  Falling back to the bws default (US Cloud)."
+    env_url_dropped: "Ignoring BWS_SERVER_URL from the environment: {error}.  Falling back to the bws default (US Cloud)."
+    stored_url_ignored: "Ignoring stored server_url: {error}"

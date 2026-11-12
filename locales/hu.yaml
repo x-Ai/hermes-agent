@@ -4930,3 +4930,15 @@ webapp:
   bundle_unavailable:
     title: "A Hermes nem érhető el"
     ask_host: "Kérd meg azt, aki ezt a Hermes-gazdagépet üzemelteti, hogy futtassa le azt a parancsot, majd töltsd újra ezt az oldalt."
+
+secret_sources:
+  bitwarden:
+    project_id_not_uuid: "A secrets.bitwarden.project_id {value} értéke nem projekt-UUID (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx).  Futtasd a `hermes secrets bitwarden setup` parancsot egy projekt kiválasztásához."
+    server_url_invalid: "A secrets.bitwarden.server_url {value} értéke nem érvényes URL: {error}"
+    server_url_not_https: "A secrets.bitwarden.server_url {value} értékének https:// URL-nek kell lennie"
+    server_url_no_host: "A secrets.bitwarden.server_url {value} értékéből hiányzik a gazdagép"
+    server_url_credentials: "A secrets.bitwarden.server_url nem tartalmazhat hitelesítő adatokat (user:pass@host)"
+    server_url_plaintext: "A secrets.bitwarden.server_url {value} titkosítatlan http:// kapcsolatot használ — a hozzáférési token titkosítás nélkül haladna át a hálózaton.  Használj https:// címet (a http:// csak localhost esetén elfogadott)."
+    configured_url_dropped: "A beállított Bitwarden server_url figyelmen kívül marad; visszatérés a bws alapértelmezéséhez (US Cloud). Ok: {error}"
+    env_url_dropped: "A környezetből származó BWS_SERVER_URL figyelmen kívül marad; visszatérés a bws alapértelmezéséhez (US Cloud). Ok: {error}"
+    stored_url_ignored: "A mentett server_url figyelmen kívül marad: {error}"

@@ -4912,3 +4912,15 @@ webapp:
   bundle_unavailable:
     title: "Hermes is nie beskikbaar nie"
     ask_host: "Vra wie ook al hierdie Hermes-gasheer bestuur om daardie opdrag uit te voer, en laai dan hierdie bladsy weer."
+
+secret_sources:
+  bitwarden:
+    project_id_not_uuid: "secrets.bitwarden.project_id {value} is nie 'n projek-UUID nie (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx).  Voer `hermes secrets bitwarden setup` uit om 'n projek te kies."
+    server_url_invalid: "secrets.bitwarden.server_url {value} is nie 'n geldige URL nie: {error}"
+    server_url_not_https: "secrets.bitwarden.server_url {value} moet 'n https://-URL wees"
+    server_url_no_host: "secrets.bitwarden.server_url {value} het geen gasheer nie"
+    server_url_credentials: "secrets.bitwarden.server_url mag nie aanmeldbewyse insluit nie (user:pass@host)"
+    server_url_plaintext: "secrets.bitwarden.server_url {value} gebruik onversleutelde http:// — die toegangstoken sou onversleuteld oor die netwerk gaan.  Gebruik https:// (http:// word slegs vir localhost aanvaar)."
+    configured_url_dropped: "Die gekonfigureerde Bitwarden-server_url word geïgnoreer; val terug op die bws-verstek (US Cloud). Rede: {error}"
+    env_url_dropped: "BWS_SERVER_URL uit die omgewing word geïgnoreer; val terug op die bws-verstek (US Cloud). Rede: {error}"
+    stored_url_ignored: "Gestoorde server_url word geïgnoreer: {error}"

@@ -413,6 +413,8 @@ Agent 工作期间，机器人会在你的消息上显示 `Typing` 表情回应�
 
 超出限制的请求将收到 HTTP 429（请求过多）。
 
+只有通过验证 token 和签名校验的请求才会计入限额，因此伪造流量无法耗尽真实飞书回调的限流窗口。未签名的 `url_verification` 挑战只有在已通过验证 token 认证时才会计入。
+
 ### Webhook 异常追踪
 
 适配器追踪每个 IP 地址的连续错误响应。同一 IP 在 6 小时窗口内连续出现 25 次错误后，将记录警告日志。这有助于检测配置错误的客户端或探测行为。
@@ -534,7 +536,7 @@ WebSocket 和按群 ACL 设置通过 `config.yaml` 的 `platforms.feishu.extra` 
 | 启用 `FEISHU_ALLOW_BOTS` 后对端机器人消息仍被忽略 | Hermes 尚无法识别自身——请设置 `FEISHU_BOT_OPEN_ID`（若应用使用 `sender_id_type=user_id` 则同时设置 `FEISHU_BOT_USER_ID`）。 |
 | 对端机器人显示为 `ou_xxxxxx` 而非名称 | 授予 `application:bot.basic_info:read` 权限范围。 |
 | 点击审批按钮时出现错误 200340 | 在飞书开发者控制台启用**交互式卡片**能力并配置**卡片请求 URL**。参见上方[飞书应用所需配置](#required-feishu-app-configuration)。 |
-| `Webhook rate limit exceeded` | 同一 IP 每分钟请求超过 120 次。通常是配置错误或循环导致。 |
+| `Webhook rate limit exceeded` | 同一 IP 每分钟通过认证的请求超过 120 次。通常是配置错误或循环导致。 |
 
 ## 工具集
 

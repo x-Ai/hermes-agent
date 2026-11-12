@@ -4912,3 +4912,15 @@ webapp:
   bundle_unavailable:
     title: "Níl Hermes ar fáil"
     ask_host: "Iarr ar an duine a ritheann an t-óstach Hermes seo an t-ordú sin a rith, agus ansin athlódáil an leathanach seo."
+
+secret_sources:
+  bitwarden:
+    project_id_not_uuid: "Ní UUID tionscadail é secrets.bitwarden.project_id {value} (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx).  Rith `hermes secrets bitwarden setup` chun tionscadal a roghnú."
+    server_url_invalid: "Ní URL bailí é secrets.bitwarden.server_url {value}: {error}"
+    server_url_not_https: "Caithfidh secrets.bitwarden.server_url {value} a bheith ina URL https://"
+    server_url_no_host: "Níl aon óstach i secrets.bitwarden.server_url {value}"
+    server_url_credentials: "Ní cheadaítear dintiúir a neadú i secrets.bitwarden.server_url (user:pass@host)"
+    server_url_plaintext: "Úsáideann secrets.bitwarden.server_url {value} http:// gan chriptiú — thrasnódh an comhartha rochtana an líonra gan chriptiú.  Úsáid https:// (ní ghlactar le http:// ach le haghaidh localhost amháin)."
+    configured_url_dropped: "Ag déanamh neamhaird den server_url Bitwarden cumraithe; ag filleadh ar réamhshocrú bws (US Cloud). Cúis: {error}"
+    env_url_dropped: "Ag déanamh neamhaird de BWS_SERVER_URL ón timpeallacht; ag filleadh ar réamhshocrú bws (US Cloud). Cúis: {error}"
+    stored_url_ignored: "Ag déanamh neamhaird den server_url stóráilte: {error}"

@@ -4911,3 +4911,15 @@ webapp:
   bundle_unavailable:
     title: "Hermes kullanılamıyor"
     ask_host: "Bu Hermes ana makinesini yöneten kişiden bu komutu çalıştırmasını isteyin, ardından bu sayfayı yeniden yükleyin."
+
+secret_sources:
+  bitwarden:
+    project_id_not_uuid: "secrets.bitwarden.project_id {value} bir proje UUID'si değil (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx).  Bir proje seçmek için `hermes secrets bitwarden setup` komutunu çalıştırın."
+    server_url_invalid: "secrets.bitwarden.server_url {value} geçerli bir URL değil: {error}"
+    server_url_not_https: "secrets.bitwarden.server_url {value} bir https:// URL'si olmalıdır"
+    server_url_no_host: "secrets.bitwarden.server_url {value} bir ana makine içermiyor"
+    server_url_credentials: "secrets.bitwarden.server_url kimlik bilgisi içeremez (user:pass@host)"
+    server_url_plaintext: "secrets.bitwarden.server_url {value} şifrelenmemiş http:// kullanıyor — erişim belirteci ağda şifrelenmeden iletilirdi.  https:// kullanın (http:// yalnızca localhost için kabul edilir)."
+    configured_url_dropped: "Yapılandırılmış Bitwarden server_url yok sayılıyor; bws varsayılanına (US Cloud) geri dönülüyor. Neden: {error}"
+    env_url_dropped: "Ortamdaki BWS_SERVER_URL yok sayılıyor; bws varsayılanına (US Cloud) geri dönülüyor. Neden: {error}"
+    stored_url_ignored: "Kayıtlı server_url yok sayılıyor: {error}"

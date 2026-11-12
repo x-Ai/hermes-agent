@@ -4911,3 +4911,15 @@ webapp:
   bundle_unavailable:
     title: "Hermes غير متاح"
     ask_host: "اطلب ممّن يدير مضيف Hermes هذا تشغيل ذلك الأمر، ثم أعد تحميل هذه الصفحة."
+
+secret_sources:
+  bitwarden:
+    project_id_not_uuid: "secrets.bitwarden.project_id {value} ليس معرّف UUID لمشروع (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx).  شغّل `hermes secrets bitwarden setup` لاختيار مشروع."
+    server_url_invalid: "secrets.bitwarden.server_url {value} ليس عنوان URL صالحًا: {error}"
+    server_url_not_https: "يجب أن يكون secrets.bitwarden.server_url {value} عنوان URL يبدأ بـ https://"
+    server_url_no_host: "لا يحتوي secrets.bitwarden.server_url {value} على مضيف"
+    server_url_credentials: "يجب ألّا يتضمن secrets.bitwarden.server_url بيانات اعتماد (user:pass@host)"
+    server_url_plaintext: "يستخدم secrets.bitwarden.server_url {value} بروتوكول http:// غير المشفّر — سيعبر رمز الوصول الشبكة دون تشفير.  استخدم https:// (لا يُقبل http:// إلا مع localhost)."
+    configured_url_dropped: "تم تجاهل server_url المُعدّ لـ Bitwarden، وسيتم الرجوع إلى إعداد bws الافتراضي (US Cloud). السبب: {error}"
+    env_url_dropped: "تم تجاهل BWS_SERVER_URL القادم من البيئة، وسيتم الرجوع إلى إعداد bws الافتراضي (US Cloud). السبب: {error}"
+    stored_url_ignored: "تم تجاهل server_url المحفوظ: {error}"

@@ -4912,3 +4912,15 @@ webapp:
   bundle_unavailable:
     title: "Hermes недоступний"
     ask_host: "Попросіть того, хто керує цим хостом Hermes, виконати цю команду, а потім перезавантажте цю сторінку."
+
+secret_sources:
+  bitwarden:
+    project_id_not_uuid: "secrets.bitwarden.project_id {value} не є UUID проєкту (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx).  Запустіть `hermes secrets bitwarden setup`, щоб вибрати проєкт."
+    server_url_invalid: "secrets.bitwarden.server_url {value} не є дійсною URL-адресою: {error}"
+    server_url_not_https: "secrets.bitwarden.server_url {value} має бути URL-адресою https://"
+    server_url_no_host: "У secrets.bitwarden.server_url {value} не вказано хост"
+    server_url_credentials: "secrets.bitwarden.server_url не повинен містити облікові дані (user:pass@host)"
+    server_url_plaintext: "secrets.bitwarden.server_url {value} використовує незашифрований http:// — токен доступу передавався б мережею відкритим текстом.  Використовуйте https:// (http:// дозволено лише для localhost)."
+    configured_url_dropped: "Налаштований server_url Bitwarden проігноровано; буде використано типове значення bws (US Cloud). Причина: {error}"
+    env_url_dropped: "BWS_SERVER_URL із середовища проігноровано; буде використано типове значення bws (US Cloud). Причина: {error}"
+    stored_url_ignored: "Збережений server_url проігноровано: {error}"

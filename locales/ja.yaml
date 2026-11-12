@@ -4910,3 +4910,15 @@ webapp:
   bundle_unavailable:
     title: "Hermes を利用できません"
     ask_host: "この Hermes ホストを運用している人にそのコマンドを実行してもらい、このページを再読み込みしてください。"
+
+secret_sources:
+  bitwarden:
+    project_id_not_uuid: "secrets.bitwarden.project_id {value} はプロジェクト UUID（xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx）ではありません。`hermes secrets bitwarden setup` を実行してプロジェクトを選択してください。"
+    server_url_invalid: "secrets.bitwarden.server_url {value} は有効な URL ではありません: {error}"
+    server_url_not_https: "secrets.bitwarden.server_url {value} は https:// の URL である必要があります"
+    server_url_no_host: "secrets.bitwarden.server_url {value} にホストがありません"
+    server_url_credentials: "secrets.bitwarden.server_url に認証情報（user:pass@host）を埋め込むことはできません"
+    server_url_plaintext: "secrets.bitwarden.server_url {value} は平文の http:// を使用しています — アクセストークンが暗号化されずにネットワークを流れます。https:// を使用してください（http:// は localhost の場合のみ許可されます）。"
+    configured_url_dropped: "設定された Bitwarden の server_url を無視し、bws の既定値（US Cloud）にフォールバックします。理由: {error}"
+    env_url_dropped: "環境変数の BWS_SERVER_URL を無視し、bws の既定値（US Cloud）にフォールバックします。理由: {error}"
+    stored_url_ignored: "保存されている server_url を無視します: {error}"

@@ -41,7 +41,7 @@ hermes secrets bitwarden setup
 
 1. 下载并验证 `bws v2.0.0`，存放至 `~/.hermes/bin/bws`。
 2. 提示输入访问令牌（输入内容隐藏）。以 `BWS_ACCESS_TOKEN` 形式存储在 `~/.hermes/.env` 中。
-3. 询问机器账户所属的 Bitwarden 区域——**US Cloud**、**EU Cloud** 或**自托管/自定义 URL**。以 `secrets.bitwarden.server_url` 形式存储在 `config.yaml` 中，并作为 `BWS_SERVER_URL` 传递给 `bws`。
+3. 询问机器账户所属的 Bitwarden 区域——**US Cloud**、**EU Cloud** 或**自托管/自定义 URL**（`https://`，`http://` 仅限 localhost）。以 `secrets.bitwarden.server_url` 形式存储在 `config.yaml` 中，并作为 `BWS_SERVER_URL` 传递给 `bws`。
 4. 列出机器账户可见的项目，选择其中一个。以 `secrets.bitwarden.project_id` 形式存储在 `config.yaml` 中。
 5. 测试拉取该项目的 secret，并显示将解析出哪些环境变量。
 6. 将 `secrets.bitwarden.enabled` 设置为 `true`。
@@ -106,8 +106,8 @@ secrets:
 |---|---|---|
 | `enabled` | `false` | 主开关。为 false 时，永不联系 Bitwarden。 |
 | `access_token_env` | `BWS_ACCESS_TOKEN` | 存储引导令牌的环境变量名。如果你已将 `BWS_ACCESS_TOKEN` 用于其他用途，可修改此项。 |
-| `project_id` | `""` | 要同步的项目 UUID。 |
-| `server_url` | `""` | Bitwarden 区域或自托管端点。为空时使用 `bws` 默认值（US Cloud，`https://vault.bitwarden.com`）。欧盟云设为 `https://vault.bitwarden.eu`，自托管则填写自己的 URL。以 `BWS_SERVER_URL` 形式传递给 `bws` 子进程。 |
+| `project_id` | `""` | 要同步的项目 UUID。不符合 UUID 格式时会被拒绝。 |
+| `server_url` | `""` | Bitwarden 区域或自托管端点。为空时使用 `bws` 默认值（US Cloud，`https://vault.bitwarden.com`）。欧盟云设为 `https://vault.bitwarden.eu`，自托管则填写自己的 URL。以 `BWS_SERVER_URL` 形式传递给 `bws` 子进程。必须是 `https://`——访问令牌会发送到此端点，因此除 `localhost` 外拒绝明文 `http://`。从 shell 继承的 `BWS_SERVER_URL` 遵循同一规则，不符合时会被丢弃（并给出警告）。 |
 | `cache_ttl_seconds` | `300` | 进程内拉取结果的复用时长。设为 `0` 可禁用缓存。缓存按进程隔离；新的 `hermes` 调用从头开始。 |
 | `override_existing` | `true` | 为 true 时，Bitwarden 的值会覆盖环境中已有的任何值（使 Web 应用中的轮换真正生效）。如果希望本地 `.env` / shell 导出优先，设为 `false`。 |
 | `auto_install` | `true` | 为 true 时，首次使用时自动将 `bws` 下载到 `~/.hermes/bin/`。 |

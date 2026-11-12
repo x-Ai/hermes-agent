@@ -4916,3 +4916,15 @@ webapp:
   bundle_unavailable:
     title: "Hermes 暂不可用"
     ask_host: "请联系管理这台 Hermes 主机的人执行该命令，然后重新加载此页面。"
+
+secret_sources:
+  bitwarden:
+    project_id_not_uuid: "secrets.bitwarden.project_id {value} 不是项目 UUID（xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx）。请运行 `hermes secrets bitwarden setup` 选择一个项目。"
+    server_url_invalid: "secrets.bitwarden.server_url {value} 不是有效的 URL：{error}"
+    server_url_not_https: "secrets.bitwarden.server_url {value} 必须是 https:// URL"
+    server_url_no_host: "secrets.bitwarden.server_url {value} 缺少主机"
+    server_url_credentials: "secrets.bitwarden.server_url 不得内嵌凭据（user:pass@host）"
+    server_url_plaintext: "secrets.bitwarden.server_url {value} 使用明文 http://，访问令牌将以未加密的形式在网络上传输。请使用 https://（http:// 仅允许用于 localhost）。"
+    configured_url_dropped: "已忽略配置的 Bitwarden server_url，回退到 bws 默认端点（US Cloud）。原因：{error}"
+    env_url_dropped: "已忽略环境变量中的 BWS_SERVER_URL，回退到 bws 默认端点（US Cloud）。原因：{error}"
+    stored_url_ignored: "已忽略已保存的 server_url：{error}"
