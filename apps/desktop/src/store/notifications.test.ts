@@ -150,17 +150,20 @@ test('a backend request timeout from the main process is localized with its wait
   })
 })
 
-// Quit keeps the window up while main tears the backend down, and a request in that window fails
-// with main's English abort reason. A Chinese toast kept it verbatim under Details.
-test('a request refused because Desktop is quitting is localized', () => {
-  const error = new Error("Error invoking remote method 'hermes:api': Error: Hermes Desktop is quitting.")
+// Quit keeps the window up while main tears the backend down, and a request or SSH bootstrap in that
+// window fails with main's English abort reason. A Chinese toast kept it verbatim under Details.
+test.each([
+  ['Hermes Desktop is quitting.', 'desktopQuitting'],
+  ['SSH bootstrap was cancelled because Desktop is quitting.', 'sshBootstrapCancelledByQuit']
+] as const)('a request refused because Desktop is quitting is localized: %s', (sentence, key) => {
+  const error = new Error(`Error invoking remote method 'hermes:api': Error: ${sentence}`)
 
   setRuntimeI18nLocale('zh')
   notifyError(error, TRANSLATIONS.zh.settings.customEndpoints.saveFailed)
 
   expect($notifications.get()[0]).toMatchObject({
     title: TRANSLATIONS.zh.settings.customEndpoints.saveFailed,
-    message: TRANSLATIONS.zh.runtimeErrors.desktopQuitting,
+    message: TRANSLATIONS.zh.runtimeErrors[key],
     detail: undefined
   })
 })

@@ -3596,6 +3596,7 @@
     "runtimeErrors.sharedEndpointPinned",
     "runtimeErrors.sharedProviderAccount",
     "runtimeErrors.sharedProviderEndpoint",
+    "runtimeErrors.sshBootstrapCancelledByQuit",
     "runtimeErrors.sttHttpError",
     "runtimeErrors.transcriptionTimedOut",
     "runtimeErrors.ttsHttpError",

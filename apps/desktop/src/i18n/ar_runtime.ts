@@ -74,6 +74,7 @@ export const arRuntime = {
         ? 'انتهت مهلة الاتصال بخدمة Hermes الخلفية.'
         : `انتهت مهلة الاتصال بخدمة Hermes الخلفية بعد ${seconds} ث.`,
     desktopQuitting: 'جارٍ إنهاء Hermes Desktop.',
+    sshBootstrapCancelledByQuit: 'أُلغي إعداد اتصال SSH لأنه جارٍ إنهاء Hermes Desktop.',
     imageCopyNoDimensions: 'لا تملك الصورة أبعادًا يمكن نسخها',
     imageCopyCanvasUnavailable: 'سياق Canvas 2D غير متاح',
     imageCopyEncodeFailed: 'تعذّر ترميز الصورة بصيغة PNG',

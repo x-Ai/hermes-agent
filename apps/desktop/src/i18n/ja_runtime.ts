@@ -86,6 +86,7 @@ export const jaRuntime = {
         ? 'Hermes のバックグラウンドサービスへの接続がタイムアウトしました。'
         : `Hermes のバックグラウンドサービスへの接続がタイムアウトしました（${seconds} 秒待機）。`,
     desktopQuitting: 'Hermes Desktop を終了しています',
+    sshBootstrapCancelledByQuit: 'Hermes Desktop を終了しているため、SSH 接続の確立をキャンセルしました',
     imageCopyNoDimensions: '画像のサイズを取得できないため、コピーできません',
     imageCopyCanvasUnavailable: 'Canvas 2D コンテキストを利用できません',
     imageCopyEncodeFailed: '画像を PNG にエンコードできませんでした',

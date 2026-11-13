@@ -85,6 +85,7 @@ export const ruRuntime = {
         ? 'Не удалось дождаться ответа фоновой службы Hermes.'
         : `Не удалось дождаться ответа фоновой службы Hermes за ${seconds} с.`,
     desktopQuitting: 'Hermes Desktop завершает работу.',
+    sshBootstrapCancelledByQuit: 'Установка SSH-подключения отменена: Hermes Desktop завершает работу.',
     imageCopyNoDimensions: 'У изображения нет размеров, его нельзя скопировать',
     imageCopyCanvasUnavailable: 'Контекст Canvas 2D недоступен',
     imageCopyEncodeFailed: 'Не удалось закодировать изображение в PNG',

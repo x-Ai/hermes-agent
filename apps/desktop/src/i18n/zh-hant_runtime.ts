@@ -69,6 +69,7 @@ export const zhHantRuntime = {
     backendConnectTimedOut: (seconds: null | number) =>
       seconds === null ? '連線 Hermes 後台服務逾時。' : `連線 Hermes 後台服務逾時，等待了 ${seconds} 秒。`,
     desktopQuitting: 'Hermes Desktop 正在結束。',
+    sshBootstrapCancelledByQuit: 'Hermes Desktop 正在結束，已取消建立 SSH 連線。',
     imageCopyNoDimensions: '圖片缺少尺寸資訊，無法複製',
     imageCopyCanvasUnavailable: 'Canvas 2D 上下文無法使用',
     imageCopyEncodeFailed: '無法將圖片編碼為 PNG',

@@ -26,9 +26,9 @@ describe('localizeBootFailureDetail', () => {
     )
   })
 
-  // Main aborts every backend start with this sentence once quit begins. Its boot progress reports it
-  // bare; the renderer's failed getConnection() carries it behind the IPC wrap.
-  it('re-renders the quitting abort in the UI language, bare or behind the IPC wrap', () => {
+  // Once quit begins, main stops every backend start and refuses every new SSH bootstrap with a fixed
+  // sentence. Its boot progress reports one bare; a failed getConnection() carries it behind the IPC wrap.
+  it('re-renders the quit aborts in the UI language, bare or behind the IPC wrap', () => {
     expect(localizeBootFailureDetail('Hermes Desktop is quitting.', zh.runtimeErrors)).toBe(
       zh.runtimeErrors.desktopQuitting
     )
@@ -38,7 +38,11 @@ describe('localizeBootFailureDetail', () => {
         zh.runtimeErrors
       )
     ).toBe(zh.runtimeErrors.desktopQuitting)
+    expect(
+      localizeBootFailureDetail('SSH bootstrap was cancelled because Desktop is quitting.', zh.runtimeErrors)
+    ).toBe(zh.runtimeErrors.sshBootstrapCancelledByQuit)
     expect(zh.runtimeErrors.desktopQuitting).not.toMatch(/quitting/)
+    expect(zh.runtimeErrors.sshBootstrapCancelledByQuit).not.toMatch(/quitting/)
   })
 
   it('leaves unknown lines verbatim and maps line by line', () => {

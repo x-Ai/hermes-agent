@@ -5,6 +5,7 @@ import type { TranslationOverrides } from './define-locale'
 export const deRuntime = {
   runtimeErrors: {
     desktopQuitting: 'Hermes Desktop wird beendet.',
+    sshBootstrapCancelledByQuit: 'Der Aufbau der SSH-Verbindung wurde abgebrochen, weil Hermes Desktop beendet wird.',
     imageCopyNoDimensions: 'Das Bild hat keine Abmessungen und kann nicht kopiert werden',
     imageCopyCanvasUnavailable: 'Der Canvas-2D-Kontext ist nicht verfügbar',
     imageCopyEncodeFailed: 'Das Bild konnte nicht als PNG codiert werden',

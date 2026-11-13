@@ -2,7 +2,7 @@ import { atom } from 'nanostores'
 
 import { getRuntimeI18nLocale, runtimeTranslations, translateNow } from '@/i18n/runtime'
 import { isBackendTimeout, localizeBackendTimeout } from '@/lib/backend-timeout'
-import { isDesktopQuitting } from '@/lib/desktop-quitting'
+import { isDesktopQuitting, localizeDesktopQuitting } from '@/lib/desktop-quitting'
 import { isOutOfSyncRpcParams } from '@/lib/gateway-rpc'
 import { servedByHermesCloud } from '@/lib/hermes-cloud-host'
 import { isProviderSetupErrorMessage } from '@/lib/provider-setup-errors'
@@ -332,10 +332,11 @@ const ERROR_SUMMARIES: ErrorSummaryRule[] = [
     hideDetail: true
   },
   {
-    // A request or reconnect while quit tears the backend down fails with main's English abort reason.
+    // A request, reconnect or SSH bootstrap while quit tears the backend down fails with main's English
+    // abort reason.
     category: 'other',
     test: isDesktopQuitting,
-    summarize: () => translateNow('runtimeErrors.desktopQuitting'),
+    summarize: msg => localizeDesktopQuitting(msg, runtimeTranslations().runtimeErrors),
     hideDetail: true
   },
   {

@@ -85,6 +85,9 @@ export interface RuntimeErrorsCopy {
   /** Main's abort of every backend start once quit begins, as the user reads it (lib/desktop-quitting.ts:
    *  error toasts, the boot overlay's headline and Details). */
   desktopQuitting: string
+  /** Main's refusal of each new SSH bootstrap once quit begins (electron/ssh-bootstrap-coordinator.ts),
+   *  read the same way. */
+  sshBootstrapCancelledByQuit: string
   /** Browser-hosted Copy Image (lib/browser-image-copy.ts): why the PNG never reached the clipboard. */
   imageCopyNoDimensions: string
   imageCopyCanvasUnavailable: string

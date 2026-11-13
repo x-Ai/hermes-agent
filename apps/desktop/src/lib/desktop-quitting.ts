@@ -1,20 +1,33 @@
 import type { RuntimeErrorsCopy } from '@/i18n/types_runtime'
 
 /**
- * Once quit begins, the main process aborts every local backend start with one English sentence,
- * "Hermes Desktop is quitting." (electron/local-backend-lifecycle.ts), and the window stays up
- * through the teardown, so a request or reconnect in that window fails with it. Crash forensics and
- * the API failure log keep that English; a surface that shows it to the user reads it in the UI
- * language. It arrives bare (main's boot progress) or at the end of ipcRenderer.invoke's
- * "Error invoking remote method '…': Error: " wrap.
+ * Once quit begins, the main process stops each local backend start (electron/local-backend-lifecycle.ts)
+ * and refuses each new SSH bootstrap (electron/ssh-bootstrap-coordinator.ts) with a fixed English
+ * sentence, and the window stays up through the teardown, so a request or reconnect in that window
+ * fails with one. Crash forensics and the API failure log keep that English; a surface that shows it
+ * to the user reads it in the UI language. Each arrives bare (main's boot progress) or at the end of
+ * ipcRenderer.invoke's "Error invoking remote method '…': Error: " wrap.
  */
-const DESKTOP_QUITTING = /(?:^|:\s+)Hermes Desktop is quitting\.?$/
+const QUIT_ABORTS = [
+  [/(?:^|:\s+)Hermes Desktop is quitting\.?$/, 'desktopQuitting'],
+  [/(?:^|:\s+)SSH bootstrap was cancelled because Desktop is quitting\.?$/, 'sshBootstrapCancelledByQuit']
+] as const
 
-export function isDesktopQuitting(text: string): boolean {
-  return DESKTOP_QUITTING.test(text.trim())
+export type QuitAbortKey = (typeof QUIT_ABORTS)[number][1]
+
+function quitAbort(text: string): QuitAbortKey | null {
+  const trimmed = text.trim()
+
+  return QUIT_ABORTS.find(([pattern]) => pattern.test(trimmed))?.[1] ?? null
 }
 
-/** `text` in the UI language when it is that sentence; any other text verbatim. */
-export function localizeDesktopQuitting(text: string, copy: Pick<RuntimeErrorsCopy, 'desktopQuitting'>): string {
-  return isDesktopQuitting(text) ? copy.desktopQuitting : text
+export function isDesktopQuitting(text: string): boolean {
+  return quitAbort(text) !== null
+}
+
+/** `text` in the UI language when it is one of those sentences; any other text verbatim. */
+export function localizeDesktopQuitting(text: string, copy: Pick<RuntimeErrorsCopy, QuitAbortKey>): string {
+  const key = quitAbort(text)
+
+  return key ? copy[key] : text
 }

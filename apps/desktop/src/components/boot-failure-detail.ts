@@ -10,7 +10,7 @@
 import { TRANSLATIONS } from '@/i18n/catalog'
 import type { RuntimeErrorsCopy } from '@/i18n/types_runtime'
 import { localizeBackendTimeout } from '@/lib/backend-timeout'
-import { localizeDesktopQuitting } from '@/lib/desktop-quitting'
+import { localizeDesktopQuitting, type QuitAbortKey } from '@/lib/desktop-quitting'
 
 // use-gateway-boot.ts's mint timeouts. The overlay can change language after one is raised, so a
 // line matches in the current copy or in any bundled catalog.
@@ -18,7 +18,7 @@ const RENDERER_TIMEOUTS = ['gatewayWsUrlTimedOut', 'gatewayWsUrlRemintTimedOut']
 
 type RendererTimeout = (typeof RENDERER_TIMEOUTS)[number]
 
-type DetailCopy = Pick<RuntimeErrorsCopy, 'backendConnectTimedOut' | 'desktopQuitting' | RendererTimeout>
+type DetailCopy = Pick<RuntimeErrorsCopy, 'backendConnectTimedOut' | QuitAbortKey | RendererTimeout>
 
 function rendererTimeout(line: string, copy: DetailCopy): RendererTimeout | null {
   const text = line.trim()
