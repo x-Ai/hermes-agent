@@ -3036,6 +3036,9 @@ export const jaOverrides = {
       debugShare: 'デバッグ共有',
       debugShareDesc:
         '機密情報をマスクしたレポートとログをアップロードし、共有可能なリンクを取得します (6 時間で自動削除)',
+      debugShareConfirm: 'デバッグレポートを公開ペーストにアップロードしますか？',
+      debugShareConfirmDesc:
+        'システム情報と完全なログを公開ペーストサービスにアップロードします。機密情報はマスクされますが、最近のメッセージ、ツール出力、ファイルパスやファイル名はログに残り、リンクを知っている人なら誰でも閲覧できます。ペーストは 6 時間後に自動削除されます。paste.rs に接続できない場合は代替の dpaste.com が使われ、1 日間公開されたままとなり、早期に削除することはできません。',
       debugShareRunning: 'デバッグ レポートをアップロードしています...',
       debugShareLinks: '共有リンク',
       debugShareFailed: 'デバッグ共有が失敗しました',
@@ -4184,7 +4187,7 @@ export const jaOverrides = {
       '/topup': 'Nous の残高を表示し、請求を管理',
       '/platform': '問題のあるゲートウェイプラットフォームを一時停止、再開、一覧表示',
       '/version': 'Hermes Agent のバージョンを表示',
-      '/debug': 'デバッグレポートを作成',
+      '/debug': 'デバッグレポート（システム情報 + ログ）: まずプライバシー通知を表示し、/debug upload でリンクを共有',
       '/model': 'このセッションのモデルを切り替え'
     },
     slashGroups: {

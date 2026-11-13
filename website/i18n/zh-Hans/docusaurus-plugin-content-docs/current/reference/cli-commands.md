@@ -583,7 +583,7 @@ hermes debug share [options]
 | 选项 | 说明 |
 |--------|-------------|
 | `--lines <N>` | 每个日志文件包含的日志行数（默认：200）。 |
-| `--expire <days>` | 粘贴过期天数（默认：7）。 |
+| `--expire <days>` | dpaste.com 备用粘贴的保留天数（最少 1 天；默认：1）。paste.rs 的粘贴总会在 6 小时后删除；dpaste.com 的粘贴无法提前删除。 |
 | `--local` | 在本地打印报告而非上传。 |
 
 报告包含系统信息（操作系统、Python 版本、Hermes 版本）、近期 agent 和 gateway 日志（每文件 512 KB 限制）以及脱敏的 API 密钥状态。密钥始终脱敏——不会上传任何密钥；这也涵盖系统 dump（包括 `fallback_providers` 条目及其 URL 中的凭据）和 gateway 的 `/debug` 报告。
@@ -595,7 +595,7 @@ hermes debug share [options]
 ```bash
 hermes debug share              # 上传调试报告，打印 URL
 hermes debug share --lines 500  # 包含更多日志行
-hermes debug share --expire 30  # 粘贴保留 30 天
+hermes debug share --expire 30  # dpaste.com 备用粘贴保留 30 天
 hermes debug share --local      # 在终端打印报告（不上传）
 ```
 

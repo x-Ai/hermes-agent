@@ -784,6 +784,12 @@ export const dashboardEn = {
     redact: 'Redact credential-shaped tokens before upload (recommended)',
     generateShare: 'Generate share link',
     uploading: 'Uploading…',
+    shareConfirmTitle: 'Upload debug report to a public paste?',
+    shareConfirmRedacted:
+      'Uploads system info + full logs to a public paste service. Secrets are redacted, but your recent messages, tool output, file paths and names stay in the logs and are readable by anyone with the link. Pastes auto-delete after 6 hours; if paste.rs is unreachable, the dpaste.com fallback keeps them public for 1 day and they cannot be deleted early.',
+    shareConfirmUnredacted:
+      'Uploads system info + full logs to a public paste service. Redaction is OFF: secrets and your recent messages, tool output, file paths and names stay in the logs and are readable by anyone with the link. Pastes auto-delete after 6 hours; if paste.rs is unreachable, the dpaste.com fallback keeps them public for 1 day and they cannot be deleted early.',
+    upload: 'Upload',
     uploaded: 'uploaded',
     redacted: 'redacted',
     notRedacted: 'not redacted',
@@ -1664,6 +1670,12 @@ export const dashboardZh: DashboardCopy = {
     redact: '上传前隐藏疑似凭据的令牌（推荐）',
     generateShare: '生成共享链接',
     uploading: '上传中…',
+    shareConfirmTitle: '将调试报告上传到公开粘贴服务？',
+    shareConfirmRedacted:
+      '将系统信息和完整日志上传到公开粘贴服务，机密信息会被脱敏，但你最近的消息、工具输出、文件路径和文件名仍保留在日志中，任何持有链接的人都能查看，粘贴内容 6 小时后自动删除；若 paste.rs 无法访问，备用的 dpaste.com 会将其公开保留 1 天，且无法提前删除',
+    shareConfirmUnredacted:
+      '将系统信息和完整日志上传到公开粘贴服务，脱敏已关闭：机密信息以及你最近的消息、工具输出、文件路径和文件名都会保留在日志中，任何持有链接的人都能查看，粘贴内容 6 小时后自动删除；若 paste.rs 无法访问，备用的 dpaste.com 会将其公开保留 1 天，且无法提前删除',
+    upload: '上传',
     uploaded: '已上传',
     redacted: '已隐藏敏感信息',
     notRedacted: '未隐藏敏感信息',
