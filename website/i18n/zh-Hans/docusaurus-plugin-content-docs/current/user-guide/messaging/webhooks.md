@@ -504,6 +504,47 @@ agent 可通过 terminal 工具在 `webhook-subscriptions` skill 的引导下创
 
 ---
 
+## 按路由配置工具集 {#per-route-toolsets}
+
+Webhook 触发的 agent 运行默认使用一组刻意受限的工具集（`web_search`、`web_extract`、`vision_analyze`、`clarify`），因为 webhook payload 可能携带不受信任的第三方内容——公开 PR 的标题或 issue 评论绝不应能通过 prompt 注入进入你的 terminal。
+
+对于**受信任**的路由——例如推送系统告警的本机监控守护进程、内部 CI 系统——你可以只为该路由授予更宽的工具集，而不必放宽其他所有 webhook 路由：
+
+```yaml
+platforms:
+  webhook:
+    enabled: true
+    extra:
+      routes:
+        oom-emergency:
+          secret: "monitor-secret"
+          prompt: "Memory emergency: {detail}. Diagnose with ps/free/py-spy and report."
+          toolsets: ["terminal", "file", "code_execution", "web"]
+          deliver: "telegram"
+```
+
+对于动态订阅，请直接编辑 `~/.hermes/webhook_subscriptions.json` 来添加 `toolsets` 键：
+
+```json
+{
+  "oom-emergency": {
+    "secret": "...",
+    "prompt": "...",
+    "toolsets": ["terminal", "file", "web"],
+    "deliver": "telegram"
+  }
+}
+```
+
+行为与安全特性：
+
+- 路由列表会**替换**该路由运行时平台级的 webhook 工具集解析结果（不会合并）。显式的空列表（`toolsets: []`）同样是一种覆盖：该路由不会获得任何平台工具集和 MCP server，效果与 `platform_toolsets.webhook: []` 相同。
+- 工具集名称与 `platform_toolsets` 配置经过相同的校验流程——未知名称和受平台限制的工具集会被丢弃。
+- `hermes webhook subscribe` 刻意**不**接受工具集参数。授予高权限工具只能手动编辑配置文件，因此在运行时自行创建订阅的 agent 无法为自己授予 `terminal`。
+- 只应为发送方完全由你掌控、且配置了真实 HMAC secret 的路由授予高权限工具集。任何能向该路由 POST 有效签名 payload 的人，实际上都相当于在运行一个拥有这些工具的 agent。
+
+---
+
 ## 安全性 {#security}
 
 webhook 适配器包含多层安全机制：

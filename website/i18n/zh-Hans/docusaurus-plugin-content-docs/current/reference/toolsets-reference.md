@@ -128,6 +128,8 @@ mcp_servers:
 
 这将创建一个 `mcp-github` 工具集，可在 `--toolsets` 或平台配置中引用。
 
+在 `platform_toolsets.<platform>` 中，未列出任何 MCP server 的列表会获得所有已启用的 server，列出了 server 的列表只获得所列出的那些，`no_mcp` 则会将它们全部移除。显式的空列表（`email: []`）不会获得任何 MCP server。
+
 ### 插件工具集
 
 插件可在初始化期间通过 `ctx.register_tool()` 注册自己的工具集。这些工具集与内置工具集并列显示，可以用相同方式启用/禁用。
