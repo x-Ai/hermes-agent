@@ -431,6 +431,7 @@ _SHARED_HUBS = frozenset({
     "utils.py",
     "hermes_state.py",
     "agent/__init__.py",
+    "agent/i18n.py",  # the fork's t(): update_cmd prints localized refusals
     "cron/jobs.py",
     "tools/environments/local.py",
     # Desktop lane only (the upgrade lane owns these outright):
