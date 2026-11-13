@@ -659,7 +659,10 @@ export const arSettings = {
       showOptions: 'عرض الخيارات',
       voiceShortcutHintDesc:
         'اضبط اختصار تسجيل الصوت من الإعدادات ← اختصارات لوحة المفاتيح («بدء / إيقاف المحادثة الصوتية»). قيمة voice.record_key مخصصة لـ CLI وTUI فقط.',
-      voiceShortcutHintTitle: 'اختصار تسجيل الصوت'
+      voiceShortcutHintTitle: 'اختصار تسجيل الصوت',
+      desktopReadAloudTitle: 'قراءة الردود صوتياً في هذا التطبيق',
+      desktopReadAloudDesc:
+        'ينطق كل رد مكتمل في Desktop. هو نفس مفتاح زر حقل الكتابة؛ ينطبق على كل النوافذ المفتوحة، وإيقافه يوقف الرد أثناء قراءته. خيار «قراءة الردود صوتياً» أدناه مخصص للمراسلة وCLI.'
     },
     quickEntry: {
       enabledTitle: 'الإدخال السريع',

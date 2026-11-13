@@ -5003,6 +5003,9 @@ shared:
 # (tools/hosted_tool_policy.py and its callers). {what} is a tool name or a subject.* phrase, {tools}
 # the allowed tool names, {feature} a feature.* label. Keep tool names, MCP and stdio as written.
 tools:
+  # `/diff` (tools/working_diff.py) refusing to spawn git; {reason} is the untranslated stand-in stderr.
+  working_diff:
+    refused: "git could not be run safely for this repository ({reason})."
   hosted:
     refused: "{what} is not available to a hosted agent: {why}. A hosted agent's tools are {tools}, all run in its own sandbox."
     reason_sandbox_only: "only tools that act solely through the agent's sandbox are enabled"

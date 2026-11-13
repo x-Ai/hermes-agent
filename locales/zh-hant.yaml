@@ -4863,6 +4863,8 @@ shared:
 # tools: 模型與使用者都會讀到的工具層文字。hosted: 託管作用域的拒絕提示（tools/hosted_tool_policy.py 及其呼叫端）。
 # {what} 是工具名稱或 subject.* 片語，{tools} 是允許的工具名稱，{feature} 是 feature.* 標籤；工具名稱、MCP 與 stdio 保持原樣。
 tools:
+  working_diff:
+    refused: "無法在此儲存庫中安全執行 git（{reason}）。"
   hosted:
     refused: "「{what}」無法供託管代理使用：{why}。託管代理的工具為 {tools}，全部在它自己的沙箱中執行。"
     reason_sandbox_only: "只啟用完全透過該代理的沙箱執行操作的工具"

@@ -1107,6 +1107,8 @@ export interface Translations extends NoticeTranslations, GoalStatusTranslations
       alwaysExternalLinksDesc: string
       voiceShortcutHintTitle: string
       voiceShortcutHintDesc: string
+      desktopReadAloudTitle: string
+      desktopReadAloudDesc: string
     }
     hudModifier: {
       title: string

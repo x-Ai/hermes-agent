@@ -4862,6 +4862,8 @@ shared:
 # (tools/hosted_tool_policy.py and its callers). {what} is a tool name or a subject.* phrase, {tools}
 # the allowed tool names, {feature} a feature.* label. Keep tool names, MCP and stdio as written.
 tools:
+  working_diff:
+    refused: "이 저장소에서는 git을 안전하게 실행할 수 없어요 ({reason})."
   hosted:
     refused: "{what}은(는) 호스팅된 에이전트에서 사용할 수 없습니다: {why}. 호스팅된 에이전트의 도구는 {tools}이며, 모두 에이전트 자신의 샌드박스에서 실행됩니다."
     reason_sandbox_only: "에이전트의 샌드박스를 통해서만 동작하는 도구만 활성화되어 있습니다"

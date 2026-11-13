@@ -4864,6 +4864,8 @@ shared:
 # (tools/hosted_tool_policy.py and its callers). {what} is a tool name or a subject.* phrase, {tools}
 # the allowed tool names, {feature} a feature.* label. Keep tool names, MCP and stdio as written.
 tools:
+  working_diff:
+    refused: "git kon nie veilig in hierdie bewaarplek uitgevoer word nie ({reason})."
   hosted:
     refused: "{what} is nie beskikbaar vir 'n gehuisveste agent nie: {why}. 'n Gehuisveste agent se gereedskap is {tools}, en alles loop in sy eie sandput."
     reason_sandbox_only: "slegs gereedskap wat uitsluitlik deur die agent se sandput werk, is geaktiveer"

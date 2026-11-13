@@ -1406,6 +1406,9 @@ export const jaOverrides = {
       voiceShortcutHintTitle: '音声録音ショートカット',
       voiceShortcutHintDesc:
         '「設定 → キーボードショートカット」で音声録音ショートカット（「音声会話の開始/停止」）を設定します。voice.record_key は CLI と TUI 専用です。',
+      desktopReadAloudTitle: 'このアプリで応答を読み上げる',
+      desktopReadAloudDesc:
+        'Desktop で完了した各応答を読み上げます。入力欄のボタンと同じスイッチで、開いているすべてのウィンドウに適用され、オフにすると読み上げ中の応答も止まります。下の「応答を読み上げる」はメッセージングと CLI 用です。',
       disableF12Title: 'F12 開発ツールを無効にする',
       disableF12Desc:
         'F12 が開発者ツールを開けないようにブロックします。 Ctrl+Shift+I (または Mac の場合は Cmd+Opt+I) は引き続き機能します。',

@@ -4864,6 +4864,8 @@ shared:
 # (tools/hosted_tool_policy.py and its callers). {what} is a tool name or a subject.* phrase, {tools}
 # the allowed tool names, {feature} a feature.* label. Keep tool names, MCP and stdio as written.
 tools:
+  working_diff:
+    refused: "Níorbh fhéidir git a rith go sábháilte sa stór seo ({reason})."
   hosted:
     refused: "Níl {what} ar fáil do ghníomhaire óstáilte: {why}. Is iad {tools} uirlisí gníomhaire óstáilte, agus ritheann siad go léir ina bhosca gainimh féin."
     reason_sandbox_only: "níl cumasaithe ach na huirlisí a fheidhmíonn trí bhosca gainimh an ghníomhaire amháin"

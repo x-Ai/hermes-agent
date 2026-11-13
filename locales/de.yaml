@@ -4864,6 +4864,8 @@ shared:
 # (tools/hosted_tool_policy.py and its callers). {what} is a tool name or a subject.* phrase, {tools}
 # the allowed tool names, {feature} a feature.* label. Keep tool names, MCP and stdio as written.
 tools:
+  working_diff:
+    refused: "git konnte in diesem Repository nicht sicher ausgeführt werden ({reason})."
   hosted:
     refused: "{what} ist für einen gehosteten Agenten nicht verfügbar: {why}. Die Tools eines gehosteten Agenten sind {tools}; alle laufen in seiner eigenen Sandbox."
     reason_sandbox_only: "aktiviert sind nur Tools, die ausschließlich über die Sandbox des Agenten arbeiten"

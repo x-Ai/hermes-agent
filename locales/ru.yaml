@@ -4864,6 +4864,8 @@ shared:
 # (tools/hosted_tool_policy.py and its callers). {what} is a tool name or a subject.* phrase, {tools}
 # the allowed tool names, {feature} a feature.* label. Keep tool names, MCP and stdio as written.
 tools:
+  working_diff:
+    refused: "Не удалось безопасно запустить git в этом репозитории ({reason})."
   hosted:
     refused: "Для размещённого агента недоступно: {what}. Причина: {why}. Инструменты размещённого агента: {tools}; все они выполняются в его собственной песочнице."
     reason_sandbox_only: "включены только инструменты, которые действуют исключительно через песочницу агента"

@@ -4863,6 +4863,8 @@ shared:
 # (tools/hosted_tool_policy.py and its callers). {what} is a tool name or a subject.* phrase, {tools}
 # the allowed tool names, {feature} a feature.* label. Keep tool names, MCP and stdio as written.
 tools:
+  working_diff:
+    refused: "تعذّر تشغيل git بأمان في هذا المستودع ({reason})."
   hosted:
     refused: "{what} غير متاح لوكيل مستضاف: {why}. أدوات الوكيل المستضاف هي {tools}، وجميعها تعمل في صندوق الرمل الخاص به."
     reason_sandbox_only: "لا تُفعَّل إلا الأدوات التي تعمل حصريًا عبر صندوق رمل الوكيل"

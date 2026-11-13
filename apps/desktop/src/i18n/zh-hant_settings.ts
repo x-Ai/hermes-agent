@@ -869,7 +869,10 @@ export const zhHantSettings = {
         '點擊連結時一律使用系統瀏覽器開啟，而不是應用程式內瀏覽器。右鍵選單中的「在應用程式內瀏覽器中開啟」仍然可用',
       voiceShortcutHintTitle: '語音錄製快捷鍵',
       voiceShortcutHintDesc:
-        '請在「設定 → 鍵盤快捷鍵」中設定語音錄製快捷鍵（「開始/停止語音對話」）。voice.record_key 設定值僅適用於 CLI 和 TUI'
+        '請在「設定 → 鍵盤快捷鍵」中設定語音錄製快捷鍵（「開始/停止語音對話」）。voice.record_key 設定值僅適用於 CLI 和 TUI',
+      desktopReadAloudTitle: '在此應用程式中朗讀回覆',
+      desktopReadAloudDesc:
+        '在 Desktop 中朗讀每則完成的回覆。與輸入框按鈕是同一個開關；對所有開啟的視窗生效，關閉後會立即停止正在朗讀的回覆。下方的「朗讀回覆」用於訊息平台和 CLI。'
     },
     quickEntry: {
       enabledTitle: '快速輸入',
