@@ -264,8 +264,9 @@ Hermes 会在执行器或调度提供程序分派之前，将每次已领取的 
 | `"origin"` | 回传到任务创建的来源 | 消息平台上的默认值 |
 | `"local"` | 仅保存到本地文件（`~/.hermes/cron/output/`） | CLI 上的默认值 |
 | `"telegram"` | Telegram 主频道 | 使用 `TELEGRAM_HOME_CHANNEL` |
-| `"telegram:123456"` | 按 ID 指定的 Telegram 会话 | 直接投递 |
+| `"telegram:123456"` | 按 ID 指定的 Telegram 会话 | 直接投递；若目标正是任务自身的来源聊天，则保留创建任务时所在的话题（仅限 Telegram 和 Slack） |
 | `"telegram:-100123:17585"` | 指定 Telegram 话题 | `chat_id:thread_id` 格式 |
+| `"telegram:-100123:1"` | 论坛的 General 话题 | 即使任务是在某个话题中创建的，也发布到顶层 |
 | `"discord"` | Discord 主频道 | 使用 `DISCORD_HOME_CHANNEL` |
 | `"discord:#engineering"` | 按频道名指定的 Discord 频道 | 按频道名 |
 | `"slack"` | Slack 主频道 | |

@@ -240,7 +240,11 @@ description: "Hermes Agent 使用的所有环境变量完整参考"
 | `TELEGRAM_CRON_THREAD_ID` | 接收 cron 投递的论坛话题 ID；仅对 cron 覆盖 `TELEGRAM_HOME_CHANNEL_THREAD_ID`。在话题模式下使用，使 cron 消息的回复开启新会话而非进入系统大厅（#24409）。 |
 | `TELEGRAM_WEBHOOK_URL` | webhook 模式的公共 HTTPS URL（启用 webhook 而非轮询） |
 | `TELEGRAM_WEBHOOK_PORT` | webhook 服务器本地监听端口（默认：`8443`） |
+| `TELEGRAM_WEBHOOK_HOST` | webhook 服务器的本地绑定地址。默认：未设置 → 在所有网络接口上进行双栈绑定（IPv4+IPv6）。在仅支持 IPv6 的部署（例如 Fly.io 6PN）上请显式设置。等同于 `platforms.telegram.extra.webhook_host`。 |
 | `TELEGRAM_WEBHOOK_SECRET` | Telegram 在每次更新中回传的密钥 token，用于验证。**设置 `TELEGRAM_WEBHOOK_URL` 时必填**——未设置时 gateway 拒绝启动（GHSA-3vpc-7q5r-276h）。使用 `openssl rand -hex 32` 生成。 |
+| `TELEGRAM_ALLOW_BOTS` | 是否处理来自其他 bot 的消息（`none` = 拒绝所有 bot 消息，`mentions` = 仅在 @mention 本 bot 时允许，`all` = 允许所有 bot 消息；默认：`none`）。等同于 `telegram.allow_bots`。 |
+| `TELEGRAM_GUEST_MODE` | 让非白名单群组只能通过显式 @mention 触发 bot，且每轮都需要 mention（默认：`false`）。等同于 `telegram.guest_mode`。 |
+| `TELEGRAM_OBSERVE_UNMENTIONED_GROUP_MESSAGES` | 被动观察未 mention bot 的群组消息，并将其写入共享会话上下文；仅限白名单聊天/话题（默认：`false`）。等同于 `telegram.observe_unmentioned_group_messages`。 |
 | `TELEGRAM_REACTIONS` | 处理期间在消息上启用 emoji 反应（默认：`false`） |
 | `TELEGRAM_REQUIRE_MENTION` | 在 Telegram 群组中响应前要求显式触发。等同于 `config.yaml` 中的 `telegram.require_mention`。 |
 | `TELEGRAM_MENTION_PATTERNS` | 启用 Telegram 群组 mention 门控时接受的正则唤醒词模式，JSON 数组、换行分隔列表或逗号分隔列表。等同于 `telegram.mention_patterns`。 |

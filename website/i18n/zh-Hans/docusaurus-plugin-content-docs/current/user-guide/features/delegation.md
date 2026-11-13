@@ -346,7 +346,8 @@ delegation:
   # orchestrator_enabled: true              # Disable to force all children to leaf role.
   # resumable_ttl_hours: 48                 # 重启后已停止的子智能体保持可继续的时长，期间保留其 worktree
   # max_resumable: 32                       # 每个 profile 中保留 worktree 的可恢复子智能体数量（最旧的先解除固定）
-  # auto_resume: false                      # 选择启用：无需询问即自动恢复此类子智能体
+  # auto_resume: false                      # 选择启用：gateway 自行恢复因限额/重启而停止的子智能体（会在无人值守时消耗 token）
+  # auto_resume_deadline_minutes: 360       # 自子智能体首次停止起超过这段时间即放弃（向父智能体发送一条失败通知）
   model: "google/gemini-3-flash-preview"             # Optional provider/model override
   provider: "openrouter"                             # Optional built-in provider
   api_mode: anthropic_messages                       # optional; auto-detected from base_url for anthropic_messages endpoints

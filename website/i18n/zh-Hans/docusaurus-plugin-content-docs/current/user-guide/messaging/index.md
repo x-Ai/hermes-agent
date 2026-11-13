@@ -493,6 +493,8 @@ launchd plist 是静态的——如果你在配置网关后安装了新工具（
 
 当网关重启（或在有进行中会话时关闭）时，它可以向每个平台的主频道发送一条"agent 已恢复"/"agent 被中断"的一次性消息。这由 `config.yaml` 中每个平台的 `gateway_restart_notification` 标志控制，默认为 `true`：
 
+"正在关闭"和"已上线"这两条主频道通知总是成对出现：一旦某个主聊天被告知网关即将关闭，下次启动时就会告知它已重新上线，无论是什么导致了停止（`/restart`、`hermes gateway restart`，或 `systemctl restart` 等服务管理器）。`--replace` 接管时两条都不会发送，因为接替的网关会继续提供服务。当网关在短时间内被反复停止（重启循环）时，它最多发送 `gateway.restart_loop_guard.max_restarts` 条关闭通知（默认 3 条；只要相邻两次停止的间隔保持在 `max_gap_seconds` 以内，就计入同一串），之后保持安静，直到网关能够稳定运行为止。会话自动恢复的重启循环熔断器也使用同样的设置。
+
 使用包含 `platform` 和 `chat_id` 的 `home_channel` 对象配置通知目标：
 
 ```yaml

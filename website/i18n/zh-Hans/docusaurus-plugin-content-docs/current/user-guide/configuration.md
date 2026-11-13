@@ -1743,7 +1743,8 @@ delegation:
   orchestrator_enabled: true                # 全局终止开关。为 false 时，role="orchestrator" 被忽略，每个子级无论 max_spawn_depth 如何都被强制为叶子。
   resumable_ttl_hours: 48                   # 因重启、崩溃或 provider 故障而停止的子 agent 在这段时间内保持可继续（delegate_task action=continue），其 worktree 也不会被启动时的清理移除。
   max_resumable: 32                         # 每个 profile 最多有多少个此类子 agent 的 worktree 保持固定；超出上限时最旧的先失去固定（记录保留）。
-  auto_resume: false                        # 选择启用：自动恢复此类子 agent。关闭 = 由您手动继续它们。
+  auto_resume: false                        # 选择启用：gateway 会自动恢复因限额（在限额重置时）或因重启/崩溃而停止的子 agent，每个最多两次，且静默进行（等待期间不发送完成消息；参见 delegate_task list），直到您停止它、执行 /stop 或 /new。会在无人值守时消耗 token。关闭 = 由您手动继续它们。
+  auto_resume_deadline_minutes: 360         # 启用 auto_resume 时：自子 agent 首次停止起超过这段时间即放弃，并向父 agent 发送一条失败通知。
 ```
 
 **子 agent provider:model 覆盖：** 默认情况下，子 agent 继承父 agent 的 provider 和模型。设置 `delegation.provider` 和 `delegation.model` 将子 agent 路由到不同的 provider:model 对 —— 例如，在您的主 agent 运行昂贵推理模型时，为范围较窄的子任务使用便宜/快速的模型。
