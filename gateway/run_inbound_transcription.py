@@ -89,6 +89,56 @@ def _take_gate_transcript(path: str) -> Optional[str]:
         return _GATE_TRANSCRIPTS.pop(key, None)
 
 
+# Clips a busy follow-up already transcribed before native admission, by the MESSAGE that carried
+# them (profile, platform, chat, message id) and clip content → (transcript, whether the chat was
+# shown its echo). The FIFO turn restores a fresh event (a re-captured clip, no
+# ``_gateway_pending_stt_*``) but keeps the chat and message id, so it reuses that transcript and
+# skips a shown echo (#152457). The same clip forwarded into another chat is another message: it is
+# transcribed and echoed there as usual and never consumes this one's record.
+_HANDED_OFF: OrderedDict[tuple, tuple[str, bool]] = OrderedDict()
+
+
+def _echo_key(event, path: str) -> Optional[tuple]:
+    source = getattr(event, "source", None)
+    message_id = getattr(event, "message_id", None)
+    if source is None or not message_id or (key := _gate_key(path)) is None:
+        return None  # no message identity: never hand a transcript or an echo to another turn
+    platform = getattr(getattr(source, "platform", None), "value", None)
+    return (key[0], platform, str(source.chat_id), str(message_id), key[1])
+
+
+def hand_prepared_voice_to_turn(event) -> None:
+    """Hand a busy follow-up's per-clip transcripts (``_gateway_pending_stt_clips``) to the turn
+    native admission restores for the same message, noting whether the chat was shown each."""
+    clip_memo = getattr(event, "_gateway_pending_stt_clips", None) or {}
+    done = [(path, transcript) for path, (transcript, _note) in clip_memo.items() if transcript is not None]
+    # Transcript indices whose busy echo the platform accepted (``done`` follows the transcripts' order).
+    shown = getattr(event, "_gateway_pending_stt_shown", None) or ()
+    records = [(key, (transcript, index in shown)) for index, (path, transcript) in enumerate(done)
+               if (key := _echo_key(event, path)) is not None]
+    with _GATE_TRANSCRIPTS_LOCK:
+        for key, record in records:
+            _HANDED_OFF[key] = record
+            while len(_HANDED_OFF) > _GATE_TRANSCRIPTS_MAX:
+                _HANDED_OFF.popitem(last=False)
+
+
+def take_handed_off_clips(event, paths: list[str]) -> dict[str, tuple[str, bool]]:
+    """The *paths* of *event* its busy pass already transcribed → ``(transcript, echo shown)``
+    (consumed: one turn reuses them)."""
+    if not _HANDED_OFF:
+        return {}
+    keys = {path: _echo_key(event, path) for path in paths}
+    found = {}
+    with _GATE_TRANSCRIPTS_LOCK:
+        for path, key in keys.items():
+            if key is not None and key in _HANDED_OFF:
+                found[path] = _HANDED_OFF[key]
+        for path in found:
+            _HANDED_OFF.pop(keys[path], None)
+    return found
+
+
 def transcript_note(transcript: str, path: str) -> str:
     """The turn's note for a transcribed clip at *path* (the clip the turn holds, never the gate's).
     A plain quoted line: a "The user sent a voice message..." wrapper read as a meta-instruction and
@@ -155,6 +205,26 @@ class GatewayInboundTranscriptionMixin:
             user_text = self._prepend_media_prefix("\n\n".join(enriched_parts), user_text)
         return user_text, successful_transcripts
 
+    async def _enrich_inbound_voice(
+        self, event, source, message_text: str, audio_paths: list[str]
+    ) -> str:
+        handed = await asyncio.to_thread(take_handed_off_clips, event, audio_paths)  # paid when it arrived busy
+        shown = {path for path, (_transcript, was_shown) in handed.items() if was_shown}
+        clips: dict = {path: (transcript, transcript_note(transcript, path)) for path, (transcript, _s) in handed.items()}
+        message_text, _ = await self._enrich_message_with_transcription(message_text, audio_paths, clips)
+        # ``clips`` holds each clip once, in order (enrichment dedupes repeated paths and bytes).
+        _successful_transcripts = [transcript for path, (transcript, _note) in clips.items()
+                                   if transcript is not None and path not in shown]
+        # Echo each successful transcript back immediately when configured so users can verify STT
+        # quality in real time. On transcription failure do NOT send a hardcoded notice: that
+        # bypassed the LLM and produced two replies; enrichment leaves one neutral marker instead.
+        if _successful_transcripts and self._should_echo_stt_transcripts():
+            _echo_adapter = self._delivery_adapter_for(source)
+            if _echo_adapter:
+                _echo_meta = self._thread_metadata_for_source(source, self._reply_anchor_for_event(event))
+                await self._echo_stt_transcripts(_echo_adapter, source, _successful_transcripts, metadata=_echo_meta)
+        return message_text
+
     def _pending_event_audio_paths(self, event) -> list[str]:
         """Return STT-eligible paths from a pending voice message."""
         from gateway.run import _event_media_is_stt_input
@@ -178,8 +248,9 @@ class GatewayInboundTranscriptionMixin:
         # Per-clip results outlive the merged-event cache below (a merge drops only that), so every
         # re-run — this loop's or the drain path's — transcribes just the newly merged clips.
         clip_memo = getattr(event, "_gateway_pending_stt_clips", None)
-        if clip_memo is None:
-            clip_memo = {}
+        if clip_memo is None:  # a restored turn that lands on a busy session again reuses its hand-off
+            handed = await asyncio.to_thread(take_handed_off_clips, event, audio_paths)
+            clip_memo = {path: (tx, transcript_note(tx, path)) for path, (tx, _shown) in handed.items()}
             event._gateway_pending_stt_clips = clip_memo
         enriched_text, successful_transcripts = await self._enrich_message_with_transcription(text, audio_paths, clip_memo)
         # A voice note merged in during the await dropped a cache that did not exist yet; re-run on
@@ -205,10 +276,17 @@ class GatewayInboundTranscriptionMixin:
         if not transcripts or not self._should_echo_stt_transcripts() or adapter is None:
             return
         already_echoed = int(getattr(event, "_gateway_pending_stt_echoed", 0) or 0)
-        event._gateway_pending_stt_echoed = max(already_echoed, len(transcripts))
-        await self._echo_stt_transcripts(
-            adapter, source, transcripts[already_echoed:], metadata=metadata, log_context=log_context,
-        )
+        tail = transcripts[already_echoed:]
+        event._gateway_pending_stt_echoed = max(already_echoed, len(transcripts))  # claimed before the await
+        # A refused echo (flood control, dead transport) was never shown: record each accepted one, so
+        # the turn native admission restores echoes exactly the clips still owed. Every clip is tried:
+        # a steered message has no later turn to make up a skipped echo.
+        shown = event._gateway_pending_stt_shown = set(getattr(event, "_gateway_pending_stt_shown", None) or ())
+        for index, transcript in enumerate(tail, start=already_echoed):
+            if await self._echo_stt_transcripts(
+                adapter, source, [transcript], metadata=metadata, log_context=log_context,
+            ):
+                shown.add(index)
 
     async def _transcribe_and_echo_pending_voice(
         self, event, adapter, source, text: str, *, log_context: str, metadata=_UNSET

@@ -415,6 +415,16 @@ export function aliasIdentityFor(bot: Partial<RosterRow> | null | undefined): Al
   return entry && entry.name !== String(bot?.name || '').trim() ? entry : null
 }
 
+/** The metadata record of the configured alias claiming this row, if any. */
+export function aliasMetaFor<T extends BotMeta>(
+  bot: Partial<RosterRow> | null | undefined,
+  metaByName: Record<string, T>
+): T | undefined {
+  const key = aliasIdentityFor(bot)?.metaKeys.find(metaKey => metaByName?.[metaKey])
+
+  return key ? metaByName[key] : undefined
+}
+
 // Bot metadata is scoped to the active gateway until the server exposes a
 // union of rich profile rows. Never paint that metadata onto a thin row from
 // another source: two `default` agents must not borrow each other's title,
@@ -435,17 +445,7 @@ export function botRosterMeta(bot: RosterRow, metaByName: Record<string, BotMeta
       return direct
     }
 
-    const alias = aliasIdentityFor(bot)
-
-    if (alias) {
-      for (const key of alias.metaKeys) {
-        if (metaByName?.[key]) {
-          return metaByName[key]
-        }
-      }
-    }
-
-    return direct
+    return aliasMetaFor(bot, metaByName) || direct
   }
 
   const own = metaByName?.[bot?.name]
@@ -454,17 +454,7 @@ export function botRosterMeta(bot: RosterRow, metaByName: Record<string, BotMeta
     return own
   }
 
-  const alias = aliasIdentityFor(bot)
-
-  if (alias) {
-    for (const key of alias.metaKeys) {
-      if (metaByName?.[key]) {
-        return metaByName[key]
-      }
-    }
-  }
-
-  return own
+  return aliasMetaFor(bot, metaByName) || own
 }
 
 type TranscriptEntry = { from?: GroupMessageAuthor } | null | undefined
