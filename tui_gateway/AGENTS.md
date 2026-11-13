@@ -43,7 +43,10 @@ fast for it instead of stalling the agent for the deadline. A client also announ
 (`i18n.client_locale`, Desktop: on connect and on every locale change); the claim lives with the transport
 (`client_locale.py`) and is bound into `agent.i18n` around every RPC body on that connection, copied onto
 the session at `prompt.submit` and rebound for the turn thread and `_session_profile_runtime_scope`
-bodies, so `_t()` copy follows the screen ahead of the profile's `display.language`. Desktop reaches the same server over WebSocket
+bodies, so `_t()` copy follows the screen ahead of the profile's `display.language`. On the owner's
+socket the authority answers the verb -32601, the legacy fallback records the claim, and
+`ws.py::_dispatch_request` binds it around the authority's bodies too (their replies, and the tasks they
+spawn such as the low-disk notice a resume posts). Desktop reaches the same server over WebSocket
 via `apps/shared` (`JsonRpcGatewayClient`, `onRequest`). New RPC = a new `methods_<topic>.py` or an entry
 in an existing topical sibling, registered in the table — no `if method == ...` chain (root shape rules).
 

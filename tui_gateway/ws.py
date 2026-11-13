@@ -388,14 +388,20 @@ def _authority_connection(ws: Any, transport: WSTransport, auth_identity: dict |
 async def _dispatch_request(authority_connection: Any, req: Any, req_method: Any, transport: WSTransport) -> Any:
     """One request through the authority when attached, else the legacy dispatcher. A request from the
     local Desktop runs as work for it (the welcome trial and onboarding key on that), and so do the
-    threads it hands off to: ``to_thread`` and the legacy pool copy this context."""
+    threads it hands off to: ``to_thread`` and the legacy pool copy this context. It also runs in the
+    language this socket's client announced (``i18n.client_locale``, recorded by the legacy fallback
+    below), as ``rpc_dispatch`` binds a legacy body: the authority's replies and the work its bodies
+    spawn (the low-disk notice ``session.resume`` posts) follow the screen, not the profile's unset
+    ``display.language``."""
     from hermes_cli.process_identity import serving_local_desktop
+    from tui_gateway.client_locale import client_language_scope, client_locale
     from tui_gateway.server_requests import resolve_pinned_response
     if authority_connection is not None and resolve_pinned_response(req, transport):
         # The answer to a request a sidecar RPC sent back to THIS socket (vault.preview.fill's page
         # scripts); the authority's own registry never holds those ids.
         return None
-    with serving_local_desktop(getattr(transport, "desktop_local", False)):
+    with (serving_local_desktop(getattr(transport, "desktop_local", False)),
+          client_language_scope(client_locale(transport))):
         if authority_connection is None:
             return await asyncio.to_thread(server.dispatch, req, transport)
         resp = await authority_connection.dispatch(req)
