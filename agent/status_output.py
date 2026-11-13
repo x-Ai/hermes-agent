@@ -7,6 +7,7 @@ Extracted from ``run_agent.py``; every method resolves through ``AIAgent``'s MRO
 import logging
 import sys
 
+from agent.context_engine import CompactionProgressText
 from agent.i18n import t
 from agent.session_activity import ActivityProvenance
 
@@ -15,17 +16,26 @@ logger = logging.getLogger("run_agent")
 
 
 class WireStatus(str):
-    """A status line whose English text is a wire contract — gateway/run.py's noise regexes,
-    tui_gateway's compaction re-tagging and the Desktop's wait-frame parser classify it by text —
-    carrying the catalog rendering (``display``) that the CLI prints and the Desktop log shows.
-    ``status_callback`` receives the English; ``_vprint`` shows ``display``."""
+    """A status line whose English text is a wire contract — gateway/run.py's noise regexes and the
+    Desktop's wait-frame parser classify it by text — carrying the catalog rendering (``display``)
+    that the CLI prints and the Desktop log shows. ``status_callback`` receives the English;
+    ``_vprint`` shows ``display``. Wrapping a producer-marked ``CompactionProgressText`` keeps the
+    mark (gateways re-tag only marked lines ``compacting``): the result is a
+    :class:`CompactionProgressWireStatus`."""
 
     __slots__ = ("display",)
 
     def __new__(cls, wire: str, display: str):
-        obj = super().__new__(cls, wire)
+        marked = cls is WireStatus and isinstance(wire, CompactionProgressText)
+        obj = str.__new__(CompactionProgressWireStatus if marked else cls, wire)
         obj.display = display
         return obj
+
+
+class CompactionProgressWireStatus(CompactionProgressText, WireStatus):
+    """Compaction progress (``kind="compacting"`` for viewers) printed in the user's language."""
+
+    __slots__ = ()
 
 
 def _display_text(message) -> str | None:

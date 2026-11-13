@@ -1,12 +1,15 @@
 """Status lines whose English text is a wire contract print in the user's language.
 
 The compaction, compressed-N-times and auto-recovery lines are classified by their English
-text (gateway/run.py noise regexes, tui_gateway re-tagging, the Desktop wait-frame parser), so
-the producers send a ``WireStatus``: ``status_callback`` keeps the English, the CLI print and
-the Desktop log show the catalog rendering (fork catalogs, 17 languages).
+text (gateway/run.py noise regexes, the Desktop wait-frame parser), so the producers send a
+``WireStatus``: ``status_callback`` keeps the English, the CLI print and the Desktop log show
+the catalog rendering (fork catalogs, 17 languages). Viewers' ``compacting`` re-tag reads the
+producer's ``CompactionProgressText`` mark instead, which the rendering keeps.
 """
 
 from __future__ import annotations
+
+from types import SimpleNamespace
 
 import pytest
 
@@ -115,6 +118,51 @@ def test_ladder_notice_display_is_localized_while_the_wire_stays_english(zh):
     cron = type("A", (), {"platform": "cron"})()
     assert ladder_notice(cron, wait_s=18, cycle=1, total=5).endswith("(cycle 1/5)")
     assert CJK.search(ladder_notice_display(cron, wait_s=18, cycle=1, total=5))
+
+
+def test_a_localized_compaction_line_keeps_its_progress_mark():
+    """Gateways re-tag only producer-marked lines ``compacting``; the catalog rendering keeps the mark,
+    and a warning's rendering stays unmarked, so it keeps the kind it was sent with."""
+    from agent.context_engine import CompactionProgressText
+    from agent.conversation_compression import COMPACTION_HEARTBEAT_STATUS, compaction_status_kind
+
+    agent = _Agent()
+    for wire in (COMPACTION_STATUS, COMPACTION_HEARTBEAT_STATUS):
+        status = WireStatus(wire, "🗜️ 正在压缩上下文")
+        assert isinstance(status, CompactionProgressText) and status == wire
+        assert status.display == "🗜️ 正在压缩上下文"
+        agent._emit_status(status)
+
+    assert agent.printed == ["🗜️ 正在压缩上下文"] * 2
+    assert [compaction_status_kind(kind, text) for kind, text in agent.wire] == ["compacting"] * 2
+    warning = WireStatus("⚠️  Session compressed 3 times — accuracy may degrade. Consider /new to start fresh.",
+                         "⚠️  会话已压缩 3 次")
+    assert not isinstance(warning, CompactionProgressText)
+    assert compaction_status_kind("lifecycle", warning) == "lifecycle"
+    assert compaction_status_kind("warn", warning) == "warn"
+
+
+def test_manual_compress_heartbeat_and_codex_compaction_reach_viewers_as_compacting(zh, monkeypatch):
+    """The producers that print the catalog rendering still open the viewers' compaction phase."""
+    from agent.codex_runtime import _record_codex_app_server_compaction
+    from agent.conversation_compression import (
+        COMPACTION_HEARTBEAT_STATUS,
+        _announce_compression_start,
+        _CompressionActivityHeartbeat,
+        compaction_status_kind,
+    )
+
+    monkeypatch.setattr("agent.compaction_events.publish_provider_native", lambda _agent: None)
+    agent = _Agent()
+    agent.session_id, agent.model, agent.context_compressor = "s1", "test-model", None
+
+    _announce_compression_start(agent, message_count=12, approx_tokens=1_000, focus_topic=None, force=True)
+    _CompressionActivityHeartbeat(agent, emit_client_status=True)._emit_progress_status()
+    assert _record_codex_app_server_compaction(agent, SimpleNamespace(compacted=True, thread_id="t", turn_id="u"))
+
+    assert [text for _kind, text in agent.wire] == [COMPACTION_STATUS, COMPACTION_HEARTBEAT_STATUS, COMPACTION_STATUS]
+    assert [compaction_status_kind(kind, text) for kind, text in agent.wire] == ["compacting"] * 3
+    assert len(agent.printed) == 3 and all(CJK.search(line) for line in agent.printed)
 
 
 def test_compaction_copy_renders_in_chinese_with_the_glyph(zh):
