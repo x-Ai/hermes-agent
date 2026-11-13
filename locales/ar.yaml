@@ -4873,6 +4873,8 @@ shared:
 tools:
   working_diff:
     refused: "تعذّر تشغيل git بأمان في هذا المستودع ({reason})."
+  skill_manager:
+    scan_incomplete: "تعذّر إكمال الفحص الأمني، لذا حُظرت هذه المهارة: {error}"
   hosted:
     refused: "{what} غير متاح لوكيل مستضاف: {why}. أدوات الوكيل المستضاف هي {tools}، وجميعها تعمل في صندوق الرمل الخاص به."
     reason_sandbox_only: "لا تُفعَّل إلا الأدوات التي تعمل حصريًا عبر صندوق رمل الوكيل"

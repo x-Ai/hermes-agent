@@ -4874,6 +4874,8 @@ shared:
 tools:
   working_diff:
     refused: "Impossibile eseguire git in modo sicuro in questo repository ({reason})."
+  skill_manager:
+    scan_incomplete: "Impossibile completare la scansione di sicurezza, quindi questa skill è stata bloccata: {error}"
   hosted:
     refused: "{what} non è disponibile per un agente ospitato: {why}. Gli strumenti di un agente ospitato sono {tools}, tutti eseguiti nella sua sandbox."
     reason_sandbox_only: "sono abilitati solo gli strumenti che agiscono esclusivamente tramite la sandbox dell'agente"

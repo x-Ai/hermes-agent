@@ -22,6 +22,7 @@ import hermes_yaml as yaml
 from hermes_constants import get_hermes_home
 from utils import atomic_write_text, is_truthy_value
 from hermes_cli.config import cfg_get
+from agent.i18n import t as _t
 from agent.skill_utils import (
     extract_skill_description,
     is_skill_description_truncated_for_prompt,
@@ -59,8 +60,10 @@ def _security_scan_skill(skill_dir: Path) -> Optional[str]:
             logger.warning("Agent-created skill blocked (dangerous findings): %s", reason)
         if allowed is not True:
             return f"Security scan blocked this skill ({reason}):\n{format_scan_report(result)}"
-    except Exception as e:
+    except Exception as e:  # the guard is on: a scan that cannot finish must not allow the write
         logger.warning("Security scan failed for %s: %s", skill_dir, e, exc_info=True)
+        # The model and the user both read this tool error: catalog copy, the exception text verbatim.
+        return _t("tools.skill_manager.scan_incomplete", error=e)
     return None
 
 

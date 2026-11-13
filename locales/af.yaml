@@ -4874,6 +4874,8 @@ shared:
 tools:
   working_diff:
     refused: "git kon nie veilig in hierdie bewaarplek uitgevoer word nie ({reason})."
+  skill_manager:
+    scan_incomplete: "Die sekuriteitskandering kon nie voltooi word nie, dus is hierdie vaardigheid geblokkeer: {error}"
   hosted:
     refused: "{what} is nie beskikbaar vir 'n gehuisveste agent nie: {why}. 'n Gehuisveste agent se gereedskap is {tools}, en alles loop in sy eie sandput."
     reason_sandbox_only: "slegs gereedskap wat uitsluitlik deur die agent se sandput werk, is geaktiveer"

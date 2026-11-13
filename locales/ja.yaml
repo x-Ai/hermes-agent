@@ -4872,6 +4872,8 @@ shared:
 tools:
   working_diff:
     refused: "このリポジトリでは git を安全に実行できませんでした（{reason}）。"
+  skill_manager:
+    scan_incomplete: "セキュリティスキャンを完了できなかったため、このスキルをブロックしました: {error}"
   hosted:
     refused: "{what} はホストされたエージェントでは利用できません: {why}。ホストされたエージェントのツールは {tools} で、すべてエージェント自身のサンドボックスで実行されます"
     reason_sandbox_only: "有効なのは、エージェントのサンドボックスだけを通じて動作するツールのみです"

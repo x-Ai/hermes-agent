@@ -5199,6 +5199,8 @@ shared:
 tools:
   working_diff:
     refused: "Impossible d'exécuter git en toute sécurité dans ce dépôt ({reason})."
+  skill_manager:
+    scan_incomplete: "L'analyse de sécurité n'a pas pu aboutir, cette skill a donc été bloquée : {error}"
   hosted:
     refused: "{what} n'est pas disponible pour un agent hébergé : {why}. Les outils d'un agent hébergé sont {tools}, tous exécutés dans son propre bac à sable."
     reason_sandbox_only: "seuls les outils qui agissent uniquement via le bac à sable de l'agent sont activés"

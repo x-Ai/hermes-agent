@@ -4872,6 +4872,8 @@ shared:
 tools:
   working_diff:
     refused: "이 저장소에서는 git을 안전하게 실행할 수 없어요 ({reason})."
+  skill_manager:
+    scan_incomplete: "보안 검사를 완료하지 못해 이 스킬을 차단했어요: {error}"
   hosted:
     refused: "{what}은(는) 호스팅된 에이전트에서 사용할 수 없습니다: {why}. 호스팅된 에이전트의 도구는 {tools}이며, 모두 에이전트 자신의 샌드박스에서 실행됩니다."
     reason_sandbox_only: "에이전트의 샌드박스를 통해서만 동작하는 도구만 활성화되어 있습니다"

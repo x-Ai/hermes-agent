@@ -4878,6 +4878,8 @@ shared:
 tools:
   working_diff:
     refused: "无法在此仓库中安全运行 git（{reason}）"
+  skill_manager:
+    scan_incomplete: "安全扫描未能完成，因此已阻止此技能：{error}"
   hosted:
     refused: "“{what}”对托管代理不可用：{why}，托管代理的工具为 {tools}，全部在它自己的沙箱中运行"
     reason_sandbox_only: "只启用了完全通过该代理的沙箱执行操作的工具"

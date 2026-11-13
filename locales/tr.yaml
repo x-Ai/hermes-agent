@@ -4873,6 +4873,8 @@ shared:
 tools:
   working_diff:
     refused: "git bu depoda güvenli şekilde çalıştırılamadı ({reason})."
+  skill_manager:
+    scan_incomplete: "Güvenlik taraması tamamlanamadı, bu nedenle bu skill engellendi: {error}"
   hosted:
     refused: "{what}, barındırılan bir ajan için kullanılamaz: {why}. Barındırılan bir ajanın araçları şunlardır: {tools}; hepsi ajanın kendi sanal alanında çalışır."
     reason_sandbox_only: "yalnızca tamamen ajanın sanal alanı üzerinden çalışan araçlar etkindir"

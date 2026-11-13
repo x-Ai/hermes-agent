@@ -4874,6 +4874,8 @@ shared:
 tools:
   working_diff:
     refused: "Níorbh fhéidir git a rith go sábháilte sa stór seo ({reason})."
+  skill_manager:
+    scan_incomplete: "Níorbh fhéidir an scanadh slándála a chur i gcrích, mar sin cuireadh bac ar an scil seo: {error}"
   hosted:
     refused: "Níl {what} ar fáil do ghníomhaire óstáilte: {why}. Is iad {tools} uirlisí gníomhaire óstáilte, agus ritheann siad go léir ina bhosca gainimh féin."
     reason_sandbox_only: "níl cumasaithe ach na huirlisí a fheidhmíonn trí bhosca gainimh an ghníomhaire amháin"

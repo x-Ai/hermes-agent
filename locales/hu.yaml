@@ -4892,6 +4892,8 @@ shared:
 tools:
   working_diff:
     refused: "A git nem futtatható biztonságosan ebben a tárolóban ({reason})."
+  skill_manager:
+    scan_incomplete: "A biztonsági vizsgálatot nem sikerült befejezni, ezért ez a skill blokkolva lett: {error}"
   hosted:
     refused: "{what} nem érhető el hosztolt ügynök számára: {why}. A hosztolt ügynök eszközei: {tools}; mind az ügynök saját homokozójában futnak."
     reason_sandbox_only: "csak azok az eszközök engedélyezettek, amelyek kizárólag az ügynök homokozóján keresztül működnek"

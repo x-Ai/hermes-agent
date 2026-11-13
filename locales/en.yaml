@@ -5014,6 +5014,11 @@ tools:
   # `/diff` (tools/working_diff.py) refusing to spawn git; {reason} is the untranslated stand-in stderr.
   working_diff:
     refused: "git could not be run safely for this repository ({reason})."
+  # skill_manage (tools/skill_manager_tool.py): the opt-in post-write security scan
+  # (skills.guard_agent_created) could not finish, so the write was refused; {error} is the
+  # untranslated exception text.
+  skill_manager:
+    scan_incomplete: "Security scan could not complete, so this skill was blocked: {error}"
   hosted:
     refused: "{what} is not available to a hosted agent: {why}. A hosted agent's tools are {tools}, all run in its own sandbox."
     reason_sandbox_only: "only tools that act solely through the agent's sandbox are enabled"
