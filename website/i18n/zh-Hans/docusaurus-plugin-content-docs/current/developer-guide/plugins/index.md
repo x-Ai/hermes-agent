@@ -431,7 +431,7 @@ skill_view("my-workflow")              # → 内置版本（不受影响）
 
 ### 用 Hermes 自己的辅助函数检查文件路径和读取 YAML
 
-如果插件要读写由模型选定的路径（附件、导出目标、待摘要的文件），就应当拒绝 Hermes 自身文件工具会拒绝的那些路径：凭据存储、skills-hub 缓存、项目的 `.env` 文件，以及 `HERMES_WRITE_SAFE_ROOT` 之外的一切。请调用下面这些函数，而不是自己维护一份黑名单：
+如果插件要读写由模型选定的路径（附件、导出目标、待摘要的文件），就应当拒绝 Hermes 自身文件工具会拒绝的那些路径：凭据存储、skills-hub 缓存、项目的 `.env` 文件、设备文件与 `/proc` 进程文件，以及 `HERMES_WRITE_SAFE_ROOT` 之外的一切。请调用下面这些函数，而不是自己维护一份黑名单：
 
 | 导入 | 提供的功能 |
 |---|---|
@@ -453,6 +453,21 @@ def load_recipe(path):
 ```
 
 请像上面那样直接导入这些名称（`from hermes_yaml import safe_load`）：`hermes plugins validate` 接受这些写法，而会把裸的 `import agent.file_safety` 报告为私有导入。要读取 Hermes 自己的设置，请使用 `hermes_cli.config` 中的 `load_config_readonly()`，不要自行解析 `config.yaml`。
+
+### 发送带凭据的 HTTP 请求，且不在重定向时泄露凭据
+
+普通的 `urllib.request.urlopen` 在重定向到其他主机时，仍会带上你的 `Authorization` 请求头。`hermes_cli.urllib_security.open_credentialed_url(request, timeout=...)` 会像 Hermes 自己的模型提供商调用那样打开一个 `urllib.request.Request`：重定向离开原始源（origin）时会丢弃凭据请求头，同时保留进程已安装的 opener（代理、TLS 信任配置）。
+
+```python
+import urllib.request
+
+from hermes_cli.urllib_security import open_credentialed_url
+
+def fetch_models(base_url, api_key):
+    request = urllib.request.Request(f"{base_url}/models", headers={"Authorization": f"Bearer {api_key}"})
+    with open_credentialed_url(request, timeout=10) as response:
+        return response.read()
+```
 
 ### 根据环境变量决定是否启用
 
