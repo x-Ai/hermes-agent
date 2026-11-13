@@ -189,6 +189,9 @@ export const zhHantCommandCenter = {
       backupDesc: '將設定、記憶、技能與工作階段打包成 Zip 檔',
       debugShare: '分享偵錯報告',
       debugShareDesc: '上傳已遮蔽機密的報告與日誌，取得可分享的連結（6 小時後自動刪除）',
+      debugShareConfirm: '要將偵錯報告上傳到公開貼上服務嗎？',
+      debugShareConfirmDesc:
+        '將系統資訊與完整日誌上傳到公開貼上服務。機密資訊會被遮蔽，但你最近的訊息、工具輸出、檔案路徑與名稱仍會保留在日誌中，任何持有連結的人都能讀取。貼上內容會在 6 小時後自動刪除；若無法連線到 paste.rs，備援的 dpaste.com 會將其公開保留 1 天，且無法提前刪除。',
       debugShareRunning: '正在上傳偵錯報告…',
       debugShareLinks: '分享連結',
       debugShareFailed: '無法分享偵錯報告',

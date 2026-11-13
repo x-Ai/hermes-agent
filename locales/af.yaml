@@ -235,7 +235,10 @@ gateway:
     full_logs_hint: "Vir volledige loglae, gebruik `hermes debug share` vanaf die CLI."
     share_hint: "Deel hierdie skakels met die Hermes-span vir ondersteuning."
     report_label: "Verslag"
-    local_refused: "`/debug local` hou die verslag op die masjien waarop Hermes loop, so dit is nie vanuit 'n klets beskikbaar nie. Stuur `/debug` om die opsommingsverslag op te laai."
+    local_refused: "`/debug local` hou die verslag op die masjien waarop Hermes loop, so dit is nie vanuit 'n klets beskikbaar nie. Stuur `/debug upload` om die opsommingsverslag op te laai."
+    upload_hint: "Niks is opgelaai nie. Stuur `/debug upload` om die opsommingsverslag op te laai."
+    upload_hint_local: "Niks is opgelaai nie. Stuur `/debug upload` om die opsommingsverslag op te laai, of `/debug local` om dit hier te bekyk."
+    nous_refused: "Niks is opgelaai nie. Private Nous-oplaaie is nie van hier af beskikbaar nie: voer `hermes debug share --nous` in 'n terminaal uit, of gebruik Send diagnostics in die rekenaartoepassing. `/debug upload` laai die opsomming eerder na 'n publieke plakblad op."
   deny:
     stale: "❌ Opdrag geweier (goedkeuring was verouderd)."
     no_pending: "Geen hangende opdrag om te weier nie."
@@ -1788,7 +1791,7 @@ slash:
   version:
     description: "Wys Hermes Agent-weergawe"
   debug:
-    description: "Laai ontfoutverslag op (stelselinligting + loglae) en kry deelbare skakels"
+    description: "Ontfoutverslag (stelselinligting + loglêers): wys eers die privaatheidskennisgewing; /debug upload deel skakels"
   quit:
     description: "Verlaat die CLI (gebruik --delete om ook sessiegeskiedenis te verwyder)"
 cli:
@@ -3242,6 +3245,8 @@ cli:
     timestamps:
       usage: "/timestamps [on|off|status]"
       label: "Boodskap-tydstempels"
+    debug:
+      nothing_uploaded: "Niks is opgelaai nie. Voer `{command}` uit om op te laai, of `/debug local` om die verslag te bekyk sonder om dit op te laai."
     update:
       managed_action: "Hermes Agent opdateer"
       choice_update: "Dateer Nou Op"
