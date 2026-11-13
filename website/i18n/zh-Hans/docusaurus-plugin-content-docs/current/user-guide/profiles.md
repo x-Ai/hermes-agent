@@ -45,6 +45,8 @@ hermes profile create mybot
 
 创建一个预置了内置技能的全新 profile。它会获得当前 profile 的 API 密钥（不含机器人令牌和允许列表）和模型，并共享默认 profile 的登录，与桌面端机器人页面“共享密钥和账户”的默认设置相同。在默认 profile 中创建时，它还会共享默认 profile 的模型提供方（`share_providers`，见下文）：这些提供方的 API 密钥实时读取，而不是复制。运行 `mybot setup` 配置它的 gateway token。
 
+如果克隆出的 profile 没有自己的模型选择，创建时会继承当前 profile 的模型，而不会查询提供方的模型目录。所选的提供方和模型固定为源 profile 中的选择；URL 和凭证引用仍使用新 profile 自己的环境。源 profile 中模型级别的密钥、密钥指针和上下文长度设置不会被复制。显式指定的模型选择仍会照常验证。
+
 - `--isolated-auth` 会把登录（`auth.json`）复制一份，而不是共享。从具名 profile 创建的 profile 总是获得该 profile 登录的副本；其中的订阅（一次性 OAuth）登录无法复制，因此对这些提供商，新 profile 读取默认 profile 的登录，`profile create` 会提示这一点。
 - `--no-credentials` 不复制任何密钥、登录或模型；之后请运行 `mybot setup`。
 

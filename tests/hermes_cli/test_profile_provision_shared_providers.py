@@ -119,3 +119,55 @@ def test_the_create_receipt_carries_the_shared_providers_outcome(launch):
 
     assert made.mirrored["providers"] == "shared"
     assert ProfileCreateReceipt.from_wire(made.to_wire()).mirrored["providers"] == "shared"
+
+
+def _unpinned_clone_source(launch: Path) -> None:
+    """A named profile without a model: a clone of it inherits the launch (root) profile's model."""
+    empty = launch / "profiles" / "empty"
+    empty.mkdir(parents=True)
+    (empty / "config.yaml").write_text("tts:\n  provider: edge\n", encoding="utf-8")
+
+
+def _refuse_catalog_probes(monkeypatch) -> None:
+    def no_probe(*args, **kwargs):
+        raise AssertionError("inheriting the launch model must not query the provider's model catalog")
+
+    monkeypatch.setattr("hermes_cli.models.probe_api_models", no_probe)
+
+
+def test_a_sharing_clone_inherits_the_root_endpoint_model_offline_without_owning_a_copy(launch, monkeypatch):
+    """Upstream inherits an unpinned launch model without probing its catalog; the fork's sharing
+    profile still reads the root's endpoint through: the inherited endpoint seed never lands in its
+    file, yet its effective config resolves the inherited provider to the root's definition."""
+    from hermes_cli.config import load_config
+    from tui_gateway.launch_profile_policy import profile_config_scope
+
+    _unpinned_clone_source(launch)
+    _refuse_catalog_probes(monkeypatch)
+    result = provision_profile(ProfileCreateRequest(
+        name="scout", clone_config=True, clone_from="empty", mirror_credentials=True, share_auth=True))
+
+    assert result.warnings == []
+    assert result.mirrored["providers"] == "shared"
+    assert result.mirrored["model_inherited"] is True
+    written = yaml.safe_load((result.path / "config.yaml").read_text(encoding="utf-8")) or {}
+    assert (written["model"]["provider"], written["model"]["default"]) == ("acme", "m-1")
+    assert "acme" not in (written.get("providers") or {})
+    with profile_config_scope(result.path):
+        assert load_config()["providers"]["acme"]["base_url"] == "https://acme.example.com/v1"
+
+
+def test_an_island_clone_inherits_the_launch_model_with_its_own_endpoint_copy_offline(launch, monkeypatch):
+    _unpinned_clone_source(launch)
+    _refuse_catalog_probes(monkeypatch)
+    result = provision_profile(ProfileCreateRequest(
+        name="lone", clone_config=True, clone_from="empty", mirror_credentials=True, share_auth=False))
+
+    assert result.warnings == []
+    assert "providers" not in result.mirrored
+    assert result.mirrored["model_inherited"] is True
+    written = yaml.safe_load((result.path / "config.yaml").read_text(encoding="utf-8")) or {}
+    assert (written["model"]["provider"], written["model"]["default"]) == ("acme", "m-1")
+    # An island owns the endpoint it inherited; its credential stays a reference to its own .env.
+    assert written["providers"]["acme"]["base_url"] == "https://acme.example.com/v1"
+    assert written["providers"]["acme"]["api_key"] == "${ACME_TOKEN}"
