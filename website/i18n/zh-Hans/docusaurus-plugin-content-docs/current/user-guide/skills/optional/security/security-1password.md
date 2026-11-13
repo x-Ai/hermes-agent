@@ -16,7 +16,7 @@ description: "设置并使用 1Password CLI (op)"
 |---|---|
 | 来源 | 可选 — 通过 `hermes skills install official/security/1password` 安装 |
 | 路径 | `optional-skills/security/1password` |
-| 版本 | `1.0.0` |
+| 版本 | `1.1.0` |
 | 作者 | arceus77-7，由 Hermes Agent 增强 |
 | 许可证 | MIT |
 | 平台 | linux, macos, windows |
@@ -36,8 +36,11 @@ description: "设置并使用 1Password CLI (op)"
 
 - 1Password 账户
 - 已安装 1Password CLI（`op`）
-- 以下之一：桌面应用集成、服务账户令牌（`OP_SERVICE_ACCOUNT_TOKEN`）或 Connect 服务器
+- 以下之一：桌面应用集成，或供 Hermes 终端中的 `op` 使用的 Connect 服务器
 - `tmux` 可用，用于在 Hermes 终端调用期间保持稳定的已认证会话（仅限桌面应用流程）
+
+Hermes 绝不会将 `OP_SERVICE_ACCOUNT_TOKEN` 传递给终端或 `execute_code`，即使它位于 `.env` 或 `terminal.env_passthrough` 中：该令牌可解锁服务账户能读取的所有密钥。
+服务账户仍是向 Hermes 自身提供 provider 密钥的正确方式（`hermes secrets onepassword setup`）。
 
 ## 使用场景
 
@@ -49,10 +52,11 @@ description: "设置并使用 1Password CLI (op)"
 
 ## 认证方式
 
-### 服务账户（推荐用于 Hermes）
+### 服务账户（用于 Hermes 自身的密钥解析，或你自己的 shell）
 
-在 `~/.hermes/.env` 中设置 `OP_SERVICE_ACCOUNT_TOKEN`（skill 首次加载时会提示输入）。
-无需桌面应用。支持 `op read`、`op inject`、`op run`。
+`${HERMES_HOME:-~/.hermes}/.env` 中的服务账户令牌可让 Hermes 在启动时为其自身的 provider 密钥解析 `op://` 引用（`hermes secrets onepassword setup`）。
+该令牌会从 agent 派生的进程中剥离，因此通过 Hermes 终端运行的 `op` 看不到它。
+若要直接将该令牌用于 `op`，请在 Hermes 之外、你自己的 shell 中运行这些命令：
 
 ```bash
 export OP_SERVICE_ACCOUNT_TOKEN="your-token-here"
@@ -100,7 +104,7 @@ op --version
 Hermes 终端命令默认为非交互式，且在多次调用之间可能丢失认证上下文。
 若要在桌面应用集成下可靠使用 `op`，请在专用 tmux 会话中执行登录和密钥操作。
 
-注意：使用 `OP_SERVICE_ACCOUNT_TOKEN` 时**无需**此操作 — 令牌会在终端调用之间自动持久化。
+注意：此处永远无法使用服务账户令牌（参见前置要求），因此在 Hermes 终端中以无头方式使用 `op` 需要改用 Connect 服务器。
 
 ```bash
 SOCKET_DIR="${TMPDIR:-/tmp}/hermes-tmux-sockets"
@@ -158,12 +162,12 @@ op run -- sh -c '[ -n "$DB_PASSWORD" ] && echo "DB_PASSWORD is set" || echo "DB_
 - 除非用户明确请求该值，否则不得将原始密钥打印给用户。
 - 优先使用 `op run` / `op inject`，而非将密钥写入文件。
 - 若命令报错"account is not signed in"，请在同一 tmux 会话中重新运行 `op signin`。
-- 若桌面应用集成不可用（无头环境/CI），请使用服务账户令牌流程。
+- 若桌面应用集成不可用（无头环境/CI），请在 Hermes 终端中使用 Connect 服务器；服务账户令牌仅在用户自己的 shell 中或用于 Hermes 自身的 `op://` 解析时有效。
 
 ## CI / 无头环境说明
 
-非交互式使用时，请通过 `OP_SERVICE_ACCOUNT_TOKEN` 进行认证，避免使用交互式 `op signin`。
-服务账户需要 CLI v2.18.0+。
+在 Hermes 之外进行非交互式使用时，请通过 `OP_SERVICE_ACCOUNT_TOKEN` 进行认证，避免使用交互式 `op signin`。
+服务账户需要 CLI v2.18.0+。在 Hermes 终端中，请使用 Connect 服务器。
 
 ## 参考资料
 

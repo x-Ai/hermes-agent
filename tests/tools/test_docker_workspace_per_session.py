@@ -344,10 +344,15 @@ class TestHostAccessGateFollowsActualMount:
         assert tt._docker_has_host_access(cfg, "/host/projA") is False
 
     def test_omitting_the_argument_falls_back_to_the_snapshot(self):
-        """Existing single-argument callers keep the old behaviour."""
+        """Single-argument callers resolved no mount, only the snapshot: with the mount flag on it
+        cannot prove an empty sandbox (a session's ``:ws:`` container binds its own workspace even
+        when the launch dir is refused, #119170), so they report host access."""
         cfg = {**self.BASE, "host_cwd": "/host/launch-dir"}
         assert tt._docker_has_host_access(cfg) is True
-        assert tt._docker_has_host_access({**cfg, "host_cwd": None}) is False
+        assert tt._docker_has_host_access({**cfg, "host_cwd": None}) is True
+        assert tt._sandbox_has_host_access({**cfg, "host_cwd": None}) is True
+        flag_off = {**cfg, "host_cwd": None, "docker_mount_cwd_to_workspace": False}
+        assert tt._docker_has_host_access(flag_off) is False
 
     def test_explicit_none_still_defers_to_the_snapshot(self):
         """None means "caller resolved nothing", which is exactly the case where

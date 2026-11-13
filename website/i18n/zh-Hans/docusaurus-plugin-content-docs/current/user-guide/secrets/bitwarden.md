@@ -131,6 +131,7 @@ Bitwarden 永远不会阻塞 Hermes 启动。如果出现任何问题，stderr �
 
 - 引导令牌（`BWS_ACCESS_TOKEN`）本身是敏感信息——任何持有它的人都可以读取机器账户有权访问的所有 secret。请与其他 API 密钥同等对待。
 - 即使 `override_existing: true`，Hermes 也会拒绝让 Bitwarden 覆盖引导令牌本身。如果你将 `BWS_ACCESS_TOKEN` 作为 secret 存储在项目中，应用时会静默跳过。
+- `BWS_ACCESS_TOKEN` 会从 agent 及其工具派生的进程（终端、`execute_code`、后台进程、cron 脚本、CLI 辅助程序）中剥离。`terminal.env_passthrough` 和 skill 的 `required_environment_variables` 都无法重新放行它，因此 agent 运行的 `bws` 永远看不到该令牌。同一 profile 下 Hermes 自身的进程仍会获得它：它的 `bws` 子进程、它启动或重启的 gateway，以及 `key_cmd` 辅助程序。请在你自己的 shell 中运行 `bws`。
 - `bws` 二进制文件的下载会与同一 GitHub release 中发布的 SHA-256 校验和进行验证。不匹配时将中止安装。
 - 固定版本（撰写本文时为 `bws v2.0.0`）通过向本仓库提交 PR 的方式更新——Hermes 不会将 `bws` 自动升级到"最新版本"，因为上游 release 的结构可能发生变化。
 
