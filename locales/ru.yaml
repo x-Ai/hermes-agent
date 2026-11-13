@@ -2503,6 +2503,10 @@ cli:
     bundled_more: "(+{count} встроенных — см.: hermes plugins list)"
     enable_disable_hint: "Включить/выключить: hermes plugins enable/disable <имя>"
     system_error: "Ошибка системы плагинов: {error}"
+  default_plugins:
+    profile: "профиля «{profile}»"
+    installed: "✓ Установлен плагин по умолчанию «{plugin}» для {home}"
+    install_failed: "⚠ Не удалось установить плагин по умолчанию «{plugin}» для {home}: {cause}. Hermes повторит попытку при одном из следующих запусков; `hermes plugins install {plugin}` установит его сейчас."
   queue:
     usage: "Использование: /queue <промпт> | /queue list | /queue edit N <промпт> | /queue rm N | /queue move FROM TO | /queue clear"
     queued: "В очереди: {preview}"

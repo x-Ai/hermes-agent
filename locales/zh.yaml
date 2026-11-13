@@ -2505,6 +2505,10 @@ cli:
     bundled_more: "（+{count} 个内置——参见：hermes plugins list）"
     enable_disable_hint: "启用/禁用：hermes plugins enable/disable <name>"
     system_error: "插件系统错误：{error}"
+  default_plugins:
+    profile: "配置档 '{profile}'"
+    installed: "✓ 已为 {home} 安装默认插件 '{plugin}'"
+    install_failed: "⚠ 无法为 {home} 安装默认插件 '{plugin}'：{cause}。Hermes 会在之后的某次启动时重试；运行 `hermes plugins install {plugin}` 可立即安装。"
   queue:
     usage: "用法：/queue <prompt> | /queue list | /queue edit N <prompt> | /queue rm N | /queue move FROM TO | /queue clear"
     queued: "已排队：{preview}"

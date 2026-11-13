@@ -2521,6 +2521,10 @@ cli:
     bundled_more: "(+{count} beépített — lásd: hermes plugins list)"
     enable_disable_hint: "Be-/kikapcsolás: hermes plugins enable/disable <name>"
     system_error: "Pluginrendszer-hiba: {error}"
+  default_plugins:
+    profile: "a(z) '{profile}' profil"
+    installed: "✓ A(z) '{plugin}' alapértelmezett plugin telepítve {home} számára"
+    install_failed: "⚠ A(z) '{plugin}' alapértelmezett plugint nem sikerült telepíteni {home} számára: {cause}. A Hermes egy későbbi indításkor újra megpróbálja; a `hermes plugins install {plugin}` most telepíti."
   queue:
     usage: "Használat: /queue <prompt> | /queue list | /queue edit N <prompt> | /queue rm N | /queue move FROM TO | /queue clear"
     queued: "Sorba állítva: {preview}"

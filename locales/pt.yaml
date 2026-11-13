@@ -2503,6 +2503,10 @@ cli:
     bundled_more: "(+{count} integrados — veja: hermes plugins list)"
     enable_disable_hint: "Ativar/desativar: hermes plugins enable/disable <name>"
     system_error: "Erro no sistema de plugins: {error}"
+  default_plugins:
+    profile: "o perfil '{profile}'"
+    installed: "✓ Plugin padrão '{plugin}' instalado para {home}"
+    install_failed: "⚠ Não foi possível instalar o plugin padrão '{plugin}' para {home}: {cause}. O Hermes tentará novamente em uma inicialização posterior; `hermes plugins install {plugin}` o instala agora."
   queue:
     usage: "Uso: /queue <prompt> | /queue list | /queue edit N <prompt> | /queue rm N | /queue move DE PARA | /queue clear"
     queued: "Enfileirado: {preview}"

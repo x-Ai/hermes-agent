@@ -2502,6 +2502,10 @@ cli:
     bundled_more: "(+{count} مضمّنة — انظر: hermes plugins list)"
     enable_disable_hint: "التفعيل/التعطيل: hermes plugins enable/disable <name>"
     system_error: "خطأ في نظام الإضافات: {error}"
+  default_plugins:
+    profile: "الملف التعريفي '{profile}'"
+    installed: "✓ تم تثبيت الإضافة الافتراضية '{plugin}' في {home}"
+    install_failed: "⚠ تعذّر تثبيت الإضافة الافتراضية '{plugin}' في {home}: {cause}. سيعيد Hermes المحاولة عند تشغيل لاحق؛ يثبّتها الأمر `hermes plugins install {plugin}` الآن."
   queue:
     usage: "الاستخدام: /queue <prompt> | /queue list | /queue edit N <prompt> | /queue rm N | /queue move FROM TO | /queue clear"
     queued: "في قائمة الانتظار: {preview}"

@@ -2501,6 +2501,10 @@ cli:
     bundled_more: "(+ 기본 제공 {count}개 — 확인: hermes plugins list)"
     enable_disable_hint: "활성화/비활성화: hermes plugins enable/disable <name>"
     system_error: "플러그인 시스템 오류: {error}"
+  default_plugins:
+    profile: "프로필 '{profile}'"
+    installed: "✓ {home}에 기본 플러그인 '{plugin}'을(를) 설치했어요"
+    install_failed: "⚠ {home}에 기본 플러그인 '{plugin}'을(를) 설치하지 못했어요: {cause}. Hermes가 이후 시작할 때 다시 시도해요. 지금 설치하려면 `hermes plugins install {plugin}`을(를) 실행하세요."
   queue:
     usage: "사용법: /queue <prompt> | /queue list | /queue edit N <prompt> | /queue rm N | /queue move FROM TO | /queue clear"
     queued: "대기열에 추가됨: {preview}"
