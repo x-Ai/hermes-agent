@@ -3493,6 +3493,7 @@ cli:
     discarded: "Worktree bainte agus a athruithe caite uait: {path}"
   whatsapp_setup:
     pairing_incomplete: "Níl an phéireáil críochnaithe. Rith 'hermes whatsapp' arís agus roghnaigh athphéireáil."
+    open_bot_no_home_channel: "⚠ Freagraíonn an bota seo d'aon duine agus níl aon chainéal baile aige. Sula n-osclaíonn tú do chustaiméirí é, féach"
   fallback_check:
     none_configured: "Níl aon soláthraí cúltaca cumraithe. Cuir ceann leis le: hermes fallback add"
     static_only: "Seiceáil statach amháin (níor seoladh aon iarratas tátail). Úsáid --live chun iarratas íosta amháin a sheoladh in aghaidh na hiontrála."

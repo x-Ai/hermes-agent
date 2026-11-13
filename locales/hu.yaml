@@ -3511,6 +3511,7 @@ cli:
     discarded: "Worktree eltávolítva, változásai elvetve: {path}"
   whatsapp_setup:
     pairing_incomplete: "A párosítás nem fejeződött be. Futtasd újra a 'hermes whatsapp' parancsot, és válaszd az újrapárosítást."
+    open_bot_no_home_channel: "⚠ Ez a bot bárkinek válaszol, és nincs home csatornája. Mielőtt megnyitnád az ügyfelek előtt, olvasd el:"
   fallback_check:
     none_configured: "Nincs beállítva tartalék szolgáltató. Hozzáadás: hermes fallback add"
     static_only: "Csak statikus ellenőrzés (nem ment ki következtetési kérés). A --live kapcsolóval bejegyzésenként egy minimális kérés megy ki."

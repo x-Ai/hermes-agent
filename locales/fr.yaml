@@ -3810,6 +3810,7 @@ cli:
     discarded: "Worktree supprimé et modifications abandonnées : {path}"
   whatsapp_setup:
     pairing_incomplete: "L'appairage est incomplet. Relancez 'hermes whatsapp' et choisissez de refaire l'appairage."
+    open_bot_no_home_channel: "⚠ Ce bot répond à tout le monde et n'a pas de canal d'accueil. Avant de l'ouvrir à des clients, consultez"
   fallback_check:
     none_configured: "Aucun fournisseur de secours configuré. Ajoutez-en un avec : hermes fallback add"
     static_only: "Vérification statique uniquement (aucune requête d'inférence envoyée). Utilisez --live pour envoyer une requête minimale par entrée."

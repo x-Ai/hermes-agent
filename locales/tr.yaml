@@ -3492,6 +3492,7 @@ cli:
     discarded: "Worktree kaldırıldı ve değişiklikleri atıldı: {path}"
   whatsapp_setup:
     pairing_incomplete: "Eşleştirme tamamlanmadı. 'hermes whatsapp' komutunu yeniden çalıştırın ve yeniden eşleştirmeyi seçin."
+    open_bot_no_home_channel: "⚠ Bu bot herkese yanıt veriyor ve ana kanalı yok. Müşterilere açmadan önce şuraya bakın:"
   fallback_check:
     none_configured: "Yapılandırılmış yedek sağlayıcı yok. Eklemek için: hermes fallback add"
     static_only: "Yalnızca statik denetim (çıkarım isteği gönderilmedi). Her girdi için tek bir asgari istek göndermek üzere --live kullanın."

@@ -3493,6 +3493,7 @@ cli:
     discarded: "Werkboom verwyder en sy veranderinge weggegooi: {path}"
   whatsapp_setup:
     pairing_incomplete: "Koppeling is onvolledig. Voer 'hermes whatsapp' weer uit en kies om weer te koppel."
+    open_bot_no_home_channel: "⚠ Hierdie bot antwoord enigiemand en het geen tuiste-kanaal nie. Voordat jy dit vir kliënte oopstel, sien"
   fallback_check:
     none_configured: "Geen rugsteunverskaffers is opgestel nie. Voeg een by met: hermes fallback add"
     static_only: "Slegs 'n statiese kontrole (geen inferensieversoek gestuur nie). Gebruik --live om een minimale versoek per inskrywing te stuur."

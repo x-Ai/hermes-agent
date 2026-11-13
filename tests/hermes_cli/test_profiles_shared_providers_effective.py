@@ -56,3 +56,35 @@ def test_effective_config_follows_the_default_profile_and_serves_repeats_from_ca
     shared.set_profile_shares_providers(bot, False)
     _bump(bot / "profile.yaml")
     assert set(_effective_providers(bot)) == {"mine", "relay"}
+
+
+@pytest.mark.parametrize("root_yaml, warm", [
+    ("[1, 2]\n", None),
+    ("[1, 2]\n", "effective"),
+    ("[]\n", "raw"),
+], ids=["cold", "cached", "raw_cache"])
+def test_strict_reads_keep_the_overlay_but_never_mask_a_non_mapping_root(homes, root_yaml, warm):
+    """``fail_closed`` readers (the kanban claim allowlist) get the shared endpoints like any other
+    read, yet a non-mapping YAML root in a sharing profile still raises: the endpoints join the user
+    layer only after the root-shape check, so they never make a broken file look usable, even once a
+    non-strict read (or ``read_raw_config``) has cached it as an empty mapping."""
+    from hermes_cli.config import read_raw_config
+
+    _root, bot = homes
+    shared.set_profile_shares_providers(bot, True)
+    path = bot / "config.yaml"
+    with profile_scope(bot):
+        strict = config_effective.load_user_config_effective(path, fail_closed=True)
+    assert set(strict.get("providers") or {}) == {"mine", "relay", "slotted"}
+
+    path.write_text(root_yaml, encoding="utf-8")
+    _bump(path)
+    with profile_scope(bot):
+        if warm == "effective":
+            # A non-strict read serves the shared endpoints over an empty user layer, and caches that.
+            lenient = config_effective.load_user_config_effective(path)
+            assert set(lenient.get("providers") or {}) == {"relay", "slotted"}
+        elif warm == "raw":
+            assert read_raw_config() == {}
+        with pytest.raises(TypeError, match="root is not a mapping"):
+            config_effective.load_user_config_effective(path, fail_closed=True)

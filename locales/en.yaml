@@ -3609,6 +3609,7 @@ cli:
   # `hermes whatsapp` setup wizard (hermes_cli/main_platform_setup.py). Keep the command as written.
   whatsapp_setup:
     pairing_incomplete: "Pairing is incomplete. Run 'hermes whatsapp' again and choose to re-pair."
+    open_bot_no_home_channel: "⚠ This bot answers anyone and has no home channel. Before opening it to customers, see"
 
   fallback_check:
     none_configured: "No fallback providers configured. Add one with: hermes fallback add"

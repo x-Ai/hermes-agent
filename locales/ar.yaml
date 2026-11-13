@@ -3492,6 +3492,7 @@ cli:
     discarded: "تمت إزالة الـ worktree وتجاهل تغييراته: {path}"
   whatsapp_setup:
     pairing_incomplete: "الاقتران غير مكتمل. شغّل 'hermes whatsapp' مرة أخرى واختر إعادة الاقتران."
+    open_bot_no_home_channel: "⚠ يردّ هذا البوت على أي شخص وليست له قناة رئيسية. قبل فتحه للعملاء، راجع"
   fallback_check:
     none_configured: "لا يوجد مزوّد احتياطي مُعدّ. أضف واحدًا باستخدام: hermes fallback add"
     static_only: "فحص ثابت فقط (لم يُرسَل أي طلب استدلال). استخدم --live لإرسال طلب واحد بالحد الأدنى لكل إدخال."

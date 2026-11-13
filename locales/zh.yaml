@@ -3495,6 +3495,7 @@ cli:
     discarded: "工作树已移除，更改已丢弃：{path}"
   whatsapp_setup:
     pairing_incomplete: "配对未完成，请重新运行 'hermes whatsapp' 并选择重新配对"
+    open_bot_no_home_channel: "⚠ 此机器人会回复任何人，且尚未设置主频道。向客户开放之前，请先参阅："
   fallback_check:
     none_configured: "尚未配置备用提供方。添加方式：hermes fallback add"
     static_only: "仅做静态检查（未发送推理请求）。使用 --live 可为每个条目发送一个最小请求。"

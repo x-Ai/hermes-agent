@@ -3493,6 +3493,7 @@ cli:
     discarded: "Worktree eliminado y cambios descartados: {path}"
   whatsapp_setup:
     pairing_incomplete: "La vinculación está incompleta. Ejecuta 'hermes whatsapp' de nuevo y elige volver a vincular."
+    open_bot_no_home_channel: "⚠ Este bot responde a cualquiera y no tiene canal principal. Antes de abrirlo a clientes, consulta"
   fallback_check:
     none_configured: "No hay proveedores de respaldo configurados. Añade uno con: hermes fallback add"
     static_only: "Solo comprobación estática (no se envió ninguna solicitud de inferencia). Usa --live para enviar una solicitud mínima por entrada."
