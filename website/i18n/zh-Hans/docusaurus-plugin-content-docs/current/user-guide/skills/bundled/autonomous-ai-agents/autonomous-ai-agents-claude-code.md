@@ -10,6 +10,8 @@ description: "将编码任务委托给 Claude Code CLI（功能、PR）"
 
 将编码任务委托给 Claude Code CLI（功能、PR）。
 
+想看完整的逐项对比？请阅读 [Hermes Agent vs Claude Code](https://hermes-agent.nousresearch.com/compare/claude-code)。
+
 ## Skill 元数据
 
 | | |

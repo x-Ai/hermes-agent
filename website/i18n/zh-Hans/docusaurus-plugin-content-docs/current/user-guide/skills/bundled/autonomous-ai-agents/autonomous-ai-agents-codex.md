@@ -10,6 +10,8 @@ description: "将编码任务委托给 OpenAI Codex CLI（功能开发、PR）"
 
 将编码任务委托给 OpenAI Codex CLI（功能开发、PR）。
 
+想看完整的逐项对比？请阅读 [Hermes Agent vs Codex](https://hermes-agent.nousresearch.com/compare/codex)。
+
 ## Skill 元数据
 
 | | |

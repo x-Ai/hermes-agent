@@ -7,7 +7,7 @@ sidebar_label: Codex App-Server 运行时
 
 Hermes 可以选择将 `openai/*` 和 `openai-codex/*` 的轮次交由 [Codex CLI app-server](https://github.com/openai/codex) 处理，而不是运行自己的工具循环。启用后，终端命令、文件编辑、沙箱隔离以及 MCP 工具调用均在 Codex 的运行时内执行——Hermes 成为其外层 shell（会话数据库、斜杠命令、gateway、记忆与技能审查）。
 
-此功能**仅限手动启用**。除非你主动切换该标志，否则 Hermes 的默认行为不变。Hermes 不会自动将你路由到此运行时。
+此功能**仅限手动启用**。除非你主动切换该标志，否则 Hermes 的默认行为不变。Hermes 不会自动将你路由到此运行时。正在两者之间权衡？[Hermes Agent vs Codex](https://hermes-agent.nousresearch.com/compare/codex) 从模型选择、支持平台和定价等方面比较了两者，并附有信息来源。
 
 ## 为什么使用
 

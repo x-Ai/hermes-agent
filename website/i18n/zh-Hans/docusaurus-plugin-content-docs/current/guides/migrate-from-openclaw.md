@@ -6,7 +6,7 @@ description: "将 OpenClaw / Clawdbot 配置迁移到 Hermes Agent 的完整指�
 
 # 从 OpenClaw 迁移
 
-`hermes claw migrate` 将你的 OpenClaw（或旧版 Clawdbot/Moldbot）配置导入 Hermes。本指南详细说明迁移内容、配置键映射以及迁移后的验证步骤。
+`hermes claw migrate` 将你的 OpenClaw（或旧版 Clawdbot/Moldbot）配置导入 Hermes。本指南详细说明迁移内容、配置键映射以及迁移后的验证步骤。还在两者之间做选择？[Hermes Agent vs OpenClaw](https://hermes-agent.nousresearch.com/compare/openclaw) 从许可证、模型和托管方式等方面比较了两者，并附有信息来源。
 
 ## 快速开始
 
