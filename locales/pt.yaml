@@ -1039,6 +1039,11 @@ gateway:
     hint: "Recarregue e gerencie o faturamento no navegador — seu saldo é atualizado aqui depois."
   login:
     free_tier_remaining: "\nAlguns chats ainda estão no nível gratuito; use /model nesses chats para trocar."
+  handoff:
+    platform_required: "plataforma obrigatória"
+    in_flight: "uma transferência desta sessão já está em andamento; aguarde ela se estabilizar"
+    session_busy: "aguarde o turno atual terminar e depois tente a transferência novamente"
+    unknown_execution: "um turno desta sessão não terminou quando o Hermes reiniciou; envie /discard nela (ou retome-a) primeiro e depois tente a transferência novamente"
 platform:
   whatsapp:
     clarify_other_title: "✏️ Outro"

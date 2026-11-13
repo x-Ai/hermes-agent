@@ -1039,6 +1039,11 @@ gateway:
     hint: "Laai op en bestuur fakturering in die blaaier — jou saldo word daarna hier opgedateer."
   login:
     free_tier_remaining: "\nSommige geselsies is nog op die gratis vlak; gebruik /model in daardie geselsies om oor te skakel."
+  handoff:
+    platform_required: "platform word vereis"
+    in_flight: "'n oorhandiging van hierdie sessie is reeds aan die gang; wag dat dit tot rus kom"
+    session_busy: "wag tot die huidige beurt klaar is, en probeer dan die oorhandiging weer"
+    unknown_execution: "'n beurt van hierdie sessie is nie voltooi toe Hermes herbegin het nie; stuur eers /discard daarin (of hervat dit), en probeer dan die oorhandiging weer"
 platform:
   whatsapp:
     clarify_other_title: "✏️ Ander"

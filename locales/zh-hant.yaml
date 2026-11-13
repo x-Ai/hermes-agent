@@ -1037,6 +1037,11 @@ gateway:
     hint: "請在瀏覽器中儲值並管理帳務 — 完成後你的餘額會在此更新。"
   login:
     free_tier_remaining: "\n部分聊天仍在使用免費方案；請在那些聊天中使用 /model 切換。"
+  handoff:
+    platform_required: "需要指定平台"
+    in_flight: "此工作階段的交接已在進行中；請等它穩定下來"
+    session_busy: "請等待目前回合結束後再重試交接"
+    unknown_execution: "此工作階段有一個回合在 Hermes 重新啟動時沒有完成；請先在該工作階段中傳送 /discard（或恢復該工作階段），再重試交接"
 platform:
   whatsapp:
     clarify_other_title: "✏️ 其他"

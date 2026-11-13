@@ -1038,6 +1038,11 @@ gateway:
     hint: "Bakiye yükleme ve faturalandırma işlemlerini tarayıcıda yapın — bakiyeniz ardından burada güncellenir."
   login:
     free_tier_remaining: "\nBazı sohbetler hâlâ ücretsiz katmanda; o sohbetlerde geçiş yapmak için /model kullanın."
+  handoff:
+    platform_required: "platform gerekli"
+    in_flight: "bu oturumun devri zaten sürüyor; yerleşmesini bekleyin"
+    session_busy: "mevcut turun bitmesini bekleyin, sonra devri yeniden deneyin"
+    unknown_execution: "Hermes yeniden başlatıldığında bu oturumun bir turu bitmemişti; önce oturumda /discard gönderin (veya oturumu sürdürün), sonra devri yeniden deneyin"
 platform:
   whatsapp:
     clarify_other_title: "✏️ Diğer"

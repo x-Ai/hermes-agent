@@ -1039,6 +1039,11 @@ gateway:
     hint: "Laden Sie Guthaben auf und verwalten Sie die Abrechnung im Browser — Ihr Guthaben wird hier anschließend aktualisiert."
   login:
     free_tier_remaining: "\nEinige Chats sind noch auf der kostenlosen Stufe; verwenden Sie /model in diesen Chats zum Wechseln."
+  handoff:
+    platform_required: "Plattform erforderlich"
+    in_flight: "eine Übergabe dieser Sitzung läuft bereits; warten Sie, bis sie abgeschlossen ist"
+    session_busy: "warten Sie, bis der aktuelle Zug beendet ist, und wiederholen Sie dann die Übergabe"
+    unknown_execution: "beim Neustart von Hermes blieb ein Zug dieser Sitzung offen; senden Sie dort zuerst /discard (oder setzen Sie sie fort) und wiederholen Sie dann die Übergabe"
 platform:
   whatsapp:
     clarify_other_title: "✏️ Sonstiges"

@@ -1054,6 +1054,11 @@ gateway:
     hint: "Feltöltés és számlázás a böngészőben — az egyenleged utána itt is frissül."
   login:
     free_tier_remaining: "\nNéhány csevegés még az ingyenes szinten van; ott a /model paranccsal válthatsz."
+  handoff:
+    platform_required: "a platform megadása kötelező"
+    in_flight: "ennek a munkamenetnek az átadása már folyamatban van; várd meg, amíg lezárul"
+    session_busy: "várd meg az aktuális kör végét, majd próbáld újra az átadást"
+    unknown_execution: "a munkamenet egyik köre nem fejeződött be a Hermes újraindításakor; előbb küldd el benne a /discard parancsot (vagy folytasd), majd próbáld újra az átadást"
 platform:
   whatsapp:
     clarify_other_title: "✏️ Egyéb"

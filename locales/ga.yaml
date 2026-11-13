@@ -1039,6 +1039,11 @@ gateway:
     hint: "Cuir breis leis agus bainistigh billeáil sa bhrabhsálaí — nuashonrófar d'iarmhéid anseo ina dhiaidh sin."
   login:
     free_tier_remaining: "\nTá roinnt comhráite fós ar an bplean saor in aisce; úsáid /model sna comhráite sin chun athrú."
+  handoff:
+    platform_required: "tá ardán ag teastáil"
+    in_flight: "tá aistriú an tseisiúin seo ar siúl cheana; fan go socróidh sé"
+    session_busy: "fan go gcríochnóidh an babhta reatha, ansin bain triail eile as an aistriú"
+    unknown_execution: "níor críochnaíodh babhta den seisiún seo nuair a atosaíodh Hermes; seol /discard ann ar dtús (nó atosaigh é), ansin bain triail eile as an aistriú"
 platform:
   whatsapp:
     clarify_other_title: "✏️ Eile"

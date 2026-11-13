@@ -1040,6 +1040,11 @@ gateway:
     hint: "在浏览器中充值并管理账单——之后余额会在此处更新"
   login:
     free_tier_remaining: "\n部分聊天仍在使用免费套餐，请在那些聊天中用 /model 切换"
+  handoff:
+    platform_required: "需要指定平台"
+    in_flight: "此会话的移交已在进行中；请等它稳定下来"
+    session_busy: "请等待当前轮次结束后再重试移交"
+    unknown_execution: "此会话有一个轮次在 Hermes 重启时没有完成；请先在该会话中发送 /discard（或恢复该会话），然后重试移交"
 platform:
   whatsapp:
     clarify_other_title: "✏️ 其他"

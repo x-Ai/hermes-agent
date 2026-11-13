@@ -386,6 +386,16 @@ with open(_DATA_FILE) as f:
     _DATA = YAML(typ="safe").load(f)
 ```
 
+### 在存储或发送文本前脱敏密钥
+
+插件保存或上传的文本（转录稿、diff、日志）可能带有用户粘贴进来的 API 密钥。请先用 `ctx.redact_text()` 处理，而不是导入 Hermes 的内部模块：
+
+```python
+safe = ctx.redact_text(transcript, force=True)  # force: this text leaves the machine
+```
+
+它使用与 Hermes 自身输出相同的脱敏器，并采用最严格的设置：带前缀的密钥会变成 `«redacted:sk-…»` 这样的占位标记，不保留任何密钥字符；`API_KEY=…` 这类赋值会被遮盖。通过 `ctx.register_redaction_patterns()` 注册的模式同样生效。不传 `force` 时，设置了 `security.redact_secrets: false` 的用户会原样拿回文本。
+
 ### 捆绑技能
 
 插件可以随附技能文件，代理通过 `skill_view("plugin:skill")` 加载。在 `__init__.py` 中注册：

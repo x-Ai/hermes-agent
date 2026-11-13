@@ -1228,6 +1228,11 @@ gateway:
     free_tier_remaining: |2-
 
       Certaines discussions sont encore sur l'offre gratuite ; utilisez /model dans ces discussions pour changer de modèle.
+  handoff:
+    platform_required: "plateforme requise"
+    in_flight: "un transfert de cette session est déjà en cours ; attendez qu'il se stabilise"
+    session_busy: "attendez la fin du tour en cours, puis relancez le transfert"
+    unknown_execution: "un tour de cette session ne s'est pas terminé au redémarrage de Hermes ; envoyez-y d'abord /discard (ou reprenez-la), puis relancez le transfert"
 platform:
   whatsapp:
     clarify_other_title: "✏️ Autre"

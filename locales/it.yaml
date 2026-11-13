@@ -1039,6 +1039,11 @@ gateway:
     hint: "Ricarica e gestisci la fatturazione nel browser — il saldo qui si aggiornerà subito dopo."
   login:
     free_tier_remaining: "\nAlcune chat sono ancora sul piano gratuito; usa /model in quelle chat per cambiare."
+  handoff:
+    platform_required: "piattaforma obbligatoria"
+    in_flight: "un passaggio di consegne di questa sessione è già in corso; attendi che si assesti"
+    session_busy: "attendi la fine del turno corrente, poi riprova il passaggio di consegne"
+    unknown_execution: "un turno di questa sessione non si è concluso al riavvio di Hermes; invia prima /discard nella sessione (o riprendila), poi riprova il passaggio di consegne"
 platform:
   whatsapp:
     clarify_other_title: "✏️ Altro"
