@@ -221,6 +221,8 @@ PTY 模式（`pty=true`）可启用 Codex 和 Claude Code 等交互式 CLI 工�
 
 如果命令需要 sudo，系统会提示你输入密码（在本次会话内缓存）。也可在 `~/.hermes/.env` 中设置 `SUDO_PASSWORD`。该密码会发送给实际运行命令的终端后端，因此请将其设为该后端的 sudo 密码（SSH 为远程主机的密码，Docker 为容器用户的密码），而不是属于其他机器的密码。
 
+若后端的 sudo 支持 askpass 辅助程序（`sudo -A`），且其临时目录允许运行小型辅助脚本，密码会通过该辅助程序交给每一次 sudo 调用，因此同一命令行中的其他命令绝不会从 stdin 读到密码。否则，以及对于已自行传入 `-S` 或 `-A` 的命令，密码会经由 sudo 的 stdin 传给 sudo。
+
 :::warning
 在消息平台上，如果 sudo 失败，输出中会提示将 `SUDO_PASSWORD` 添加到 `~/.hermes/.env`。
 :::
