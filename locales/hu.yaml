@@ -2524,10 +2524,14 @@ cli:
     bundled_more: "(+{count} beépített — lásd: hermes plugins list)"
     enable_disable_hint: "Be-/kikapcsolás: hermes plugins enable/disable <name>"
     system_error: "Pluginrendszer-hiba: {error}"
+    foreign_checkout: "{path} nem önálló git-munkapéldány (a git ehhez rendeli: {resolved}); telepítsd újra a plugint a forrásából."
+    foreign_checkout_no_repo: "{path} nem önálló git-munkapéldány (a git egyetlen tárhelyhez sem rendeli); telepítsd újra a plugint a forrásából."
   default_plugins:
     profile: "a(z) '{profile}' profil"
     installed: "✓ A(z) '{plugin}' alapértelmezett plugin telepítve {home} számára"
     install_failed: "⚠ A(z) '{plugin}' alapértelmezett plugint nem sikerült telepíteni {home} számára: {cause}. A Hermes egy későbbi indításkor újra megpróbálja; a `hermes plugins install {plugin}` most telepíti."
+  update:
+    enclosing_repo_refused: "✗ A git ezt a munkapéldányt az őt tartalmazó {path} git-tárhelyhez rendeli; a stash, reset és clean futtatását megtagadom."
   queue:
     usage: "Használat: /queue <prompt> | /queue list | /queue edit N <prompt> | /queue rm N | /queue move FROM TO | /queue clear"
     queued: "Sorba állítva: {preview}"

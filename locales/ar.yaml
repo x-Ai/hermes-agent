@@ -2505,10 +2505,14 @@ cli:
     bundled_more: "(+{count} مضمّنة — انظر: hermes plugins list)"
     enable_disable_hint: "التفعيل/التعطيل: hermes plugins enable/disable <name>"
     system_error: "خطأ في نظام الإضافات: {error}"
+    foreign_checkout: "{path} ليس نسخة git مستقلة (يحلّه git إلى {resolved})؛ أعد تثبيت الإضافة من مصدرها."
+    foreign_checkout_no_repo: "{path} ليس نسخة git مستقلة (لا يحلّه git إلى أي مستودع)؛ أعد تثبيت الإضافة من مصدرها."
   default_plugins:
     profile: "الملف التعريفي '{profile}'"
     installed: "✓ تم تثبيت الإضافة الافتراضية '{plugin}' في {home}"
     install_failed: "⚠ تعذّر تثبيت الإضافة الافتراضية '{plugin}' في {home}: {cause}. سيعيد Hermes المحاولة عند تشغيل لاحق؛ يثبّتها الأمر `hermes plugins install {plugin}` الآن."
+  update:
+    enclosing_repo_refused: "✗ يحلّ git هذه النسخة إلى المستودع المحيط بها {path}؛ رُفض تنفيذ stash أو reset أو clean عليه."
   queue:
     usage: "الاستخدام: /queue <prompt> | /queue list | /queue edit N <prompt> | /queue rm N | /queue move FROM TO | /queue clear"
     queued: "في قائمة الانتظار: {preview}"

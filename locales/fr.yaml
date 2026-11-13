@@ -2777,10 +2777,14 @@ cli:
     bundled_more: "(+{count} intégrés — voir : hermes plugins list)"
     enable_disable_hint: "Activer/désactiver : hermes plugins enable/disable <name>"
     system_error: "Erreur du système de plugins : {error}"
+    foreign_checkout: "{path} n'est pas un checkout git autonome (git le résout vers {resolved}) ; réinstallez le plugin depuis sa source."
+    foreign_checkout_no_repo: "{path} n'est pas un checkout git autonome (git ne le résout vers aucun dépôt) ; réinstallez le plugin depuis sa source."
   default_plugins:
     profile: "le profil '{profile}'"
     installed: "✓ Plugin par défaut '{plugin}' installé pour {home}"
     install_failed: "⚠ Le plugin par défaut '{plugin}' n'a pas pu être installé pour {home} : {cause}. Hermes réessaiera lors d'un prochain démarrage ; `hermes plugins install {plugin}` l'installe dès maintenant."
+  update:
+    enclosing_repo_refused: "✗ git résout ce checkout vers le dépôt englobant {path} ; refus d'y exécuter stash, reset ou clean."
   queue:
     usage: "Usage : /queue <prompt> | /queue list | /queue edit N <prompt> | /queue rm N | /queue move FROM TO | /queue clear"
     queued: "Mis en file : {preview}"

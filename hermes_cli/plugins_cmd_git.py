@@ -8,6 +8,7 @@ imported late here, never at module level).
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import threading
@@ -16,6 +17,7 @@ from contextlib import contextmanager
 from pathlib import Path
 from typing import Callable, Optional
 
+from agent.i18n import t as _t
 from hermes_cli._subprocess_compat import noninteractive_git_env
 from hermes_constants import get_hermes_home
 from utils import atomic_write_text
@@ -324,6 +326,27 @@ def _autostash_dirty_tree(git_exe: str, target: Path) -> tuple[str, str]:
     return post_stash, ""
 
 
+def _foreign_checkout_error(git_exe: str, target: Path) -> str:
+    """Why *target* is not its own git checkout, or "" when git resolves it to itself.
+
+    A damaged plugin .git makes git walk up to an enclosing repo (a git-managed home); stashing,
+    resetting or checking out there would act on the user's files, not the plugin (#146032)."""
+    top = _pc()._run_plugin_git(git_exe, target, "rev-parse", "--show-toplevel")
+    if top.returncode == 0 and os.path.normcase(os.path.realpath(top.stdout.strip())) == os.path.normcase(
+            os.path.realpath(target)):
+        return ""
+    if resolved := top.stdout.strip():
+        return _t("cli.plugins.foreign_checkout", path=target, resolved=resolved)
+    return _t("cli.plugins.foreign_checkout_no_repo", path=target)
+
+
+def _refuse_foreign_checkout(git_exe: str, target: Path) -> None:
+    """Raise PluginOperationError unless git resolves *target* to itself."""
+    foreign = _foreign_checkout_error(git_exe, target)
+    if foreign:
+        raise _pc().PluginOperationError(foreign)
+
+
 def _git_pull_plugin_dir(target: Path) -> tuple[bool, str]:
     """``git pull --ff-only`` a plugin checkout, autostashing local edits (users patch installed
     plugins in place, and a plain ff-only pull would then refuse forever).
@@ -338,6 +361,9 @@ def _git_pull_plugin_dir(target: Path) -> tuple[bool, str]:
     if not git_exe:
         return False, "git is not installed or not in PATH."
     try:
+        foreign = _foreign_checkout_error(git_exe, target)
+        if foreign:
+            return False, foreign
         stash_sha, err = _autostash_dirty_tree(git_exe, target)
         if err:
             return False, err

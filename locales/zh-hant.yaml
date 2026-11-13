@@ -2504,10 +2504,14 @@ cli:
     bundled_more: "（另有 {count} 個內建外掛 — 請見：hermes plugins list）"
     enable_disable_hint: "啟用／停用：hermes plugins enable/disable <name>"
     system_error: "外掛系統錯誤：{error}"
+    foreign_checkout: "{path} 並非獨立的 git 檢出（git 將其解析為 {resolved}）；請從來源重新安裝該外掛。"
+    foreign_checkout_no_repo: "{path} 並非獨立的 git 檢出（git 未將其解析為任何儲存庫）；請從來源重新安裝該外掛。"
   default_plugins:
     profile: "設定檔「{profile}」"
     installed: "✓ 已為 {home} 安裝預設外掛「{plugin}」"
     install_failed: "⚠ 無法為 {home} 安裝預設外掛「{plugin}」：{cause}。Hermes 會在之後的某次啟動時重試；執行 `hermes plugins install {plugin}` 可立即安裝。"
+  update:
+    enclosing_repo_refused: "✗ git 將此檢出解析為外層儲存庫 {path}；拒絕對其執行 stash、reset 或 clean。"
   queue:
     usage: "用法：/queue <prompt> | /queue list | /queue edit N <prompt> | /queue rm N | /queue move FROM TO | /queue clear"
     queued: "已排入佇列：{preview}"

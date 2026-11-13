@@ -2506,10 +2506,14 @@ cli:
     bundled_more: "(+{count} cuachta — féach: hermes plugins list)"
     enable_disable_hint: "Cumasaigh/díchumasaigh: hermes plugins enable/disable <name>"
     system_error: "Earráid i gcóras na mbreiseán: {error}"
+    foreign_checkout: "Ní cóip oibre git dá cuid féin í {path} (réitíonn git í chuig {resolved}); athshuiteáil an breiseán óna fhoinse."
+    foreign_checkout_no_repo: "Ní cóip oibre git dá cuid féin í {path} (ní réitíonn git í chuig aon stór); athshuiteáil an breiseán óna fhoinse."
   default_plugins:
     profile: "na próifíle '{profile}'"
     installed: "✓ Suiteáladh an breiseán réamhshocraithe '{plugin}' le haghaidh {home}"
     install_failed: "⚠ Níorbh fhéidir an breiseán réamhshocraithe '{plugin}' a shuiteáil le haghaidh {home}: {cause}. Bainfidh Hermes triail eile as ag tosú níos déanaí; suiteálann `hermes plugins install {plugin}` anois é."
+  update:
+    enclosing_repo_refused: "✗ Réitíonn git an chóip oibre seo chuig an stór máguaird {path}; diúltaítear stash, reset nó clean a rith ann."
   queue:
     usage: "Úsáid: /queue <prompt> | /queue list | /queue edit N <prompt> | /queue rm N | /queue move FROM TO | /queue clear"
     queued: "Curtha i scuaine: {preview}"

@@ -2506,10 +2506,14 @@ cli:
     bundled_more: "(+{count} gebundel — sien: hermes plugins list)"
     enable_disable_hint: "Aktiveer/deaktiveer: hermes plugins enable/disable <name>"
     system_error: "Plugin-stelselfout: {error}"
+    foreign_checkout: "{path} is nie sy eie git-checkout nie (git herlei dit na {resolved}); herinstalleer die plugin vanaf sy bron."
+    foreign_checkout_no_repo: "{path} is nie sy eie git-checkout nie (git herlei dit na geen bewaarplek nie); herinstalleer die plugin vanaf sy bron."
   default_plugins:
     profile: "profiel '{profile}'"
     installed: "✓ Verstekplugin '{plugin}' vir {home} geïnstalleer"
     install_failed: "⚠ Verstekplugin '{plugin}' kon nie vir {home} geïnstalleer word nie: {cause}. Hermes probeer weer by 'n latere begin; `hermes plugins install {plugin}` installeer dit nou."
+  update:
+    enclosing_repo_refused: "✗ git herlei hierdie checkout na die omringende bewaarplek {path}; weier om stash, reset of clean daarop uit te voer."
   queue:
     usage: "Gebruik: /queue <prompt> | /queue list | /queue edit N <prompt> | /queue rm N | /queue move FROM TO | /queue clear"
     queued: "In tou geplaas: {preview}"

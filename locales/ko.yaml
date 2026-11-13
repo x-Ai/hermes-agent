@@ -2504,10 +2504,14 @@ cli:
     bundled_more: "(+ 기본 제공 {count}개 — 확인: hermes plugins list)"
     enable_disable_hint: "활성화/비활성화: hermes plugins enable/disable <name>"
     system_error: "플러그인 시스템 오류: {error}"
+    foreign_checkout: "{path}은(는) 자체 git 체크아웃이 아니에요(git이 {resolved}(으)로 인식해요). 플러그인을 원래 소스에서 다시 설치하세요."
+    foreign_checkout_no_repo: "{path}은(는) 자체 git 체크아웃이 아니에요(git이 어떤 저장소로도 인식하지 못해요). 플러그인을 원래 소스에서 다시 설치하세요."
   default_plugins:
     profile: "프로필 '{profile}'"
     installed: "✓ {home}에 기본 플러그인 '{plugin}'을(를) 설치했어요"
     install_failed: "⚠ {home}에 기본 플러그인 '{plugin}'을(를) 설치하지 못했어요: {cause}. Hermes가 이후 시작할 때 다시 시도해요. 지금 설치하려면 `hermes plugins install {plugin}`을(를) 실행하세요."
+  update:
+    enclosing_repo_refused: "✗ git이 이 체크아웃을 상위 저장소 {path}(으)로 인식해요. 해당 저장소에서 stash, reset, clean 실행을 거부해요."
   queue:
     usage: "사용법: /queue <prompt> | /queue list | /queue edit N <prompt> | /queue rm N | /queue move FROM TO | /queue clear"
     queued: "대기열에 추가됨: {preview}"

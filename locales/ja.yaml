@@ -2504,10 +2504,14 @@ cli:
     bundled_more: "（他に同梱 {count} 件 — 参照: hermes plugins list）"
     enable_disable_hint: "有効化/無効化: hermes plugins enable/disable <name>"
     system_error: "プラグインシステムのエラー: {error}"
+    foreign_checkout: "{path} は独立した git チェックアウトではありません（git は {resolved} として解決します）。プラグインを入手元から再インストールしてください。"
+    foreign_checkout_no_repo: "{path} は独立した git チェックアウトではありません（git はどのリポジトリにも解決できません）。プラグインを入手元から再インストールしてください。"
   default_plugins:
     profile: "プロファイル '{profile}'"
     installed: "✓ {home} にデフォルトプラグイン '{plugin}' をインストールしました"
     install_failed: "⚠ {home} にデフォルトプラグイン '{plugin}' をインストールできませんでした: {cause}。Hermes は以降の起動時に再試行します。今すぐインストールするには `hermes plugins install {plugin}` を実行してください。"
+  update:
+    enclosing_repo_refused: "✗ git はこのチェックアウトを外側のリポジトリ {path} として解決しています。stash、reset、clean の実行を拒否します。"
   queue:
     usage: "使い方: /queue <prompt> | /queue list | /queue edit N <prompt> | /queue rm N | /queue move FROM TO | /queue clear"
     queued: "キューに追加しました: {preview}"

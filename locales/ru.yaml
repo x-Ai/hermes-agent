@@ -2506,10 +2506,14 @@ cli:
     bundled_more: "(+{count} встроенных — см.: hermes plugins list)"
     enable_disable_hint: "Включить/выключить: hermes plugins enable/disable <имя>"
     system_error: "Ошибка системы плагинов: {error}"
+    foreign_checkout: "{path} не является отдельной рабочей копией git (git относит её к {resolved}); переустановите плагин из его источника."
+    foreign_checkout_no_repo: "{path} не является отдельной рабочей копией git (git не связывает её ни с одним репозиторием); переустановите плагин из его источника."
   default_plugins:
     profile: "профиля «{profile}»"
     installed: "✓ Установлен плагин по умолчанию «{plugin}» для {home}"
     install_failed: "⚠ Не удалось установить плагин по умолчанию «{plugin}» для {home}: {cause}. Hermes повторит попытку при одном из следующих запусков; `hermes plugins install {plugin}` установит его сейчас."
+  update:
+    enclosing_repo_refused: "✗ git определяет эту рабочую копию как часть внешнего репозитория {path}; stash, reset и clean в нём выполняться не будут."
   queue:
     usage: "Использование: /queue <промпт> | /queue list | /queue edit N <промпт> | /queue rm N | /queue move FROM TO | /queue clear"
     queued: "В очереди: {preview}"

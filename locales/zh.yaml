@@ -2508,10 +2508,14 @@ cli:
     bundled_more: "（+{count} 个内置——参见：hermes plugins list）"
     enable_disable_hint: "启用/禁用：hermes plugins enable/disable <name>"
     system_error: "插件系统错误：{error}"
+    foreign_checkout: "{path} 不是独立的 git 检出（git 将其解析为 {resolved}），请从来源重新安装该插件"
+    foreign_checkout_no_repo: "{path} 不是独立的 git 检出（git 未将其解析为任何仓库），请从来源重新安装该插件"
   default_plugins:
     profile: "配置档 '{profile}'"
     installed: "✓ 已为 {home} 安装默认插件 '{plugin}'"
     install_failed: "⚠ 无法为 {home} 安装默认插件 '{plugin}'：{cause}。Hermes 会在之后的某次启动时重试；运行 `hermes plugins install {plugin}` 可立即安装。"
+  update:
+    enclosing_repo_refused: "✗ git 将此检出解析为外层仓库 {path}，拒绝对其执行 stash、reset 或 clean"
   queue:
     usage: "用法：/queue <prompt> | /queue list | /queue edit N <prompt> | /queue rm N | /queue move FROM TO | /queue clear"
     queued: "已排队：{preview}"

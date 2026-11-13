@@ -2505,10 +2505,14 @@ cli:
     bundled_more: "(+{count} dahili — bkz. hermes plugins list)"
     enable_disable_hint: "Etkinleştir/devre dışı bırak: hermes plugins enable/disable <name>"
     system_error: "Eklenti sistemi hatası: {error}"
+    foreign_checkout: "{path} kendi git çalışma kopyası değil (git onu {resolved} olarak çözümlüyor); eklentiyi kaynağından yeniden kurun."
+    foreign_checkout_no_repo: "{path} kendi git çalışma kopyası değil (git onu hiçbir depoya çözümleyemiyor); eklentiyi kaynağından yeniden kurun."
   default_plugins:
     profile: "'{profile}' profili"
     installed: "✓ Varsayılan eklenti '{plugin}', {home} için kuruldu"
     install_failed: "⚠ Varsayılan eklenti '{plugin}', {home} için kurulamadı: {cause}. Hermes daha sonraki bir başlatmada yeniden deneyecek; hemen kurmak için `hermes plugins install {plugin}` komutunu çalıştırın."
+  update:
+    enclosing_repo_refused: "✗ git bu çalışma kopyasını onu kapsayan {path} deposuna çözümlüyor; orada stash, reset veya clean çalıştırılmayacak."
   queue:
     usage: "Kullanım: /queue <prompt> | /queue list | /queue edit N <prompt> | /queue rm N | /queue move FROM TO | /queue clear"
     queued: "Sıraya alındı: {preview}"
