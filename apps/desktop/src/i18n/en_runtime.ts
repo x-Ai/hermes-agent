@@ -84,6 +84,7 @@ export const enRuntime = {
       seconds === null
         ? "Timed out connecting to Hermes' background service."
         : `Timed out connecting to Hermes' background service after ${seconds} s.`,
+    desktopQuitting: 'Hermes Desktop is quitting.',
     imageCopyNoDimensions: 'Image has no dimensions to copy',
     imageCopyCanvasUnavailable: 'Canvas 2D context is unavailable',
     imageCopyEncodeFailed: 'Failed to encode image as PNG',

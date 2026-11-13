@@ -56,6 +56,22 @@ function stubDesktop(config: Record<string, unknown>, overrides: Record<string, 
   return () => Object.defineProperty(window, 'hermesDesktop', { configurable: true, value: original })
 }
 
+async function renderInChinese() {
+  await act(async () => {
+    render(
+      <I18nProvider configClient={null} initialLocale="zh">
+        <BootFailureOverlay />
+      </I18nProvider>
+    )
+  })
+}
+
+// I18nProvider sets the runtime and stored locale and never resets either on unmount.
+function resetLocale() {
+  window.localStorage.removeItem(LOCALE_STORAGE_KEY)
+  setRuntimeI18nLocale(DEFAULT_LOCALE)
+}
+
 const remoteToken = {
   envOverride: false,
   mode: 'remote',
@@ -208,20 +224,7 @@ describe('BootFailureOverlay', () => {
   // use-gateway-boot.ts raises its WebSocket URL timeouts in the UI language of the moment. The
   // headline still names the cause, and Details reads the timeout in the language shown now.
   describe('a WebSocket URL timeout raised in the UI language', () => {
-    async function renderInChinese() {
-      await act(async () => {
-        render(
-          <I18nProvider configClient={null} initialLocale="zh">
-            <BootFailureOverlay />
-          </I18nProvider>
-        )
-      })
-    }
-
-    afterEach(() => {
-      window.localStorage.removeItem(LOCALE_STORAGE_KEY)
-      setRuntimeI18nLocale(DEFAULT_LOCALE)
-    })
+    afterEach(resetLocale)
 
     it('still leads with the timeout cause in Chinese', async () => {
       failBoot(zh.runtimeErrors.gatewayWsUrlTimedOut)
@@ -252,6 +255,20 @@ describe('BootFailureOverlay', () => {
       expect(screen.getByText(en.boot.causes.timedOut)).toBeTruthy()
       expect(screen.getByText(en.runtimeErrors.gatewayWsUrlRemintTimedOut)).toBeTruthy()
       expect(screen.queryByText(zh.runtimeErrors.gatewayWsUrlRemintTimedOut)).toBeNull()
+    })
+  })
+
+  // Quit keeps the window up while main tears the backend down. A reconnect in that window fails
+  // with main's English abort reason, which no cause matches, so the overlay leads with it.
+  describe("main's quitting abort", () => {
+    afterEach(resetLocale)
+
+    it('leads in the UI language, without the IPC wrap', async () => {
+      failBoot("Error invoking remote method 'hermes:connection': Error: Hermes Desktop is quitting.")
+      await renderInChinese()
+
+      expect(screen.getByText(zh.runtimeErrors.desktopQuitting)).toBeTruthy()
+      expect(screen.queryByText(/Hermes Desktop is quitting/)).toBeNull()
     })
   })
 

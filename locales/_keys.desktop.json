@@ -3545,6 +3545,7 @@
     "runtimeErrors.defaultProfileUnsupported",
     "runtimeErrors.deleteUnavailable",
     "runtimeErrors.desktopBridgeUnavailable",
+    "runtimeErrors.desktopQuitting",
     "runtimeErrors.fileDownloadBridgeUnavailable",
     "runtimeErrors.gatewayDisconnected",
     "runtimeErrors.gatewayFilePathMissing",

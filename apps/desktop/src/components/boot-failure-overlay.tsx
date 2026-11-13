@@ -554,7 +554,7 @@ export function BootFailureOverlay() {
 
         <div className="grid gap-4 p-5 pt-0">
           <div className="rounded-2xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-xs text-destructive">
-            {failureCopy.headline}
+            {localizeBootFailureDetail(failureCopy.headline, t.runtimeErrors)}
             {failureCopy.rawDetail ? (
               <details className="mt-2 text-muted-foreground">
                 <summary className="cursor-pointer select-none font-medium">{copy.details}</summary>

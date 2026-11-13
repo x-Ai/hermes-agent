@@ -150,6 +150,21 @@ test('a backend request timeout from the main process is localized with its wait
   })
 })
 
+// Quit keeps the window up while main tears the backend down, and a request in that window fails
+// with main's English abort reason. A Chinese toast kept it verbatim under Details.
+test('a request refused because Desktop is quitting is localized', () => {
+  const error = new Error("Error invoking remote method 'hermes:api': Error: Hermes Desktop is quitting.")
+
+  setRuntimeI18nLocale('zh')
+  notifyError(error, TRANSLATIONS.zh.settings.customEndpoints.saveFailed)
+
+  expect($notifications.get()[0]).toMatchObject({
+    title: TRANSLATIONS.zh.settings.customEndpoints.saveFailed,
+    message: TRANSLATIONS.zh.runtimeErrors.desktopQuitting,
+    detail: undefined
+  })
+})
+
 // A profile that shares providers reads its custom endpoints through from the
 // default profile; the route refuses to edit one of those with an English
 // `detail` naming the endpoint. The toast re-renders it in the display language.

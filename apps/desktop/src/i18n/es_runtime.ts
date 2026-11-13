@@ -4,6 +4,7 @@ import type { TranslationOverrides } from './define-locale'
 // (overlay-gaps.json lists them), every key added since lands translated here.
 export const esRuntime = {
   runtimeErrors: {
+    desktopQuitting: 'Hermes Desktop se está cerrando.',
     imageCopyNoDimensions: 'La imagen no tiene dimensiones y no se puede copiar',
     imageCopyCanvasUnavailable: 'El contexto Canvas 2D no está disponible',
     imageCopyEncodeFailed: 'No se pudo codificar la imagen como PNG',

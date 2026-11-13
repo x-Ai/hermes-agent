@@ -26,6 +26,21 @@ describe('localizeBootFailureDetail', () => {
     )
   })
 
+  // Main aborts every backend start with this sentence once quit begins. Its boot progress reports it
+  // bare; the renderer's failed getConnection() carries it behind the IPC wrap.
+  it('re-renders the quitting abort in the UI language, bare or behind the IPC wrap', () => {
+    expect(localizeBootFailureDetail('Hermes Desktop is quitting.', zh.runtimeErrors)).toBe(
+      zh.runtimeErrors.desktopQuitting
+    )
+    expect(
+      localizeBootFailureDetail(
+        "Error invoking remote method 'hermes:connection': Error: Hermes Desktop is quitting.",
+        zh.runtimeErrors
+      )
+    ).toBe(zh.runtimeErrors.desktopQuitting)
+    expect(zh.runtimeErrors.desktopQuitting).not.toMatch(/quitting/)
+  })
+
   it('leaves unknown lines verbatim and maps line by line', () => {
     const raw = 'exited before it became ready (1)\nTimed out connecting to Hermes backend after 500ms'
     expect(localizeBootFailureDetail(raw, en.runtimeErrors)).toBe(

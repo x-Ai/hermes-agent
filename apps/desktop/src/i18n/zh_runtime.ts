@@ -76,6 +76,7 @@ export const zhRuntime = {
     sharedProviderAccount: (id: string) => `"${id}" 沿用主配置档案的登录，请到主配置档案中退出，或先在此配置档案中登录`,
     backendConnectTimedOut: (seconds: null | number) =>
       seconds === null ? '连接 Hermes 后台服务超时' : `连接 Hermes 后台服务超时，等待了 ${seconds} 秒`,
+    desktopQuitting: 'Hermes Desktop 正在退出',
     imageCopyNoDimensions: '图片缺少尺寸信息，无法复制',
     imageCopyCanvasUnavailable: 'Canvas 2D 上下文不可用',
     imageCopyEncodeFailed: '无法将图片编码为 PNG',

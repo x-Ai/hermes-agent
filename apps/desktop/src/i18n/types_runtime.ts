@@ -82,6 +82,9 @@ export interface RuntimeErrorsCopy {
   /** A backend connection timeout as the user reads it (lib/backend-timeout.ts: the boot overlay's
    *  Details, error toasts, inline load errors); `seconds` when the report named the wait. */
   backendConnectTimedOut: (seconds: null | number) => string
+  /** Main's abort of every backend start once quit begins, as the user reads it (lib/desktop-quitting.ts:
+   *  error toasts, the boot overlay's headline and Details). */
+  desktopQuitting: string
   /** Browser-hosted Copy Image (lib/browser-image-copy.ts): why the PNG never reached the clipboard. */
   imageCopyNoDimensions: string
   imageCopyCanvasUnavailable: string
