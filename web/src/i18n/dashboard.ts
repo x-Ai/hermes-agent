@@ -628,6 +628,10 @@ export const dashboardEn = {
     deleteTitle: 'Delete webhook',
     deleteDescription: 'This will permanently remove this webhook subscription.',
     deliverLog: 'Log',
+    signature: 'Signature',
+    signatureGeneric: 'Generic (timestamped)',
+    signatureHint:
+      'The only signature scheme this route accepts. GitHub, GitLab and Linear deliveries need their own pin.',
     restartFailed: 'Failed to restart: {error}',
     enableFailed: 'Failed to enable webhooks: {error}',
     createFailed: 'Failed to create: {error}',
@@ -780,15 +784,13 @@ export const dashboardEn = {
     restore: 'Restore',
     shareDebug: 'Share debug report',
     shareDebugHint:
-      'Uploads system information and logs to a public paste service and returns links to send the Hermes team. Pastes automatically expire after 6 hours.',
-    redact: 'Redact credential-shaped tokens before upload (recommended)',
+      'Uploads a summary (versions, config key names, error counts; no log lines or message text) to a public paste and returns a link for the Hermes team. Pastes auto-delete after 6 hours.',
+    shareDebugFullLogs: 'Full logs go only to private storage via {command}.',
     generateShare: 'Generate share link',
     uploading: 'Uploading…',
     shareConfirmTitle: 'Upload debug report to a public paste?',
-    shareConfirmRedacted:
-      'Uploads system info + full logs to a public paste service. Secrets are redacted, but your recent messages, tool output, file paths and names stay in the logs and are readable by anyone with the link. Pastes auto-delete after 6 hours; if paste.rs is unreachable, the dpaste.com fallback keeps them public for 1 day and they cannot be deleted early.',
-    shareConfirmUnredacted:
-      'Uploads system info + full logs to a public paste service. Redaction is OFF: secrets and your recent messages, tool output, file paths and names stay in the logs and are readable by anyone with the link. Pastes auto-delete after 6 hours; if paste.rs is unreachable, the dpaste.com fallback keeps them public for 1 day and they cannot be deleted early.',
+    shareConfirmDescription:
+      'Uploads a summary to a public paste service: Hermes, Python and OS versions, connected platform and toolset names, config key names (no values) and warning/error counts. It contains no log lines or message text. Pastes auto-delete after 6 hours; if paste.rs is unreachable, the dpaste.com fallback keeps them public for 1 day and they cannot be deleted early.',
     upload: 'Upload',
     uploaded: 'uploaded',
     redacted: 'redacted',
@@ -1515,6 +1517,9 @@ export const dashboardZh: DashboardCopy = {
     deleteTitle: '删除 Webhook',
     deleteDescription: '此操作将永久移除该 Webhook 订阅',
     deliverLog: '日志',
+    signature: '签名',
+    signatureGeneric: '通用（带时间戳）',
+    signatureHint: '此路由唯一接受的签名方案，GitHub、GitLab 和 Linear 的投递需要固定为各自的方案',
     restartFailed: '重启失败：{error}',
     enableFailed: '启用 Webhook 失败：{error}',
     createFailed: '创建失败：{error}',
@@ -1666,15 +1671,14 @@ export const dashboardZh: DashboardCopy = {
     restorePath: '从备份路径恢复',
     restore: '恢复',
     shareDebug: '共享调试报告',
-    shareDebugHint: '将系统信息和日志上传到公开粘贴服务，并返回可发送给 Hermes 团队的链接，内容会在 6 小时后自动过期',
-    redact: '上传前隐藏疑似凭据的令牌（推荐）',
+    shareDebugHint:
+      '将摘要（版本、配置键名、错误计数，不含日志行或消息文本）上传到公开粘贴服务，并返回可发送给 Hermes 团队的链接，内容会在 6 小时后自动删除',
+    shareDebugFullLogs: '完整日志只会通过 {command} 发送到私有存储',
     generateShare: '生成共享链接',
     uploading: '上传中…',
     shareConfirmTitle: '将调试报告上传到公开粘贴服务？',
-    shareConfirmRedacted:
-      '将系统信息和完整日志上传到公开粘贴服务，机密信息会被脱敏，但你最近的消息、工具输出、文件路径和文件名仍保留在日志中，任何持有链接的人都能查看，粘贴内容 6 小时后自动删除；若 paste.rs 无法访问，备用的 dpaste.com 会将其公开保留 1 天，且无法提前删除',
-    shareConfirmUnredacted:
-      '将系统信息和完整日志上传到公开粘贴服务，脱敏已关闭：机密信息以及你最近的消息、工具输出、文件路径和文件名都会保留在日志中，任何持有链接的人都能查看，粘贴内容 6 小时后自动删除；若 paste.rs 无法访问，备用的 dpaste.com 会将其公开保留 1 天，且无法提前删除',
+    shareConfirmDescription:
+      '将摘要上传到公开粘贴服务：Hermes、Python 和操作系统版本，已连接平台与工具集名称，配置键名（不含值），以及警告/错误计数，不包含任何日志行或消息文本，粘贴内容 6 小时后自动删除；若 paste.rs 无法访问，备用的 dpaste.com 会将其公开保留 1 天，且无法提前删除',
     upload: '上传',
     uploaded: '已上传',
     redacted: '已隐藏敏感信息',

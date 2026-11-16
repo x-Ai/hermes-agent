@@ -222,17 +222,27 @@ const MEMORY_STATUS_TONE: Record<
   missing: "destructive"
 };
 
+/** "Full logs go only to private storage via {command}." with the command set as code. */
+function DebugShareFullLogsHint({ template }: { template: string }) {
+  const [before, after = ""] = template.split("{command}");
+  return (
+    <>
+      {before}
+      <code>hermes debug share --nous</code>
+      {after}
+    </>
+  );
+}
+
 /** "Generate share link" + the consent dialog: the backend refuses an unconfirmed upload, so
  *  nothing leaves the machine until the user confirms what the public paste contains. */
 interface DebugShareButtonProps {
   sharing: boolean;
-  redact: boolean;
   onConfirm: () => void;
 }
 
 export function DebugShareButton({
   sharing,
-  redact,
   onConfirm,
 }: DebugShareButtonProps) {
   const { t } = useI18n();
@@ -257,7 +267,7 @@ export function DebugShareButton({
       <ConfirmDialog
         open={open}
         title={copy.shareConfirmTitle}
-        description={redact ? copy.shareConfirmRedacted : copy.shareConfirmUnredacted}
+        description={copy.shareConfirmDescription}
         destructive
         confirmLabel={copy.upload}
         cancelLabel={t.common.cancel}
@@ -627,7 +637,6 @@ export default function SystemPage() {
   // Unlike the fire-and-forget ops above, `debug share` produces shareable
   // paste URLs that are the whole point — so we surface them as real,
   // copyable links rather than a log tail.
-  const [shareRedact, setShareRedact] = useState(true);
   const [sharing, setSharing] = useState(false);
   const [shareResult, setShareResult] = useState<DebugShareResponse | null>(null);
   const [copiedLabel, setCopiedLabel] = useState<string | null>(null);
@@ -648,7 +657,7 @@ export default function SystemPage() {
     setSharing(true);
     setShareResult(null);
     try {
-      const res = await api.runDebugShare({ redact: shareRedact });
+      const res = await api.runDebugShare();
       setShareResult(res);
       const n = Object.keys(res.urls).length;
       showToast(
@@ -665,7 +674,7 @@ export default function SystemPage() {
     } finally {
       setSharing(false);
     }
-  }, [copy, shareRedact, showToast]);
+  }, [copy, showToast]);
 
   // ── Update check / apply ───────────────────────────────────────────
   const checkForUpdate = useCallback(
@@ -1576,7 +1585,7 @@ export default function SystemPage() {
           </CardContent>
         </Card>
 
-        {/* Debug share — uploads a redacted report + logs, returns shareable
+        {/* Debug share — uploads the allowlisted public summary, returns shareable
             links. Separated from the buttons above because its output is
             persistent, copyable URLs, not a fire-and-forget log tail. */}
         <Card>
@@ -1587,31 +1596,15 @@ export default function SystemPage() {
                 <div className="flex flex-col">
                   <span className="text-sm font-medium">{copy.shareDebug}</span>
                   <span className="text-xs text-muted-foreground max-w-prose">
-                    {copy.shareDebugHint}
+                    {copy.shareDebugHint}{" "}
+                    <DebugShareFullLogsHint template={copy.shareDebugFullLogs} />
                   </span>
                 </div>
               </div>
               <DebugShareButton
                 sharing={sharing}
-                redact={shareRedact}
                 onConfirm={() => void runDebugShare()}
               />
-            </div>
-
-            <div className="flex items-center gap-2.5">
-              <Checkbox
-                checked={shareRedact}
-                disabled={sharing}
-                id="share-redact"
-                onCheckedChange={checked => setShareRedact(checked === true)}
-              />
-
-              <Label
-                className="cursor-pointer select-none text-xs font-normal normal-case tracking-normal text-muted-foreground"
-                htmlFor="share-redact"
-              >
-                {copy.redact}
-              </Label>
             </div>
 
             {shareResult && (

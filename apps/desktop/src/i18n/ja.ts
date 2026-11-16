@@ -3035,10 +3035,10 @@ export const jaOverrides = {
       backupDesc: '構成、メモリ、スキル、セッションを圧縮',
       debugShare: 'デバッグ共有',
       debugShareDesc:
-        '機密情報をマスクしたレポートとログをアップロードし、共有可能なリンクを取得します (6 時間で自動削除)',
+        'サマリー（バージョン、設定キー名、エラー件数。ログ本文なし）をアップロードし、共有可能なリンクを取得します (6 時間で自動削除)',
       debugShareConfirm: 'デバッグレポートを公開ペーストにアップロードしますか？',
       debugShareConfirmDesc:
-        'システム情報と完全なログを公開ペーストサービスにアップロードします。機密情報はマスクされますが、最近のメッセージ、ツール出力、ファイルパスやファイル名はログに残り、リンクを知っている人なら誰でも閲覧できます。ペーストは 6 時間後に自動削除されます。paste.rs に接続できない場合は代替の dpaste.com が使われ、1 日間公開されたままとなり、早期に削除することはできません。',
+        'サマリーを公開ペーストサービスにアップロードします：Hermes・Python・OS のバージョン、接続中のプラットフォームとツールセットの名前、設定キー名（値は含みません）、警告/エラーの件数。ログ行やメッセージ本文は含まれません。ペーストは 6 時間後に自動削除されます。paste.rs に接続できない場合は代替の dpaste.com が使われ、1 日間公開されたままとなり、早期に削除することはできません。',
       debugShareRunning: 'デバッグ レポートをアップロードしています...',
       debugShareLinks: '共有リンク',
       debugShareFailed: 'デバッグ共有が失敗しました',
@@ -3347,6 +3347,15 @@ export const jaOverrides = {
     fieldSkillsPlaceholder: 'カンマ区切りのスキル名 (オプション)',
     fieldDeliver: '配信先',
     fieldDeliverOnly: 'ペイロードのみを配信する',
+    fieldSignature: '署名',
+    fieldSignatureHint:
+      'このルートが受け付ける唯一の署名方式です。GitHub、GitLab、Linear の配信には、それぞれ専用の方式を固定する必要があります。',
+    signatureOptions: {
+      generic: '汎用（タイムスタンプ付き）',
+      github: 'GitHub',
+      gitlab: 'GitLab',
+      linear: 'Linear'
+    },
     fieldPrompt: 'プロンプト',
     fieldPromptPlaceholder: 'この Webhook が起動されるときのエージェントへの指示 (オプション)',
     nameRequired: '名前は必須です',
@@ -4187,7 +4196,8 @@ export const jaOverrides = {
       '/topup': 'Nous の残高を表示し、請求を管理',
       '/platform': '問題のあるゲートウェイプラットフォームを一時停止、再開、一覧表示',
       '/version': 'Hermes Agent のバージョンを表示',
-      '/debug': 'デバッグレポート（システム情報 + ログ）: まずプライバシー通知を表示し、/debug upload でリンクを共有',
+      '/debug':
+        'デバッグレポート（バージョン、設定キー名、エラー件数。ログ本文なし）: まずプライバシー通知を表示し、/debug upload でリンクを共有',
       '/model': 'このセッションのモデルを切り替え'
     },
     slashGroups: {

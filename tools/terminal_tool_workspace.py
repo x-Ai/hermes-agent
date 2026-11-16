@@ -7,6 +7,7 @@ Sibling of :mod:`tools.terminal_tool` (the facade imports these names; patch the
 
 from __future__ import annotations
 
+import hashlib
 import logging
 import os
 import posixpath
@@ -119,3 +120,65 @@ def _translate_mounted_cwd(
     if tail in (".", ""):
         return mount_target
     return posixpath.join(mount_target, *tail.split(os.sep))
+
+
+def _workspace_cwd_for_task(task_id: Optional[str], config_cwd: str = "") -> str:
+    """Host cwd shared by workspace identity and mount resolution."""
+    from tools import terminal_tool as _tt
+    overrides = _tt._task_env_overrides.get(_tt._qualify_task_key(task_id or "default")) or {}
+    return str(overrides.get("cwd") or _tt.get_session_cwd(task_id) or config_cwd or "")
+
+
+def _resolve_workspace_per_session(env_type: str, mount_cwd_enabled: bool) -> bool:
+    per_session_var = _WORKSPACE_PER_SESSION_ENV_VARS.get(env_type)
+    return bool(
+        per_session_var
+        and mount_cwd_enabled
+        and _tenv(per_session_var, "false").strip().lower() in {"true", "1", "yes", "on"}
+    )
+
+
+def _workspace_per_session_enabled() -> bool:
+    from tools import terminal_tool as _tt
+    _tt._ensure_terminal_env_bridged()
+    env_type = (_tenv("TERMINAL_ENV", "local") or "").strip().lower()
+    mount_var = _MOUNT_CWD_ENV_VARS.get(env_type)
+    mount_enabled = bool(
+        mount_var and _tenv(mount_var, "false").strip().lower() in {"true", "1", "yes", "on"}
+    )
+    return _resolve_workspace_per_session(env_type, mount_enabled)
+
+
+def _workspace_profile_identity() -> str:
+    """Profile component of a per-project workspace key: two profiles on ONE directory must not
+    share an environment (image, forwarded env, egress posture all differ per profile)."""
+    from tools import terminal_tool as _tt
+    profile = _tt._current_session_profile() or ""
+    routed = _tt._routed_home_task_key(True) or ""
+    shared = _tenv("TERMINAL_DOCKER_SHARED_CONTAINER_KEY", "") or ""
+    return f"{profile}\n{routed}\n{shared.strip()}"
+
+
+def _mounted_workspace_key(host_path: str) -> str:
+    """``ws-<digest>`` identity of a per-session project mount (host path + mount path + profile);
+    distinct from upstream's ``<base>:ws:<digest>`` key for a session that registered a cwd."""
+    try:
+        normalized = os.path.realpath(os.path.abspath(os.path.expanduser(host_path)))
+    except OSError:
+        normalized = host_path
+    identity = f"{normalized.casefold()}\n{_workspace_mount_path()}\n{_workspace_profile_identity()}"
+    digest = hashlib.sha256(identity.encode("utf-8", "surrogatepass")).hexdigest()
+    return f"ws-{digest[:12]}"
+
+
+def _resolve_workspace_mount_for_task(
+    task_id: Optional[str], config: dict[str, Any]
+) -> tuple[Optional[str], Optional[str]]:
+    if not config.get("workspace_per_session"):
+        return None, None
+    # A session with no registered/recorded cwd (plain CLI, cron without a workdir) falls back to
+    # the launch directory the config already advertises as ``host_cwd``: every such session keys
+    # and mounts the same directory, so there is still no per-session fan-out, but the sandbox is
+    # no longer an empty tmpfs while ``host_cwd`` claims the launch dir is mounted. ``config["cwd"]``
+    # is the already-translated in-sandbox path and never a mount source.
+    return resolve_workspace_mount(_workspace_cwd_for_task(task_id, config.get("host_cwd") or ""))

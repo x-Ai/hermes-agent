@@ -344,12 +344,6 @@ def _pick_display() -> int:
     raise RuntimeError("no free X display number in the Bot Desktop band")
 
 
-def _allocate_display() -> int:
-    _ALLOC_LOCK.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
-    with _flocked(_ALLOC_LOCK):
-        return _pick_display()
-
-
 def desktop_env(base_env: Optional[dict[str, str]] = None) -> dict[str, str]:
     """``base_env`` (default ``os.environ``) with this profile's DISPLAY/XAUTHORITY/DBUS_SESSION_BUS_ADDRESS
     merged in when its desktop is running. Unchanged otherwise, so hosts with a real seat keep it.
@@ -810,6 +804,7 @@ def _spawn_and_wait(sd: Path, wait_seconds: float) -> DesktopStatus:
             child_env.pop(key, None)
         from hermes_cli._launchers import installation_command
         from tools.bot_desktop.idle_watch import next_check_in
+        from hermes_cli._startup_fast import project_root_str
         child_env.update({
             "HERMES_BD_PROFILE": _profile_name(),
             "HERMES_BD_DISPLAY_NUM": str(num),
@@ -825,7 +820,7 @@ def _spawn_and_wait(sd: Path, wait_seconds: float) -> DesktopStatus:
             # so the inherited PYTHONPATH generation is never pinned, and on a store install neither is this
             # interpreter.
             "HERMES_BD_IDLE_CMD": shlex.join(installation_command(
-                Path(__file__).resolve().parents[2], module="tools.bot_desktop.idle_watch")),
+                Path(project_root_str()), module="tools.bot_desktop.idle_watch")),
             "HERMES_BD_HOME": str(get_hermes_home()),
             "HERMES_BD_IDLE_FIRST_DELAY": str(next_check_in(idle_stop_seconds(), 0.0)),
         })

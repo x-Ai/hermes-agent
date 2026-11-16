@@ -125,14 +125,8 @@ export type {
   ToolsetConfig,
   ToolsetInfo,
   ToolsetModel,
-  ToolsetModelsResponse,
-  WebhookCreatePayload,
-  WebhookCreateResponse,
-  WebhookEnableResponse,
-  WebhookRoute,
-  WebhooksResponse
+  ToolsetModelsResponse
 } from '@/types/hermes'
-
 export type {
   CronDeliveryTarget,
   CronJob,
@@ -140,3 +134,12 @@ export type {
   CronJobSchedule,
   CronJobUpdates
 } from '@/types/hermes_cron'
+
+export type {
+  WebhookCreatePayload,
+  WebhookCreateResponse,
+  WebhookEnableResponse,
+  WebhookRoute,
+  WebhookSignature,
+  WebhooksResponse
+} from '@/types/webhooks'

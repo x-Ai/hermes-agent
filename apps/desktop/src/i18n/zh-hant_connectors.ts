@@ -372,6 +372,14 @@ export const zhHantConnectors = {
     fieldSkillsPlaceholder: '以逗號分隔的技能名稱（選填）',
     fieldDeliver: '傳送至',
     fieldDeliverOnly: '僅傳送承載資料',
+    fieldSignature: '簽章',
+    fieldSignatureHint: '此路由唯一接受的簽章方案。GitHub、GitLab 與 Linear 的傳送需要各自固定對應的方案。',
+    signatureOptions: {
+      generic: '通用（含時間戳記）',
+      github: 'GitHub',
+      gitlab: 'GitLab',
+      linear: 'Linear'
+    },
     fieldPrompt: '提示詞',
     fieldPromptPlaceholder: '此 Webhook 觸發時給代理的指示（選填）',
     nameRequired: '名稱為必填',

@@ -37,6 +37,7 @@ import { localizeDefaultIdentifier } from "@/i18n/default-identifier";
 import { usePageHeader } from "@/contexts/usePageHeader";
 import { cn, themedBody } from "@/lib/utils";
 import { errorMessage } from "@/lib/api-error";
+import { ProfileCreationReceipt, type CreationReceipt } from "./ProfileCreationReceipt";
 
 // Mirrors hermes_cli/profiles.py::_PROFILE_ID_RE so we can reject obviously
 // invalid names (uppercase, spaces, …) before round-tripping a doomed POST.
@@ -218,12 +219,24 @@ function ProfileActionsMenu({
   );
 }
 
+/** ``modelFailedMessage`` is the localized "model could not be saved" line, empty when the model was saved. */
+function creationReceiptFor(title: string, warnings: string[] = [], modelFailedMessage = ""): CreationReceipt | null {
+  const messages = [...(modelFailedMessage ? [modelFailedMessage] : []), ...warnings];
+  return messages.length ? { title, messages } : null;
+}
+
+function useCreationFeedback() {
+  const { toast, showToast } = useToast();
+  const [creationReceipt, setCreationReceipt] = useState<CreationReceipt | null>(null);
+  return { toast, showToast, creationReceipt, setCreationReceipt };
+}
+
 export default function ProfilesPage() {
   const navigate = useNavigate();
   const [profiles, setProfiles] = useState<ProfileInfo[]>([]);
   const [activeInfo, setActiveInfo] = useState<ActiveProfileInfo | null>(null);
   const [loading, setLoading] = useState(true);
-  const { toast, showToast } = useToast();
+  const { toast, showToast, creationReceipt, setCreationReceipt } = useCreationFeedback();
   const { t } = useI18n();
   const { setEnd } = usePageHeader();
   const { setProfile } = useProfileScope();
@@ -411,10 +424,15 @@ export default function ProfilesPage() {
         provider: picked?.provider,
         model: picked?.model
       });
-      showToast(`${t.profiles.created}: ${name}`, "success");
-      if (picked && res.model_set === false) {
-        showToast(L.modelSaveAfterCreateFailed, "error");
-      }
+      const title = `${t.profiles.created}: ${name}`;
+      const receipt = creationReceiptFor(
+        title,
+        res.warnings,
+        picked && res.model_set === false ? L.modelSaveAfterCreateFailed : "",
+      );
+      // Replaced only by a successful create: a failed retry keeps the last receipt.
+      setCreationReceipt(receipt);
+      if (!receipt) showToast(title, "success");
       setNewName("");
       setNewDescription("");
       setNoSkills(false);
@@ -748,6 +766,7 @@ export default function ProfilesPage() {
   return (
     <div className="flex flex-col gap-6">
       <Toast toast={toast} />
+      <ProfileCreationReceipt receipt={creationReceipt} onDismiss={() => setCreationReceipt(null)} />
 
       <DeleteConfirmDialog
         open={profileDelete.isOpen}

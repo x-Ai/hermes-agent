@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
-// "Generate share link" publishes logs to a public paste, so it must ask first: the consent
-// dialog reads in the dashboard language, says whether redaction is on, and the upload runs
+// "Generate share link" publishes a summary to a public paste, so it must ask first: the consent
+// dialog reads in the dashboard language, says what the summary carries, and the upload runs
 // only from its confirm button.
 
 import { act, type ReactNode } from "react";
@@ -63,12 +63,12 @@ const buttonNamed = (scope: ParentNode, label: string) =>
 
 const copy = dashboardZh.system;
 
-async function openConsent(redact: boolean) {
+async function openConsent() {
   const onConfirm = vi.fn();
   container = document.createElement("div");
   document.body.append(container);
   root = createRoot(container);
-  const ui: ReactNode = <DebugShareButton sharing={false} redact={redact} onConfirm={onConfirm} />;
+  const ui: ReactNode = <DebugShareButton sharing={false} onConfirm={onConfirm} />;
   await act(async () => root.render(<I18nProvider>{ui}</I18nProvider>));
   await act(async () => click(buttonNamed(container, copy.generateShare)));
   await waitFor(() => Boolean(document.querySelector('[role="alertdialog"]')));
@@ -77,21 +77,18 @@ async function openConsent(redact: boolean) {
 
 describe("DebugShareButton consent", () => {
   it("asks in the dashboard language and uploads only from the confirm button", async () => {
-    const { dialog, onConfirm } = await openConsent(true);
+    const { dialog, onConfirm } = await openConsent();
 
     expect(onConfirm).not.toHaveBeenCalled();
     expect(dialog.textContent).toContain(copy.shareConfirmTitle);
-    expect(dialog.textContent).toContain(copy.shareConfirmRedacted);
+    expect(dialog.textContent).toContain(copy.shareConfirmDescription);
 
     await act(async () => click(buttonNamed(dialog, copy.upload)));
     expect(onConfirm).toHaveBeenCalledTimes(1);
   });
 
-  it("says redaction is off when the toggle is cleared, and cancelling uploads nothing", async () => {
-    const { dialog, onConfirm } = await openConsent(false);
-
-    expect(dialog.textContent).toContain(copy.shareConfirmUnredacted);
-    expect(dialog.textContent).not.toContain(copy.shareConfirmRedacted);
+  it("uploads nothing when the dialog is cancelled", async () => {
+    const { dialog, onConfirm } = await openConsent();
 
     await act(async () => click(buttonNamed(dialog, zhCatalog.common.cancel)));
     expect(onConfirm).not.toHaveBeenCalled();

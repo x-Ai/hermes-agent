@@ -125,6 +125,15 @@ export const arConnectors = {
     fieldSkillsPlaceholder: 'أسماء مهارات مفصولة بفواصل (اختياري)',
     fieldDeliver: 'التسليم إلى',
     fieldDeliverOnly: 'تسليم الحمولة فقط',
+    fieldSignature: 'التوقيع',
+    fieldSignatureHint:
+      'مخطط التوقيع الوحيد الذي يقبله هذا المسار. تحتاج عمليات التسليم من GitHub وGitLab وLinear إلى تثبيت مخطط خاص بكل منها.',
+    signatureOptions: {
+      generic: 'عام (مع طابع زمني)',
+      github: 'GitHub',
+      gitlab: 'GitLab',
+      linear: 'Linear'
+    },
     fieldPrompt: 'الموجّه',
     fieldPromptPlaceholder: 'تعليمات للوكيل عند تشغيل خطاف الويب هذا (اختياري)',
     nameRequired: 'الاسم مطلوب',

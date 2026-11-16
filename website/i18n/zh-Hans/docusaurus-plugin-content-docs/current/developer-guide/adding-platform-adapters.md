@@ -560,7 +560,7 @@ await self.handle_message(event)
 
 ### 7. 工具
 
-1. **`tools/send_message_tool.py`** — 将 `"newplat": Platform.NEWPLAT` 添加到平台映射
+1. **`gateway/outbound/send.py`** — 将 `"newplat": Platform.NEWPLAT` 添加到平台映射
 2. **`tools/cronjob_tools.py`** — 将 `newplat` 添加到投递目标描述字符串
 
 ### 8. Toolset

@@ -19,7 +19,6 @@ import/patch target): ``terminal_tool_config`` (TERMINAL_* reads, ``_quiet``),
 ``terminal_tool_result`` (foreground result post-processing).
 """
 
-import hashlib
 import json
 import logging
 import os
@@ -53,8 +52,10 @@ from tools.terminal_tool_config import (
 )
 from tools.terminal_tool_workspace import (
     _DEFAULT_WORKSPACE_MOUNT_PATH, _MOUNT_CWD_ENV_VARS, _WORKSPACE_MOUNT_PATH_ENV_VARS,
-    _WORKSPACE_PER_SESSION_ENV_VARS, _is_host_path, _is_sandbox_path, _translate_mounted_cwd,
-    _workspace_mount_path, resolve_workspace_mount,
+    _is_host_path, _is_sandbox_path, _translate_mounted_cwd,
+    _mounted_workspace_key, _resolve_workspace_mount_for_task, _resolve_workspace_per_session,
+    _workspace_cwd_for_task, _workspace_mount_path, _workspace_per_session_enabled,
+    resolve_workspace_mount,
 )
 from tools.terminal_tool_backends import (
     _REQUIREMENT_CHECKERS, _VERCEL_SANDBOX_DEFAULT_CWD, _check_plugin_requirements,
@@ -443,6 +444,19 @@ def _resolve_container_alias(task_id: str) -> str:
     return key
 
 
+def _shell_state_chain(task_id: Optional[str]) -> tuple[str, ...]:
+    """*task_id* plus its aliased ancestors, root excluded: a delegated child reads and
+    writes its own shell snapshot, seeded from the nearest ancestor's (the root's is the
+    environment's own). Empty for a task with no alias (#84536)."""
+    chain: list[str] = []
+    key = task_id
+    with _container_alias_lock:
+        while key and key in _container_aliases and key not in chain:
+            chain.append(key)
+            key = _container_aliases[key]
+    return tuple(chain)
+
+
 def _is_isolation_override_key(key: str) -> bool:
     """An image (``docker_image``, a plugin backend's ``<backend>_image``) or ``env_type`` override."""
     return key == "env_type" or key.endswith("_image")
@@ -574,64 +588,6 @@ def _qualify_task_key(key: str) -> str:
     scope = current_sandbox_key() or _routed_home_task_key(profile_scoped=True)
     return f"{scope}:{key}" if scope else key
 
-
-def _workspace_cwd_for_task(task_id: Optional[str], config_cwd: str = "") -> str:
-    """Host cwd shared by workspace identity and mount resolution."""
-    overrides = _task_env_overrides.get(_qualify_task_key(task_id or "default")) or {}
-    return str(overrides.get("cwd") or get_session_cwd(task_id) or config_cwd or "")
-
-
-def _resolve_workspace_per_session(env_type: str, mount_cwd_enabled: bool) -> bool:
-    per_session_var = _WORKSPACE_PER_SESSION_ENV_VARS.get(env_type)
-    return bool(
-        per_session_var
-        and mount_cwd_enabled
-        and _tenv(per_session_var, "false").strip().lower() in {"true", "1", "yes", "on"}
-    )
-
-
-def _workspace_per_session_enabled() -> bool:
-    _ensure_terminal_env_bridged()
-    env_type = (_tenv("TERMINAL_ENV", "local") or "").strip().lower()
-    mount_var = _MOUNT_CWD_ENV_VARS.get(env_type)
-    mount_enabled = bool(
-        mount_var and _tenv(mount_var, "false").strip().lower() in {"true", "1", "yes", "on"}
-    )
-    return _resolve_workspace_per_session(env_type, mount_enabled)
-
-
-def _workspace_profile_identity() -> str:
-    """Profile component of a per-project workspace key: two profiles on ONE directory must not
-    share an environment (image, forwarded env, egress posture all differ per profile)."""
-    profile = _current_session_profile() or ""
-    routed = _routed_home_task_key(True) or ""
-    shared = _tenv("TERMINAL_DOCKER_SHARED_CONTAINER_KEY", "") or ""
-    return f"{profile}\n{routed}\n{shared.strip()}"
-
-
-def _mounted_workspace_key(host_path: str) -> str:
-    """``ws-<digest>`` identity of a per-session project mount (host path + mount path + profile);
-    distinct from upstream's ``<base>:ws:<digest>`` key for a session that registered a cwd."""
-    try:
-        normalized = os.path.realpath(os.path.abspath(os.path.expanduser(host_path)))
-    except OSError:
-        normalized = host_path
-    identity = f"{normalized.casefold()}\n{_workspace_mount_path()}\n{_workspace_profile_identity()}"
-    digest = hashlib.sha256(identity.encode("utf-8", "surrogatepass")).hexdigest()
-    return f"ws-{digest[:12]}"
-
-
-def _resolve_workspace_mount_for_task(
-    task_id: Optional[str], config: dict[str, Any]
-) -> tuple[Optional[str], Optional[str]]:
-    if not config.get("workspace_per_session"):
-        return None, None
-    # A session with no registered/recorded cwd (plain CLI, cron without a workdir) falls back to
-    # the launch directory the config already advertises as ``host_cwd``: every such session keys
-    # and mounts the same directory, so there is still no per-session fan-out, but the sandbox is
-    # no longer an empty tmpfs while ``host_cwd`` claims the launch dir is mounted. ``config["cwd"]``
-    # is the already-translated in-sandbox path and never a mount source.
-    return resolve_workspace_mount(_workspace_cwd_for_task(task_id, config.get("host_cwd") or ""))
 
 
 def _resolve_container_task_id(task_id: Optional[str]) -> str:
@@ -1149,7 +1105,7 @@ from tools.terminal_tool_guards import (
     gateway_lifecycle_block, locked_skill_block, self_repo_block, trailing_amp_background_command,
 )
 from tools.terminal_tool_background import _YIELDED_NOTE, spawn_background_process, yield_to_background_handler
-from tools.terminal_tool_result import finalize_foreground_result
+from tools.terminal_tool_result import _cwd_fallback_note, finalize_foreground_result
 
 
 def _resolve_notification_flag_conflict(*, notify_on_complete: bool, watch_patterns, background: bool) -> tuple:
@@ -1624,6 +1580,7 @@ def _run_foreground(
             "output": result.get("output", ""), "exit_code": None, "error": None,
             "status": "yielded_to_background", "session_id": result["yielded_session_id"],
             "pid": result.get("pid"), "notify_on_complete": True, "note": _YIELDED_NOTE,
+            **({"cwd_fallback": note} if (note := _cwd_fallback_note(result.get("cwd_fallback"))) else {}),
         }, ensure_ascii=False)
     if metered:
         record_terminal_outcome(command, env_type, result)
@@ -1638,6 +1595,22 @@ def _run_foreground(
 # (1s in tests, a few seconds in practice) must not turn the guard's own cold-start cost
 # (module imports, git probes under load) into a refusal; the wedge it bounds lasted an hour.
 _PRE_EXEC_GUARD_MIN_TIMEOUT_S = 30
+
+
+def _refuse_missing_local_workdir(workdir: str, env: Any) -> None:
+    """An explicit ``workdir`` the model named is never swapped for a parent: a typo would run
+    ``rm -f ./*`` one level up. Only a cwd the session inherited falls back (``_usable_cwd``),
+    and only ``LocalEnvironment`` falls back at all."""
+    from tools.environments.local import LocalEnvironment
+    if not isinstance(env, LocalEnvironment):
+        return
+    _, fallback = env._usable_cwd(workdir)
+    if fallback:
+        raise _Rejected(_error_json(
+            f"workdir {workdir} does not exist or is not accessible; the command did not run. "
+            "Create it first or pass an existing directory.",
+            exit_code=126, status="error",
+        ))
 
 
 def _pre_exec_block(
@@ -1660,6 +1633,7 @@ def _pre_exec_block(
             logger.warning("Blocked dangerous workdir: %s (command: %s)",
                            workdir[:200], _safe_command_preview(command))
             raise _Rejected(_error_json(workdir_error, status="blocked"))
+        _refuse_missing_local_workdir(workdir, env)
     if env_type == "local":
         blocked = (self_repo_block(command=command, cwd=cwd, workdir=workdir, session_key=session_key)
                    or locked_skill_block(command=command, cwd=cwd, workdir=workdir, session_key=session_key))
@@ -1726,8 +1700,8 @@ def terminal_tool(
     time" event every N seconds so the agent stays current on a long job without polling.
     ``persist_on_release`` (background-only) keeps the process alive across agent-lifecycle
     cleanup — session end, context compression, error recovery, max-iteration stop — all of
-    which kill the task's background processes; the user can still stop it on purpose via
-    process_manage kill (#41225).
+    which kill the task's background processes; the owning conversation can still stop it via
+    process_manage kill, and the user from the process UI (#41225).
     ``_completion_output_chars`` (internal) sizes the completion notification's output for a
     spawner whose output is the payload (a bot DM's reply); 0 keeps the usual tail.
     ``_host_local`` forces the local backend for Hermes-owned control-plane
@@ -1746,7 +1720,8 @@ def terminal_tool(
             command, background = auto_bg, True
         env = _acquire_env(plan, task_id)
         # _lookup_active_env stamps whichever of the two keys holds the env.
-        with _call_in_flight(plan.effective_task_id, task_id):
+        from tools.environments.base import shell_state_scope
+        with _call_in_flight(plan.effective_task_id, task_id), shell_state_scope(_shell_state_chain(task_id)):
             env_type, cwd, effective_task_id = plan.env_type, plan.cwd, plan.effective_task_id
 
             # Session key for cwd records: the contextvar doesn't cross tool-worker
@@ -1980,6 +1955,32 @@ def _handle_terminal(args, **kw):
     )
 
 
+def _terminal_deadline_floor(args: dict) -> float | None:
+    """How long this call actually blocks the tool worker, so the executor's generic
+    deadline can be raised to clear it (see ToolEntry.deadline_floor).
+
+    A background spawn and an over-cap foreground timeout (promoted to background by
+    ``_build_exec_plan``) both return at once, so neither declares a floor. A foreground
+    call blocks for ``timeout or TERMINAL_TIMEOUT`` — which the schema tells the model to
+    set high, promising "Returns INSTANTLY when command finishes".
+    """
+    if args.get("background"):
+        return None
+    requested = args.get("timeout")
+    try:
+        requested = int(requested) if requested else 0
+    except (TypeError, ValueError):
+        requested = 0
+    if requested > FOREGROUND_MAX_TIMEOUT:
+        return None
+    if requested > 0:
+        return float(requested)
+    try:
+        return float(_parse_env_var("TERMINAL_TIMEOUT", "180"))
+    except ValueError:
+        return None
+
+
 registry.register(
     name="terminal",
     toolset="terminal",
@@ -1990,4 +1991,5 @@ registry.register(
     max_result_size_chars=100_000,
     # ``code`` is the wrong-tool guard (points at execute_code); the other two are the legacy notify interface.
     compat_args=("code", "notify_on_complete", "watch_patterns"),
+    deadline_floor=_terminal_deadline_floor,
 )

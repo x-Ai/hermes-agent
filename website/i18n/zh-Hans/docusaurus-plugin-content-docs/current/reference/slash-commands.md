@@ -243,7 +243,7 @@ hermes config set model.aliases.grok x-ai/grok-4
 | `/deny` | 拒绝待处理的危险命令。 |
 | `/update` | 将 Hermes Agent 更新到最新版本。 |
 | `/restart` | 在排空活动运行后优雅重启 gateway。gateway 重新上线后，会向请求者的聊天/线程发送确认消息。 |
-| `/debug [upload]` | 单独输入 `/debug` 只显示隐私声明，不会上传任何内容；`/debug upload` 上传摘要报告（系统信息 + 日志末尾）并返回可分享链接。 |
+| `/debug [upload]` | 单独输入 `/debug` 只显示隐私声明，不会上传任何内容；`/debug upload` 将经过白名单筛选的摘要（版本、配置键名、错误计数；不含日志或消息文本）上传到公开粘贴服务并返回可分享链接；完整日志只会通过 `hermes debug share --nous` 发送到私有存储。 |
 | `/help` | 显示消息平台帮助。 |
 | `/<skill-name>` | 按名称调用任意已安装的 skill。 |
 

@@ -18,6 +18,10 @@ def homes(tmp_path, monkeypatch):
     root.mkdir()
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
     monkeypatch.setenv("HERMES_HOME", str(root))
+    # HERMES_HOME is Path.home()/.hermes on purpose (profile sharing is HOME-anchored), which the
+    # pytest seat belt in _auth_file_path takes for the real auth store; an endpoint edit's
+    # origin-move check reads the credential pool, so point the store at this tmp home directly.
+    monkeypatch.setattr("hermes_cli.auth._auth_file_path", lambda: root / "auth.json")
     (root / "config.yaml").write_text(
         "providers:\n  relay:\n    name: Relay\n    base_url: https://relay.example.com/v1\n", encoding="utf-8")
     (root / ".env").write_text("", encoding="utf-8")

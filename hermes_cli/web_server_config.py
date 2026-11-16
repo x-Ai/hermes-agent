@@ -5,7 +5,7 @@ import logging
 import os
 from fastapi import HTTPException
 from typing import Any, Dict, List, Optional, Tuple, TYPE_CHECKING
-from agent.model_metadata import is_local_endpoint
+from agent.process_transport import is_local_server
 from hermes_cli.config import (
     DEFAULT_CONFIG,
     cfg_get,
@@ -14,9 +14,11 @@ from hermes_cli.config import (
     read_raw_config,
 )
 from hermes_cli.config_backend import refusing_locked_omissions
+from hermes_cli.config_route_guard import clear_aux_credentials_on_route_change
 from hermes_cli.web_server_memory import _normalize_memory_provider_name
 from tools.transcription_common import STT_MODEL_CATALOG
 from tools.wake_word import _PROVIDER_PREFERENCE
+from utils import same_base_url_origin
 
 if TYPE_CHECKING:
     from hermes_cli.model_switch import ModelSwitchResult
@@ -558,7 +560,7 @@ def _dashboard_skew_restart_hint() -> str:
     )
 
 
-def _rotate_entry_credential(cfg: dict, provider: str, api_key: str) -> Optional[str]:
+def _rotate_entry_credential(cfg: dict, provider: str, api_key: str, base_url: str = "") -> Optional[str]:
     """Store an explicitly submitted key for a ``providers.<id>`` entry and return the ``key_env``
     pointer ``model_cfg`` should carry, or None when there is nothing to rotate.
 
@@ -568,8 +570,14 @@ def _rotate_entry_credential(cfg: dict, provider: str, api_key: str) -> Optional
     to ``.env`` behind the entry's own ``key_env`` (else the custom-endpoint slot, migrating a
     plaintext ``api_key`` the way the endpoint write route does) so config.yaml never holds it.
     Bare ``custom`` / unknown providers have no entry and keep the inline ``model.api_key`` path.
+    A variable another endpoint also reads (an older release keyed rows by host:port) is never
+    written over: the entry, and this endpoint's other rows on it, move to the entry's own
+    ``provider_name_key_env`` name, as the endpoint write route names it.
     """
-    from hermes_cli.config import _ENV_REF_RE, custom_endpoint_key_env, save_env_value
+    from hermes_cli.config import _ENV_REF_RE
+    from hermes_cli.config_secret_refs import (
+        other_endpoint_reads, provider_name_key_env, repoint_endpoint_key_env, store_secret,
+    )
     from hermes_cli.web_routers._common import is_redacted_credential_preview
 
     key = api_key.strip()
@@ -584,12 +592,21 @@ def _rotate_entry_credential(cfg: dict, provider: str, api_key: str) -> Optional
     # ``${VAR}`` / a masked preview is the GET display of the current key echoed back, not a new value.
     if _ENV_REF_RE.fullmatch(key) or is_redacted_credential_preview(key):
         return None
-    key_env = str(entry.get("key_env") or entry.get("api_key_env") or "").strip()
-    if not key_env:
-        key_env = custom_endpoint_key_env(str(stored_key))
+    current = str(entry.get("key_env") or entry.get("api_key_env") or "").strip()
+    endpoint = base_url or str(entry.get("base_url") or "")
+    key_env = current
+    if not current or other_endpoint_reads(current, endpoint, own_provider=stored_key):
+        key_env = provider_name_key_env(str(stored_key))
+    try:
+        store_secret(key_env, key, endpoint, own_provider=stored_key)
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    if key_env != current:
+        if current:
+            repoint_endpoint_key_env(cfg, endpoint, current, key_env)
         entry["key_env"] = key_env
+        entry.pop("api_key_env", None)
         entry.pop("api_key", None)
-    save_env_value(key_env, key)
     return key_env
 
 
@@ -667,12 +684,16 @@ def _register_custom_endpoint(base_url: str, api_key: str, model: str) -> None:
     writes ``provider: custom`` with an inline ``base_url`` + ``api_mode``, and re-registering
     that same endpoint as a named ``custom:<slug>`` row on every dashboard re-save is what let
     the picker rewrite the CLI's shape into ``custom:<slug>`` + ``base_url: ''``. Only a
-    GENUINELY new endpoint gets a named row.
+    GENUINELY new endpoint gets a named row. A ``${VAR}`` ``api_key`` (the main slot already
+    saved the secret to ``.env``) becomes the row's ``key_env`` (#77471).
     """
     try:
         from hermes_cli.main_provider_setup import _auto_provider_name, _save_custom_provider
 
-        _save_custom_provider(base_url, api_key, model, name=_auto_provider_name(base_url))
+        from hermes_cli.config_secret_refs import is_env_reference
+        key_env = api_key.strip()[2:-1] if is_env_reference(api_key) else ""
+        _save_custom_provider(base_url, "" if key_env else api_key, model, name=_auto_provider_name(base_url),
+                              key_env=key_env)
     except Exception:
         _log.debug("custom_providers registration skipped", exc_info=True)
 
@@ -699,7 +720,7 @@ def _stale_aux_pins(cfg: dict, new_provider: str) -> list:
         if slot_provider and slot_provider.lower() not in {"auto", "", "main"} and slot_provider.lower() != new_provider:
             # A pin on a private/LAN endpoint (per-task base_url, e.g. a home Ollama box) never bills
             # a provider, so a main switch does not orphan it.
-            if is_local_endpoint(str(slot_cfg.get("base_url", "") or "")):
+            if is_local_server(slot_cfg.get("base_url"), slot_provider):
                 continue
             stale_aux.append({
                 "task": slot, "provider": slot_provider, "model": str(slot_cfg.get("model", "") or ""),
@@ -752,19 +773,42 @@ def _apply_main_assignment_sync(cfg: dict, provider: str, model: str, base_url: 
     provider_lc = provider.strip().lower()
     endpoint_already_known = (
         provider_lc in BARE_CUSTOM_SELECTORS and bool(base_url) and _endpoint_known_to_config(cfg, base_url))
-    model_cfg = apply_main_model_assignment(cfg.get("model", {}), result, api_key)
     # A submitted endpoint carries its own key (or none); a ``providers.custom`` block for ANOTHER
     # host shares the selector's name. Hydrating from it would pair the new URL with that host's
     # key, and rotating it would overwrite that host's credential with the submitted one, so the
-    # submitted key stays inline. A block for the same host (its ``key_env``) still takes part.
+    # submitted key stays with the endpoint. A block for the same host (its ``key_env``) still takes part.
     foreign_entry = explicit_endpoint and entry_points_elsewhere(provider_entry, base_url)
-    rotated_key_env = None if foreign_entry else _rotate_entry_credential(cfg, provider, api_key)
+    rotated_key_env = None if foreign_entry else _rotate_entry_credential(
+        cfg, provider, api_key, result.base_url or base_url)
+    # The submitted key goes to .env; model.api_key and the registered row hold only its reference.
+    stored_key, env_name, shared_envs = api_key, "", []
+    if rotated_key_env:
+        stored_key = f"${{{rotated_key_env}}}"
+    elif api_key.strip():
+        from hermes_cli.config_secret_refs import (
+            endpoint_api_key_env, known_endpoint_key_env, secret_ref_for, shared_endpoint_key_envs,
+        )
+        shared_envs = shared_endpoint_key_envs(cfg, result.base_url)
+        # A row already registered for this endpoint keeps its variable, so model.api_key and the
+        # row read the same key instead of two copies drifting apart.
+        env_name = known_endpoint_key_env(cfg, result.base_url) or endpoint_api_key_env(result.base_url)
+        try:
+            stored_key = secret_ref_for(env_name, api_key.strip(), result.base_url)
+        except ValueError as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
+    model_cfg = apply_main_model_assignment(cfg.get("model", {}), result, stored_key)
     if rotated_key_env:
         model_cfg["key_env"] = rotated_key_env
         model_cfg.pop("api_key", None)
     elif not foreign_entry:
         _resolve_assignment_credentials(model_cfg, provider, provider_entry)
     cfg["model"] = model_cfg
+    if shared_envs and stored_key != api_key:
+        # This endpoint's rows (and the key_env just copied from one) leave the variable it shares
+        # with another endpoint for the one holding the submitted key.
+        from hermes_cli.config_secret_refs import repoint_endpoint_key_env
+        for shared_env in shared_envs:
+            repoint_endpoint_key_env(cfg, result.base_url, shared_env, env_name)
 
     new_provider = provider.strip().lower()
     gateway_tools = _apply_nous_gateway_defaults(cfg) if new_provider == "nous" else []
@@ -773,7 +817,7 @@ def _apply_main_assignment_sync(cfg: dict, provider: str, model: str, base_url: 
     with refusing_locked_omissions("model"):
         save_config(cfg)
     if new_provider in BARE_CUSTOM_SELECTORS and base_url and not endpoint_already_known:
-        _register_custom_endpoint(base_url, api_key, model)
+        _register_custom_endpoint(base_url, stored_key, model)
     # The serve process's boot record may still say "nothing configured"; the chat gates on it.
     reconcile_record()
 
@@ -814,6 +858,20 @@ def _aux_default_effort(slot: str) -> str:
     return str(block.get("reasoning_effort") or "") if isinstance(block, dict) else ""
 
 
+def _refuse_unwritable_aux_keys(slots: list, api_key: str) -> None:
+    """400 before ANY slot's key reaches ``.env`` when the write lock forbids one slot's variable,
+    so an all-tasks save never leaves an earlier slot's line behind with config.yaml unsaved."""
+    from hermes_cli.config import require_env_writable
+    from hermes_cli.config_secret_refs import aux_api_key_env, is_env_reference, refs_supported
+    if is_env_reference(api_key) or not refs_supported():
+        return
+    for slot in slots:
+        try:
+            require_env_writable(aux_api_key_env(slot), "set")
+        except ValueError as exc:  # the refusal names the variable, never the key
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
 def _apply_aux_assignment_sync(cfg: dict, provider: str, model: str, task: str, base_url: str, api_key: str,
                                reasoning_effort: Optional[str] = _UNSET) -> dict:
     from hermes_cli.config import save_config
@@ -847,11 +905,16 @@ def _apply_aux_assignment_sync(cfg: dict, provider: str, model: str, task: str, 
 
     targets = [task] if task else list(slots)
     new_provider = provider.strip().lower()
+    if base_url and api_key:
+        _refuse_unwritable_aux_keys([slot for slot in targets if slot in slots], api_key)
     for slot in targets:
         if slot not in slots:
             raise HTTPException(status_code=400, detail=f"unknown auxiliary task: {slot}")
         slot_cfg = _slot(slot)
         prev_provider = str(slot_cfg.get("provider") or "").strip().lower()
+        keeps_old_url = not base_url and (new_provider == prev_provider or new_provider == "custom")
+        clear_aux_credentials_on_route_change(
+            slot_cfg, provider, base_url or (slot_cfg.get("base_url") if keeps_old_url else ""))
         slot_cfg["provider"] = provider
         slot_cfg["model"] = model
         if base_url:
@@ -862,12 +925,18 @@ def _apply_aux_assignment_sync(cfg: dict, provider: str, model: str, task: str, 
             # The auxiliary resolver already reads auxiliary.<task>.base_url/api_key
             # (_resolve_task_provider_model), so persisting them here is what actually wires the endpoint
             # in. See #65254.
+            if not api_key and not same_base_url_origin(str(slot_cfg.get("base_url") or ""), base_url):
+                # The slot's stored key was entered for its previous host, not this one.
+                clear_model_endpoint_credentials(slot_cfg, clear_api_mode=False)
             slot_cfg["base_url"] = base_url
             if api_key:
-                slot_cfg["api_key"] = api_key
-        elif new_provider != prev_provider and new_provider != "custom":
+                from hermes_cli.config_secret_refs import aux_api_key_env, secret_ref_for
+                try:
+                    slot_cfg["api_key"] = secret_ref_for(aux_api_key_env(slot), api_key)
+                except ValueError as exc:  # .env write lock: the refusal names the variable, never the key
+                    raise HTTPException(status_code=400, detail=str(exc)) from exc
+        elif not keeps_old_url:
             slot_cfg.pop("base_url", None)
-            clear_model_endpoint_credentials(slot_cfg)
         if effort is None:
             # "Inherit" is an explicit "" where the slot ships a default (voice_chat: none); popping
             # the key would bring that default straight back.

@@ -25,7 +25,7 @@ _CODE_ALIASES: dict[str, str] = {
 _CODE_KEYS = frozenset({
     "auth", "billing", "rate_limit", "upstream_blocked", "overloaded", "server_error", "timeout",
     "context_overflow", "payload_too_large", "model_not_found", "content_policy_blocked",
-    "provider_policy_blocked", "format_error", "ssl_cert_verification",
+    "provider_policy_blocked", "guardrail_blocked", "format_error", "ssl_cert_verification",
     "local_runtime_unavailable"})
 _LAYER_KEYS = frozenset({"auth", "endpoint", "streaming", "disk", "gateway", "provider"})
 # Entries whose hint opens with "Send /retry": a turn that cannot be retried gets their

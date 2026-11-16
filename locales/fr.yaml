@@ -52,9 +52,14 @@ approval:
   # les outils de transcription s'y fient.
   blocked:
     hardline: "BLOCKED (hardline) : {description}. Cette commande figure sur la liste de blocage inconditionnel et ne peut pas être exécutée via l'agent — même pas avec --yolo, /yolo, approvals.mode=off ou le mode approve de cron. Si vous devez vraiment l'exécuter, lancez-la vous-même dans un terminal hors de l'agent."
-    recovery_prefix: " RÉCUPÉRATION : ce blocage se déclenche sur des commandes en ligne trop volumineuses ou impossibles à analyser (heredocs, énormes one-liners), pas sur l'opération elle-même. "
-    recovery_saved: "Votre commande a été enregistrée dans {path} — relisez-la, puis exécutez : terminal(command=\"bash {path}\"). Ne réessayez pas en ligne."
-    recovery_write_file: "Écrivez le script dans un fichier avec write_file, puis exécutez-le : terminal(command=\"bash /path/script.sh\") ou \"python3 /path/script.py\". Ne réessayez pas en ligne."
+    recovery_prefix: " RÉCUPÉRATION : ce blocage se déclenche sur des commandes en ligne trop volumineuses ou trop profondément imbriquées (heredocs, énormes one-liners), pas sur l'opération elle-même. "
+    recovery_saved: "Votre commande a été enregistrée dans {path} pour que l'utilisateur la relise. "
+    recovery_steps: "Découpez le travail en commandes plus petites que la vérification d'approbation peut lire, ou demandez à l'utilisateur de l'exécuter lui-même. N'exécutez pas le contenu depuis un fichier pour contourner cette vérification, et ne réessayez pas en ligne."
+    unrecognized_answer: "BLOCKED : la réponse d'approbation n'était pas une décision reconnue (attendu : once/session/always pour approuver, ou deny pour refuser). Une réponse non reconnue vaut ABSENCE de consentement. Ne réessayez PAS cette action, ne la reformulez PAS et ne tentez PAS d'obtenir le même résultat par une autre voie — signalez plutôt l'échec de l'approbation à l'utilisateur."
+    scan_incomplete: "BLOCKED : cette commande est trop longue ou trop complexe pour que la vérification d'approbation la lise jusqu'au bout, donc seul un humain peut l'approuver, et {why}. Découpez-la en commandes plus petites que la vérification peut lire, ou demandez à l'utilisateur de l'exécuter lui-même. Ne l'exécutez pas depuis un fichier pour contourner cette vérification."
+    no_reviewer:
+      bypass: "les approbations sont contournées (--yolo, /yolo ou approvals.mode: off)"
+      absent: "aucun humain n'est présent pour la relire"
     user_deny: "BLOCKED : cette commande correspond à la règle de refus définie par l'utilisateur '{pattern}' (approvals.deny dans config.yaml). Elle ne peut pas être exécutée via l'agent — même pas avec --yolo, /yolo ou approvals.mode=off. Ne réessayez PAS et ne reformulez PAS cette commande ; l'utilisateur l'a explicitement interdite."
     sudo_stdin: "BLOCKED : {description}. N'envoyez pas de mots de passe à 'sudo -S' par un pipe — c'est un vecteur d'attaque par force brute. Définissez SUDO_PASSWORD dans votre fichier .env si l'agent a besoin d'un sudo sans mot de passe, ou exécutez la commande sudo manuellement dans votre propre terminal."
     smart_denied: "BLOCKED par l'approbation intelligente : {description}. La commande a été jugée réellement dangereuse. Ne réessayez PAS.{breaker}"
@@ -258,7 +263,7 @@ gateway:
     upload_failed: "✗ Échec de l'envoi du rapport de débogage : {error}"
     header: "**Rapport de débogage envoyé :**"
     auto_delete: "⏱ Les pastes s'effaceront automatiquement dans 6 heures."
-    full_logs_hint: "Pour envoyer les journaux complets, utilisez `hermes debug share` depuis la CLI."
+    full_logs_hint: "Pour envoyer les journaux complets, utilisez `hermes debug share --nous` depuis la CLI."
     share_hint: "Partagez ces liens avec l'équipe Hermes pour obtenir de l'aide."
     report_label: "Rapport"
     local_refused: "`/debug local` garde le rapport sur la machine qui exécute Hermes ; il n'est donc pas disponible depuis une discussion. Envoyez `/debug upload` pour téléverser le rapport de synthèse."
@@ -543,6 +548,17 @@ gateway:
       provider_usage_plus_estimate: "consommation fournisseur + estimation des nouveaux messages"
     source_line: "Source : {source} ; les comptes par catégorie sont des estimations locales."
     hint_all: "Utilisez /context all pour les coûts par skill et par ensemble d'outils."
+    cache_warm: "Cache du prompt : actif jusqu'à {until} (reste {remaining} ; {ttl}, {confidence})."
+    cache_expired: "Cache du prompt : expiré il y a {ago} ({ttl}, {confidence}) ; le prochain message retraitera tout le prompt."
+    cache_maybe_warm: "Cache du prompt : peut-être encore actif jusqu'à {until} (au plus {remaining} de plus ; {ttl}, {confidence})."
+    cache_unknown_moved: "Cache du prompt : inconnu (la route, la session ou le contexte a changé depuis la dernière requête mise en cache)."
+    cache_unknown_route: "Cache du prompt : inconnu (ce fournisseur ne publie pas sa durée de rétention)."
+    cache_unknown_runtime: "Cache du prompt : inconnu (ce runtime fixe ses propres options de cache, que Hermes ne peut pas observer)."
+    cache_unknown_storage: "Cache du prompt : inconnu (le stockage de la session n'a pas pu être lu)."
+    cache_confidence:
+      proven: "prouvé"
+      declared: "déclaré"
+      assumed: "supposé"
   status:
     header: "📊 **État de Hermes Gateway**"
     matrix_scope_header: "**Portée Matrix :**"
@@ -761,6 +777,7 @@ gateway:
     disabled: "⚠️ Mode YOLO **DÉSACTIVÉ** pour cette session — les commandes dangereuses nécessiteront une approbation."
     enabled: "⚡ Mode YOLO **ACTIVÉ** pour cette session — toutes les commandes sont auto-approuvées. À utiliser avec prudence."
   shared:
+    fallback_model_suffix: " — secours pour `{primary}`"
     session_db_unavailable: "Base de données de sessions indisponible."
     session_db_unavailable_prefix: "Base de données de sessions indisponible"
     session_not_found: "Session introuvable dans la base de données."
@@ -1023,6 +1040,7 @@ gateway:
     ack_generate: "Génération d'AGENTS.md à partir d'une analyse du projet…"
   moa:
     prepare_failed: "Échec de la préparation du tour MoA."
+    managed_session: "/moa n'est pas disponible dans cette session : les sessions en mode sans échec, sans configuration, kanban et à worker géré exécutent chaque tour sur leur propre modèle. Envoyez le prompt sans /moa."
   quick_command:
     no_output: "La commande n'a renvoyé aucune sortie."
     timed_out: "Délai de la commande rapide dépassé (30 s)."
@@ -1252,6 +1270,16 @@ platform:
     denied: "❌ Refusé."
     approval_expired: "⌛ Approbation expirée — la commande n'a pas été exécutée (délai dépassé ou déjà résolue ailleurs)."
   shared:
+    vault_code:
+      title: "🔐 Code de vérification pour {site}"
+      body: "{site} demande un code à usage unique (SMS ou e-mail). Appuie sur le bouton et saisis-le dans le formulaire qui s'ouvre : il va directement dans la page et n'est jamais publié ici."
+      button: "Saisir le code"
+      modal_title: "Code pour {site}"
+      input_label: "Code à usage unique"
+      submitted: "Code envoyé ; saisie dans la page en cours."
+      ended: "Cette demande de code est terminée ; rien n'a été saisi."
+      not_author: "Seule la personne qui a lancé cette demande peut saisir le code."
+      submitted_footer: "✓ Code envoyé"
     response_as_file: "📎 Réponse longue : le texte complet est en pièce jointe."
     truncated_suffix: |2-
 
@@ -1480,6 +1508,9 @@ platform:
       upload_too_large: "⚠️ Impossible de joindre `{filename}` — {size_mb} Mo dépasse la limite d'envoi Discord de {limit_mb} Mo pour ce canal. Compressez le fichier ou partagez plutôt un lien."
       image_skipped_too_large: "⚠️ `{filename}` ignoré — {size_mb} Mo dépasse la limite d'envoi Discord de {limit_mb} Mo."
   telegram:
+    vault_code:
+      body: "Répondez à ce message avec le code. Hermes supprime aussitôt votre réponse et saisit le code dans la page ; le modèle ne le voit jamais."
+      delete_failed: "Impossible de supprimer votre réponse ici. Supprimez-la vous-même."
     approval:
       action_once: "✅ Une fois"
       action_session: "✅ Session"
@@ -1537,6 +1568,11 @@ platform:
       affirm: "✓ Oui"
       negate: "✗ Non"
       other: "✏️ Autre (saisir)"
+      multi_hint: "Sélectionnez une ou plusieurs options, puis touchez Envoyer."
+      send: "✅ Envoyer"
+      selected_count: "Sélectionnées : {count}"
+      select_one: "Sélectionnez d'abord au moins une option."
+      toggle_failed: "Impossible de mettre à jour la sélection — touchez à nouveau."
       expired_toast: "⚠️ Ce prompt a expiré — veuillez utiliser /retry."
       expired_body: "⚠️ Cette question a expiré ou la session a été réinitialisée — veuillez utiliser /retry."
       type_answer: "✏️ Saisissez votre réponse dans le chat."
@@ -2041,7 +2077,7 @@ slash:
   version:
     description: "Afficher la version de Hermes Agent"
   debug:
-    description: "Rapport de débogage (infos système + journaux) : affiche d'abord l'avis de confidentialité ; /debug upload partage les liens"
+    description: "Rapport de débogage (versions, clés de configuration, compteurs d’erreurs ; aucun texte de journal) : affiche d'abord l'avis de confidentialité ; /debug upload partage les liens"
   quit:
     description: "Quitter la CLI (--delete supprime aussi l'historique de session)"
 cli:
@@ -3726,6 +3762,10 @@ cli:
     total: "📚 {count} skill(s) disponible(s)"
     added_header: "➕ Skills ajoutées :"
     removed_header: "➖ Skills supprimées :"
+  gateway_restart:
+    waiting: "Hermes redémarre pour terminer une mise à jour ou un redémarrage ; en attente de son retour…"
+    timed_out: "Hermes n'est pas revenu de son redémarrage à temps. Vérifiez `hermes gateway status`, puis relancez `hermes`."
+    stopped: "Attente du redémarrage de Hermes interrompue ; rien n'a été lancé."
   session_store:
     unavailable_rich: |-
       [bold yellow]⚠ Stockage des sessions indisponible[/bold yellow] — cette conversation ne sera [bold]PAS enregistrée[/bold] et ne pourra pas être reprise plus tard. La recherche dans les sessions passées est aussi désactivée.
@@ -4267,7 +4307,7 @@ tips:
   t246: "La variable d'environnement HERMES_HOME_MODE (octal, ex. 0701) définit des permissions de répertoire personnalisées pour la traversée par le serveur web."
   t247: "Mode conteneur : placez .container-mode dans HERMES_HOME et la CLI hôte s'exécute automatiquement dans le conteneur."
   t248: "Ctrl+C a 5 niveaux de priorité : annuler l'enregistrement → annuler les invites → annuler le sélecteur → interrompre l'agent → quitter."
-  t249: "Chaque interruption pendant une exécution de l'agent est consignée dans ~/.hermes/interrupt_debug.log avec horodatage."
+  t249: "Les interruptions pendant une exécution de l'agent sont consignées dans agent.log (à consulter avec `hermes logs`) ; définissez HERMES_DEBUG_INTERRUPT=1 pour une trace détaillée."
   t250: "BROWSER_CDP_URL connecte les outils navigateur à n'importe quel navigateur de la famille Chromium en cours d'exécution — accepte WebSocket, HTTP ou host:port."
   t251: "BROWSERBASE_ADVANCED_STEALTH=true active l'anti-détection avancée avec un Chromium personnalisé (Scale Plan)."
   t252: "La CLI passe automatiquement en mode compact dans les terminaux de moins de 80 colonnes."
@@ -4364,7 +4404,7 @@ tips:
   t343: "/voice tts bascule en mode TTS seul — l'agent répond à voix haute mais vous continuez à taper vos prompts."
   t344: "/reload-skills rescanne ~/.hermes/skills/ pour que les skills déposées apparaissent sans redémarrer la session."
   t345: "/indicator kaomoji|emoji|unicode|ascii choisit le style de l'indicateur d'activité de la TUI affiché pendant les exécutions de l'agent."
-  t346: "/debug téléverse un bundle de support (infos système + journaux) et renvoie des liens partageables — fonctionne aussi dans le chat."
+  t346: "/debug upload téléverse un résumé (versions, clés de configuration, compteurs d’erreurs ; aucun texte de journal) et renvoie un lien partageable — fonctionne aussi dans le chat."
   t347: "hermes -z \"<prompt>\" est le one-shot le plus pur : la réponse finale sur stdout, rien d'autre — idéal pour les pipes dans des scripts."
   t348: "hermes chat --pass-session-id injecte l'ID de session dans le prompt système pour que l'agent puisse y faire référence lui-même."
   t349: "hermes chat --image path/to/pic.png joint une image locale à une requête -q unique, sans étape de téléversement séparée."
@@ -4502,6 +4542,9 @@ tui_gateway:
       provider_policy_blocked:
         title: "Le fournisseur de modèle a refusé cette requête (politique du compte)"
         hint: "Changez de modèle avec /model."
+      guardrail_blocked:
+        title: "La protection contre l'injection de prompt du fournisseur de modèle a bloqué la requête (ce n'est pas votre clé)"
+        hint: "Réglez la protection sur Redact ou Flag dans les paramètres du fournisseur, ou changez de modèle avec /model."
       format_error:
         title: "Le fournisseur de modèle a rejeté le format de la requête"
         hint: "Essayez /retry ; si cela persiste, changez de modèle avec /model."
