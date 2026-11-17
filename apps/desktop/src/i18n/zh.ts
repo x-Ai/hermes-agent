@@ -3,6 +3,7 @@ import { defineFieldCopy } from '@/app/settings/field-copy'
 
 import { defineLocale, type TranslationOverrides } from './define-locale'
 import { introZh } from './intro-zh'
+import { zhBackupTransfer } from './zh_backup_transfer'
 import { zhCatalog } from './zh_catalog'
 import { zhClarify } from './zh_clarify'
 import { zhConnectorAccounts } from './zh_connector_accounts'
@@ -1102,6 +1103,8 @@ export const zhOverrides = {
       mcp: 'MCP',
       archivedChats: '已归档对话',
       sessions: '会话',
+      backup: '备份与迁移',
+      backupOnly: '备份',
       about: '关于',
       billing: '账单',
       notifications: '通知',
@@ -2961,6 +2964,7 @@ export const zhOverrides = {
       billingOverview: '概览',
       billingPlans: '套餐'
     },
+    backup: zhBackupTransfer,
     uninstallSection: {
       dangerZone: '危险操作',
       uninstallHermes: '卸载 Hermes',

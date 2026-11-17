@@ -4826,7 +4826,7 @@ vault:
   browser_profile_source: "Perfil do navegador — {browser}"
 
 shared:
-  # /undo's line naming the files the undone turns changed (tools/checkpoint_undo_hint.py).
+  # /undo's line naming the files the undone turns changed (agent/checkpoints/undo_hint.py).
   undo_rollback:
     list: "↶ Arquivos alterados nos turnos desfeitos: {files}. Execute /rollback para listar os checkpoints e restaurar um."
     more: "+{count} mais"

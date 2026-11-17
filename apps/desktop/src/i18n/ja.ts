@@ -3,6 +3,7 @@ import { defineFieldCopy } from '@/app/settings/field-copy'
 
 import { defineLocale, type TranslationOverrides } from './define-locale'
 import { introJa } from './intro-ja'
+import { jaBackupTransfer } from './ja_backup_transfer'
 import { jaBilling } from './ja_billing'
 import { jaBoot } from './ja_boot'
 import { jaCatalog, jaSkillDeepLink } from './ja_catalog'
@@ -587,6 +588,7 @@ export const jaOverrides = {
   },
   settings: {
     billing: jaBilling,
+    backup: jaBackupTransfer,
     uninstallSection: {
       dangerZone: '危険ゾーン',
       uninstallHermes: 'Hermes をアンインストール',
@@ -691,6 +693,8 @@ export const jaOverrides = {
       mcp: 'MCP',
       archivedChats: 'アーカイブ済みチャット',
       sessions: 'セッション',
+      backup: 'バックアップと移行',
+      backupOnly: 'バックアップ',
       about: '情報',
       billing: '請求',
       notifications: '通知',

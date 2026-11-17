@@ -57,12 +57,7 @@ import { handleServerRequest as dispatchServerRequest } from './gateway-event/se
 import { bindReceiptUserRows } from './receipt-user-rows'
 import { currentResponseParts, mergeCurrentResponseText } from './response-parts'
 import { admitSegmentDelta, admitSegmentSeal, type SegmentCursor, type SegmentStamp } from './segment-identity'
-import {
-  completionErrorText,
-  delegateTaskPayloads,
-  MAX_STREAM_FLUSH_GAP_MS,
-  STREAM_DELTA_FLUSH_MS
-} from './utils'
+import { completionErrorText, delegateTaskPayloads, MAX_STREAM_FLUSH_GAP_MS, STREAM_DELTA_FLUSH_MS } from './utils'
 
 interface MessageStreamOptions {
   activeGatewayProfile?: string
@@ -85,6 +80,8 @@ interface MessageStreamOptions {
 
 interface QueuedStreamDelta {
   occurredAt: number
+  /** Segment offset of `text`'s first code unit, when the frame was stamped. */
+  offset?: number
   text: string
   type: 'assistant' | 'reasoning'
 }
@@ -338,7 +335,9 @@ export function useMessageStream({
           queued.reduce(
             (next, delta) =>
               delta.type === 'assistant'
-                ? dedupeGeneratedImageEchoesInParts(appendAssistantTextPart(next, delta.text, delta.occurredAt))
+                ? dedupeGeneratedImageEchoesInParts(
+                    appendAssistantTextPart(next, delta.text, delta.occurredAt, delta.offset)
+                  )
                 : appendReasoningPart(next, delta.text, delta.occurredAt),
             parts
           )
@@ -454,18 +453,26 @@ export function useMessageStream({
   }, [flushQueuedDeltas])
 
   const queueDelta = useCallback(
-    (sessionId: string, key: 'assistant' | 'reasoning', delta: string, occurredAt = Date.now() / 1000) => {
+    (
+      sessionId: string,
+      key: 'assistant' | 'reasoning',
+      delta: string,
+      occurredAt = Date.now() / 1000,
+      offset?: number
+    ) => {
       if (!delta) {
         return
       }
 
       const queued = queuedDeltasRef.current.get(sessionId) ?? []
       const tail = queued.at(-1)
+      // Only a contiguous chunk joins the queued one, so each entry keeps one offset.
+      const contiguous = tail?.offset === undefined ? offset === undefined : offset === tail.offset + tail.text.length
 
-      if (tail?.type === key) {
+      if (tail?.type === key && contiguous) {
         tail.text += delta
       } else {
-        queued.push({ occurredAt, text: delta, type: key })
+        queued.push({ occurredAt, offset, text: delta, type: key })
       }
 
       queuedDeltasRef.current.set(sessionId, queued)
@@ -530,13 +537,17 @@ export function useMessageStream({
         return
       }
 
+      let offset: number | undefined
+
       if (stamp) {
         const admitted = admitSegmentDelta(segmentCursorsRef.current.get(sessionId), stamp, delta)
         segmentCursorsRef.current.set(sessionId, admitted.cursor)
+        // Admission trims only an already-applied head, so the rest starts that much later.
+        offset = stamp.offset === undefined ? undefined : stamp.offset + delta.length - admitted.text.length
         delta = admitted.text
       }
 
-      queueDelta(sessionId, 'assistant', delta, occurredAt)
+      queueDelta(sessionId, 'assistant', delta, occurredAt, offset)
     },
     [queueDelta]
   )

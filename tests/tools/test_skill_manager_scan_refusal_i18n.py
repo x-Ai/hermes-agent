@@ -52,7 +52,7 @@ def test_refused_create_reports_the_localized_error_and_keeps_no_skill(crashing_
     monkeypatch.setenv("HERMES_LANGUAGE", "zh")
     i18n.reset_language_cache()
 
-    with patch("tools.skill_manager_tool.SKILLS_DIR", tmp_path), \
+    with patch("tools.skills_tool.SKILLS_DIR", tmp_path), \
          patch("agent.skill_utils.get_all_skills_dirs", return_value=[tmp_path]):
         result = _create_skill("scan-crash", CONTENT)
 

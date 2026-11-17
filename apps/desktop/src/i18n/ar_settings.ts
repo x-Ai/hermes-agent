@@ -1,3 +1,4 @@
+import { arBackupTransfer } from './ar_backup_transfer'
 import { arBilling } from './ar_billing'
 import { arCustomEndpoints } from './ar_custom_endpoints'
 import { arDelegationRouting } from './ar_delegation_routing'
@@ -51,6 +52,8 @@ export const arSettings = {
       mcp: 'MCP',
       archivedChats: 'المحادثات المؤرشفة',
       sessions: 'الجلسات',
+      backup: 'النسخ الاحتياطي والنقل',
+      backupOnly: 'النسخ الاحتياطي',
       about: 'حول',
       billing: 'الفوترة',
       notifications: 'الإشعارات',
@@ -1614,6 +1617,7 @@ export const arSettings = {
       billingPlans: 'الخطط'
     },
     uninstallSection: arUninstallSection,
+    backup: arBackupTransfer,
     computerUse: {
       accessibility: 'تسهيلات الاستخدام',
       screenRecording: 'تسجيل الشاشة',

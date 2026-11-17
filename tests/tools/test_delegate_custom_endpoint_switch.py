@@ -12,7 +12,7 @@ from __future__ import annotations
 import unittest
 from unittest.mock import MagicMock, patch
 
-from tools.delegate_tool import _resolve_delegation_credentials
+from tools.delegate_tool_config import _resolve_delegation_credentials
 
 _FIND = "hermes_cli.runtime_provider_custom.find_custom_provider_identity_by_model"
 _RESOLVE = "hermes_cli.runtime_provider.resolve_runtime_provider"

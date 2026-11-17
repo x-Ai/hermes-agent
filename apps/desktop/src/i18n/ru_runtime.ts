@@ -91,6 +91,12 @@ export const ruRuntime = {
     imageCopyEncodeFailed: 'Не удалось закодировать изображение в PNG',
     imageCopyDecodeFailed: 'Не удалось декодировать изображение для копирования в буфер обмена',
     imageCopyFetchFailed: (status: number) => `Не удалось загрузить изображение (${status})`,
-    imageCopyNeedsSecureContext: 'Для копирования изображений в буфер обмена нужен защищённый контекст (HTTPS)'
+    imageCopyNeedsSecureContext: 'Для копирования изображений в буфер обмена нужен защищённый контекст (HTTPS)',
+    transferActionFailed: name => `Не удалось выполнить ${name}.`,
+    transferBackupNoPath: 'Резервная копия не сообщила, куда она записана.',
+    transferBackupChanged: 'Резервная копия изменилась во время чтения. Попробуйте ещё раз.',
+    transferNoUndoBackup: 'Облачный агент не сохранил резервную копию для отмены.',
+    transferNeedsUpdate: 'Этому облачному агенту нужно обновить Hermes, прежде чем он сможет принять перенос.',
+    transferNoUndoPoint: 'Облачный агент не сообщил свою точку отмены.'
   }
 } satisfies Pick<TranslationOverrides, 'timelineEvents' | 'runtimeErrors'>

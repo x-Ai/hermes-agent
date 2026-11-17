@@ -2,6 +2,7 @@
 import { defineFieldCopy } from '@/app/settings/field-copy'
 
 import type { TranslationOverrides } from './define-locale'
+import { zhHantBackupTransfer } from './zh-hant_backup_transfer'
 import { zhHantMemoryLayers } from './zh-hant_memory_layers'
 import { zhHantModelSettings } from './zh-hant_model_settings'
 import { zhHantProviderDescriptions, zhHantProviderEnvKeys, zhHantProviderLabels } from './zh-hant_provider_catalog'
@@ -111,6 +112,8 @@ export const zhHantSettings = {
       mcp: 'MCP',
       archivedChats: '已封存聊天',
       sessions: '工作階段',
+      backup: '備份與移轉',
+      backupOnly: '備份',
       about: '關於',
       billing: '帳單',
       notifications: '通知',
@@ -2029,6 +2032,7 @@ export const zhHantSettings = {
     },
 
     uninstallSection: zhHantUninstallSection,
+    backup: zhHantBackupTransfer,
     computerUse: {
       accessibility: '輔助使用',
       screenRecording: '螢幕錄製',

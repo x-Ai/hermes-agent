@@ -75,7 +75,13 @@ export const zhHantRuntime = {
     imageCopyEncodeFailed: '無法將圖片編碼為 PNG',
     imageCopyDecodeFailed: '無法解碼圖片，不能複製到剪貼簿',
     imageCopyFetchFailed: (status: number) => `取得圖片失敗（${status}）`,
-    imageCopyNeedsSecureContext: '將圖片複製到剪貼簿需要安全上下文（HTTPS）'
+    imageCopyNeedsSecureContext: '將圖片複製到剪貼簿需要安全上下文（HTTPS）',
+    transferActionFailed: name => `${name} 失敗。`,
+    transferBackupNoPath: '備份沒有回報寫入的位置。',
+    transferBackupChanged: '備份在讀取期間發生變更，請再試一次。',
+    transferNoUndoBackup: '雲端代理沒有保留可用來復原的備份。',
+    transferNeedsUpdate: '此雲端代理需要先更新 Hermes 才能接收移轉。',
+    transferNoUndoPoint: '雲端代理沒有回報它的復原點。'
   },
   sharedProviders: {
     badge: '由主設定檔共享',

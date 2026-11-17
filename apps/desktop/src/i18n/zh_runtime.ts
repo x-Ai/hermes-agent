@@ -83,7 +83,13 @@ export const zhRuntime = {
     imageCopyEncodeFailed: '无法将图片编码为 PNG',
     imageCopyDecodeFailed: '无法解码图片，不能复制到剪贴板',
     imageCopyFetchFailed: (status: number) => `获取图片失败（${status}）`,
-    imageCopyNeedsSecureContext: '将图片复制到剪贴板需要安全上下文（HTTPS）'
+    imageCopyNeedsSecureContext: '将图片复制到剪贴板需要安全上下文（HTTPS）',
+    transferActionFailed: name => `${name} 失败`,
+    transferBackupNoPath: '备份没有报告写入位置',
+    transferBackupChanged: '备份在读取过程中发生了变化，请重试',
+    transferNoUndoBackup: '云端智能体没有保留可用于撤销的备份',
+    transferNeedsUpdate: '此云端智能体需要先更新 Hermes 才能接收迁移',
+    transferNoUndoPoint: '云端智能体没有报告它的撤销点'
   },
   sharedProviders: {
     badge: '由主配置档案共享',

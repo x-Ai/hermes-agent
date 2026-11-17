@@ -15,7 +15,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from agent.delegation_context import delegated_child_context
-from tools import delegate_tool, file_tools, terminal_tool
+from tools import delegate_tool, delegate_tool_config, file_tools, terminal_tool
 from tools.approval_context import reset_current_session_key, set_current_session_key
 from tools.delegate_tool import (
     _build_child_system_prompt,
@@ -147,7 +147,7 @@ def test_built_child_keeps_host_rules_and_container_path_with_the_brief_out_of_i
     child._credential_pool = None
 
     with (
-        patch.object(delegate_tool, "_load_config", return_value={}),
+        patch.object(delegate_tool_config, "_load_config", return_value={}),
         patch("run_agent.AIAgent", return_value=child) as agent_class,
     ):
         built = delegate_tool._build_child_agent(
@@ -207,7 +207,7 @@ def test_run_single_child_seeds_relative_file_tools_at_container_mount(
         }
 
     child.run_conversation.side_effect = _run_child
-    with patch("tools.delegate_tool._get_worktree_isolation", return_value=False):
+    with patch("tools.delegate_tool_child_run._get_worktree_isolation", return_value=False):
         result = _run_single_child(
             task_index=0,
             goal="inspect relative files",
@@ -267,7 +267,7 @@ def test_continued_child_resumes_in_its_own_cwd_not_the_parents_container_mount(
         }
 
     child.run_conversation.side_effect = _run_child
-    with patch("tools.delegate_tool._get_worktree_isolation", return_value=False):
+    with patch("tools.delegate_tool_child_run._get_worktree_isolation", return_value=False):
         result = _run_single_child(
             task_index=0,
             goal="now add tests",

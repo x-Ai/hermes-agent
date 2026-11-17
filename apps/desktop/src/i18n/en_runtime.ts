@@ -91,7 +91,13 @@ export const enRuntime = {
     imageCopyEncodeFailed: 'Failed to encode image as PNG',
     imageCopyDecodeFailed: 'Failed to decode image for clipboard copy',
     imageCopyFetchFailed: (status: number) => `Image fetch failed (${status})`,
-    imageCopyNeedsSecureContext: 'Copying images to the clipboard requires a secure context (HTTPS)'
+    imageCopyNeedsSecureContext: 'Copying images to the clipboard requires a secure context (HTTPS)',
+    transferActionFailed: (name: string) => `${name} failed.`,
+    transferBackupNoPath: 'The backup did not say where it was written.',
+    transferBackupChanged: 'The backup changed while it was being read. Try again.',
+    transferNoUndoBackup: 'The cloud agent did not keep a backup to undo with.',
+    transferNeedsUpdate: 'This cloud agent needs a Hermes update before it can receive a transfer.',
+    transferNoUndoPoint: 'The cloud agent did not report its undo point.'
   },
   sharedProviders: {
     badge: 'Shared from the main profile',

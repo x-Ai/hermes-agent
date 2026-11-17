@@ -10,6 +10,7 @@ import type { ErrorCodeKey } from '@/lib/error-surface'
 import type { TipId } from '@/lib/tips/catalog'
 
 import type { AppTourTranslations } from './types_app_tour'
+import type { BackupTransferTranslations } from './types_backup_transfer'
 import type { BillingTranslations } from './types_billing'
 import type { BootTranslations } from './types_boot'
 import type { CatalogTranslations } from './types_catalog'
@@ -732,6 +733,8 @@ export interface Translations extends NoticeTranslations, GoalStatusTranslations
       notifications: string
       vault: string
       sessions: string
+      backup: string
+      backupOnly: string
       plugins: string
     }
     plugins: {
@@ -1031,6 +1034,7 @@ export interface Translations extends NoticeTranslations, GoalStatusTranslations
     fieldLabels: Record<string, string>
     fieldDescriptions: Record<string, string>
     uninstallSection: UninstallSectionTranslations
+    backup: BackupTransferTranslations
     computerUse: {
       accessibility: string
       screenRecording: string

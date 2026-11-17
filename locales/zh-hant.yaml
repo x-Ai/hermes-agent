@@ -4824,7 +4824,7 @@ vault:
   browser_profile_source: "瀏覽器設定檔 — {browser}"
 
 shared:
-  # /undo's line naming the files the undone turns changed (tools/checkpoint_undo_hint.py).
+  # /undo's line naming the files the undone turns changed (agent/checkpoints/undo_hint.py).
   undo_rollback:
     list: "↶ 已復原回合中變更的檔案：{files}。執行 /rollback 列出檢查點並還原其中一個。"
     more: "另外 {count} 個"

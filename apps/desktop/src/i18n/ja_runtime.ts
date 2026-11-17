@@ -92,7 +92,13 @@ export const jaRuntime = {
     imageCopyEncodeFailed: '画像を PNG にエンコードできませんでした',
     imageCopyDecodeFailed: 'クリップボードにコピーする画像をデコードできませんでした',
     imageCopyFetchFailed: (status: number) => `画像の取得に失敗しました（${status}）`,
-    imageCopyNeedsSecureContext: '画像をクリップボードにコピーするには、安全なコンテキスト（HTTPS）が必要です'
+    imageCopyNeedsSecureContext: '画像をクリップボードにコピーするには、安全なコンテキスト（HTTPS）が必要です',
+    transferActionFailed: name => `${name} に失敗しました。`,
+    transferBackupNoPath: 'バックアップの書き込み先が報告されませんでした。',
+    transferBackupChanged: '読み取り中にバックアップが変更されました。もう一度お試しください。',
+    transferNoUndoBackup: 'クラウドエージェントが元に戻すためのバックアップを保持していませんでした。',
+    transferNeedsUpdate: 'このクラウドエージェントは、移行を受け取る前に Hermes の更新が必要です。',
+    transferNoUndoPoint: 'クラウドエージェントが復元ポイントを報告しませんでした。'
   },
   sharedProviders: {
     badge: 'メインプロファイルから共有',

@@ -80,7 +80,13 @@ export const arRuntime = {
     imageCopyEncodeFailed: 'تعذّر ترميز الصورة بصيغة PNG',
     imageCopyDecodeFailed: 'تعذّر فك ترميز الصورة لنسخها إلى الحافظة',
     imageCopyFetchFailed: (status: number) => `تعذّر جلب الصورة (${status})`,
-    imageCopyNeedsSecureContext: 'يتطلب نسخ الصور إلى الحافظة سياقًا آمنًا (HTTPS)'
+    imageCopyNeedsSecureContext: 'يتطلب نسخ الصور إلى الحافظة سياقًا آمنًا (HTTPS)',
+    transferActionFailed: name => `فشل ${name}.`,
+    transferBackupNoPath: 'لم تُبلغ النسخة الاحتياطية عن مكان كتابتها.',
+    transferBackupChanged: 'تغيّرت النسخة الاحتياطية أثناء قراءتها. حاول مرة أخرى.',
+    transferNoUndoBackup: 'لم يحتفظ الوكيل السحابي بنسخة احتياطية يمكن التراجع بها.',
+    transferNeedsUpdate: 'يحتاج هذا الوكيل السحابي إلى تحديث Hermes قبل أن يستقبل نقلًا.',
+    transferNoUndoPoint: 'لم يُبلغ الوكيل السحابي عن نقطة التراجع الخاصة به.'
   },
   sharedProviders: {
     badge: 'مشترك من الملف الشخصي الرئيسي',

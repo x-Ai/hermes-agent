@@ -2,6 +2,7 @@
 import { defineFieldCopy } from '@/app/settings/field-copy'
 
 import { defineLocale, type TranslationOverrides } from './define-locale'
+import { ruBackupTransfer } from './ru_backup_transfer'
 import { ruBilling } from './ru_billing'
 import { ruBoot } from './ru_boot'
 import { ruCatalog, ruSkillDeepLink } from './ru_catalog'
@@ -745,6 +746,8 @@ export const ruOverrides = {
       mcp: 'MCP',
       archivedChats: 'Архив чатов',
       sessions: 'Сеансы',
+      backup: 'Резервная копия и перенос',
+      backupOnly: 'Резервная копия',
       about: 'О программе',
       billing: 'Оплата',
       notifications: 'Уведомления',
@@ -2321,6 +2324,7 @@ export const ruOverrides = {
       billingPlans: 'Тарифы'
     },
     uninstallSection: ruUninstallSection,
+    backup: ruBackupTransfer,
     computerUse: {
       accessibility: 'Универсальный доступ',
       screenRecording: 'Запись экрана',

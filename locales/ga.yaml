@@ -4826,7 +4826,7 @@ vault:
   browser_profile_source: "Próifíl an bhrabhsálaí — {browser}"
 
 shared:
-  # /undo's line naming the files the undone turns changed (tools/checkpoint_undo_hint.py).
+  # /undo's line naming the files the undone turns changed (agent/checkpoints/undo_hint.py).
   undo_rollback:
     list: "↶ Comhaid a athraíodh sna seal a cealaíodh: {files}. Rith /rollback chun seicphointí a liostú agus ceann a athchóiriú."
     more: "+{count} eile"

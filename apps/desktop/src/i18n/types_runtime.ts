@@ -14,6 +14,13 @@ export interface TimelineEventsCopy {
 /** Messages the renderer throws from its own actions, plus backend details the toast summariser
  *  re-renders; they surface as `notifyError` toast bodies. */
 export interface RuntimeErrorsCopy {
+  /** Backup & Transfer (agent-transfer.ts), shown under the page's "The transfer stopped". */
+  transferActionFailed: (name: string) => string
+  transferBackupNoPath: string
+  transferBackupChanged: string
+  transferNoUndoBackup: string
+  transferNeedsUpdate: string
+  transferNoUndoPoint: string
   previewTargetUnavailable: (target: string) => string
   desktopBridgeUnavailable: string
   artifactWriteFailed: string

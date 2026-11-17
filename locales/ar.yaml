@@ -4825,7 +4825,7 @@ vault:
   browser_profile_source: "الملف الشخصي للمتصفح — {browser}"
 
 shared:
-  # /undo's line naming the files the undone turns changed (tools/checkpoint_undo_hint.py).
+  # /undo's line naming the files the undone turns changed (agent/checkpoints/undo_hint.py).
   undo_rollback:
     list: "↶ الملفات التي تغيّرت في الأدوار التي تم التراجع عنها: {files}. شغّل /rollback لعرض نقاط الحفظ واستعادة إحداها."
     more: "+{count} أخرى"

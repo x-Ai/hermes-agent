@@ -78,7 +78,7 @@ const latinWords = (text: string) => (text.match(/[A-Za-z][A-Za-z']{2,}/g) ?? []
 // units and keys, terms of art (shell, sudo, Cookie), the `main` branch and the clarify
 // tool's `questions` / `question` parameters.
 const LATIN_NAMES =
-  /\b(?:Team Gateway|Tailscale Serve|Hermes Desktop|Hermes Cloud|Hermes|Nous|OpenAI|ElevenLabs|Stripe|Telegram|Cloudflare|Git|JavaScript|WebSocket|OAuth|MoA|Webapp|Portal|Tokens?|Mtok|MiB|Ctrl|Cmd|shell|sudo|Cookie|main|questions?)\b/g
+  /\b(?:Team Gateway|Tailscale Serve|Hermes Desktop|Hermes Cloud|Hermes|Nous|OpenAI|ElevenLabs|Stripe|Telegram|Discord|Cloudflare|Git|JavaScript|WebSocket|OAuth|MoA|Webapp|Portal|Tokens?|Mtok|MiB|Ctrl|Cmd|shell|sudo|Cookie|main|questions?)\b/g
 
 // The Latin words a Chinese rendering keeps once names, acronyms, code spans, URLs,
 // slash commands with their arguments, `hermes …` invocations, identifiers
